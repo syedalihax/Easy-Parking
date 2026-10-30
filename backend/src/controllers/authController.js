@@ -23,6 +23,25 @@ const createToken = (user) => jwt.sign(
   { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
 );
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+const setAuthCookie = (res, token) => {
+  res.cookie('jwt', token, cookieOptions);
+};
+
+const clearAuthCookie = (res) => {
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
+};
+
 const signup = async (req, res) => {
   const { fullName, email, phone, password, preferredLanguage } = req.body;
   const supportedLanguages = ['en', 'fa-IR', 'ur', 'ur-Latn'];
@@ -74,9 +93,9 @@ const signup = async (req, res) => {
     const user = await User.create(userDetails);
 
     const token = createToken(user);
+    setAuthCookie(res, token);
 
     return res.status(201).json({
-      token,
       user: sanitizeUser(user),
     });
   } catch (error) {
@@ -116,19 +135,19 @@ const login = async (req, res) => {
     });
 
     if (!user || user.status !== 'active') {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
 
     if (!passwordMatches) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const token = createToken(user);
+    setAuthCookie(res, token);
 
     return res.json({
-      token,
       user: sanitizeUser(user),
     });
   } catch (error) {
@@ -138,7 +157,8 @@ const login = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  return res.json({ message: 'Logged out successfully. Delete the stored token on the client.' });
+  clearAuthCookie(res);
+  return res.json({ message: 'Logged out successfully.' });
 };
 
 const getMe = async (req, res) => {
