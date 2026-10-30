@@ -1,32 +1,34 @@
 # easyParking backend
 
-The backend is a Node.js and Express REST API. Mongoose models persist parking-scoped records in MongoDB. Authentication uses JWT, passwords are hashed with bcrypt, and billing periods use `date-fns` plus UTC date support.
+The backend is a Node.js and Express REST API. Mongoose models persist parking-scoped records in MongoDB. Authentication uses JWTs stored inside secure HttpOnly cookies, passwords are hashed with bcrypt, and billing periods use `date-fns` plus UTC-safe date handling.
 
 ## Requirements
 
-- Node.js 20.19+ (or 22.12+) and npm
+- Node.js 20.19+ or 22.12+
+- npm
 - MongoDB running as a replica set
 
-MongoDB transactions are used for payment recording/correction and operations that update a vehicle together with its subscription. A standalone MongoDB instance cannot support these operations. The example URI expects a replica set named `rs0`.
+MongoDB transactions are used for payment recording/correction and operations that update a vehicle together with its subscription. A standalone MongoDB instance cannot support these operations. The local example expects a replica set named `rs0`.
 
 ## Setup
 
 ```powershell
 npm install
-Copy-Item .env.example .env
 ```
 
-Set a long, unique `JWT_SECRET` in `.env`. Review the other values:
+Create a `backend/.env` file and set the required values:
 
 ```env
 PORT=5000
+HOST=0.0.0.0
 MONGODB_URI=mongodb://127.0.0.1:27017/easyparking?replicaSet=rs0
 NODE_ENV=development
 JWT_SECRET=replace_with_a_long_random_string
 JWT_EXPIRES_IN=7d
+TRUST_PROXY_HOPS=1
 ```
 
-If the API is behind a trusted reverse proxy, set `TRUST_PROXY_HOPS` to the exact number of trusted proxy hops so IP-based authentication throttling uses the client address. Do not set it to an unbounded trust value.
+If the API is behind a trusted reverse proxy, set `TRUST_PROXY_HOPS` to the exact number of trusted proxy hops so IP-based authentication throttling uses the real client address. Do not set it to an unbounded trust value.
 
 Do not commit `.env` or share its secret. Ensure MongoDB is available at the configured URI, then run:
 
@@ -34,7 +36,15 @@ Do not commit `.env` or share its secret. Ensure MongoDB is available at the con
 npm run dev
 ```
 
-The API listens on all network interfaces at port `5000` by default, so a phone on the same trusted Wi-Fi can reach it through the computer's LAN IP. Verify on the computer at `http://localhost:5000/api/health`; from a phone use `http://<computer-LAN-IP>:5000/api/health`. Keep the phone and computer on the same Wi-Fi and allow Node.js through the Windows firewall for private networks if prompted. The API has development CORS enabled for browser requests; using `localhost` from a phone is incorrect because it refers to the phone itself.
+The API listens on all network interfaces at port `5000` by default. Verify on the host at `http://localhost:5000/api/health`; from a phone on the same trusted Wi-Fi use `http://<computer-LAN-IP>:5000/api/health`.
+
+## Security model
+
+- JWTs are stored in HttpOnly cookies instead of browser localStorage
+- Frontend requests are sent with `credentials: 'include'`
+- Server auth middleware accepts either a cookie JWT or a fallback bearer token for compatibility
+- Login and signup are rate-limited to prevent brute force attempts
+- Generic error responses are returned in production mode
 
 ## Scripts
 
@@ -61,21 +71,18 @@ Every parking-scoped endpoint authenticates the user and verifies active members
 | Prefix | Purpose |
 |---|---|
 | `/api/health` | Health check |
-| `/api/auth` | Signup, login, logout, and current user; signup/login share a limit of 10 requests per IP per 15 minutes |
+| `/api/auth` | Signup, login, logout, and current user |
 | `/api/parkings` | Create a parking and list the current user's parkings |
 | `/api/invitations` | Create, list, and accept team invitations |
 | `/api/parkings/:parkingId/customers` | Customer and vehicle records |
 | `/api/parkings/:parkingId/customers/:customerId/subscriptions` | Subscription listing and rate management |
 | `/api/parkings/:parkingId/customers/:customerId/dues` | Generate missing completed dues and read balances |
 | `/api/parkings/:parkingId/customers/:customerId/payments` | Payment preview, receive, history, and details |
-| `/api/parkings/:parkingId/payments/:paymentId/corrections/request` | Request a payment correction |
-| `/api/parkings/:parkingId/payments/:paymentId/corrections/:auditLogId/approve` | Owner approves a correction |
-| `/api/parkings/:parkingId/payments/:paymentId/corrections/:auditLogId/reject` | Owner rejects a correction |
 | `/api/parkings/:parkingId/daily-rate` and `/api/parkings/:parkingId/daily-parking` | Daily rate, entry, active list, exit, payment, and history |
 | `/api/parkings/:parkingId/dashboard` and `/reminders` | Dashboard metrics and due reminders |
 | `/api/parkings/:parkingId/reports` | Filterable JSON reports and CSV downloads |
 
-The API expects a bearer token in the `Authorization` header for protected routes. All money and due calculations are performed server-side. Payment allocation uses MongoDB transactions, defaults to oldest outstanding dues, and reports any unallocated remainder.
+Protected routes verify the user from the JWT cookie or bearer token. All money and due calculations are performed server-side. Payment allocation uses MongoDB transactions, defaults to oldest outstanding dues, and reports any unallocated remainder.
 
 Unhandled Express errors are logged server-side and return a generic message in production; unknown API paths return JSON `404` responses. Set `NODE_ENV=production` in the hosting environment. The built-in rate-limit store is process-local, so deployments with multiple backend instances should configure a shared store before scaling horizontally.
 
@@ -90,7 +97,7 @@ src/
   models/                   Mongoose schemas and indexes
   routes/                   REST route definitions
   services/                 Due generation and payment allocation logic
-  utils/                    Billing-period and MongoDB helpers
+  utils/                    Billing period and MongoDB helpers
 test/                       Node.js tests
 server.js                   Environment loading and HTTP server startup
 ```
