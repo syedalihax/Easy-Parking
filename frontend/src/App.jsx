@@ -81,13 +81,15 @@ function App() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [token, setToken] = useState(localStorage.getItem('easyparking_token') || '');
+  const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
   const [parkings, setParkings] = useState([]);
   const [selectedParkingId, setSelectedParkingId] = useState(
     localStorage.getItem('easyparking_selected_parking') || '',
   );
   const [authForm, setAuthForm] = useState(defaultAuthForm);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profileForm, setProfileForm] = useState({ fullName: '', email: '', phone: '' });
   const [parkingForm, setParkingForm] = useState(defaultParkingForm);
   const [inviteForm, setInviteForm] = useState(defaultInviteForm);
@@ -102,6 +104,7 @@ function App() {
     () => parkings.find((parking) => parking._id === selectedParkingId) || null,
     [parkings, selectedParkingId],
   );
+  const userDisplayName = user?.fullName?.trim() || t('profile.notAssigned');
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
   const showProfileSetup = location.pathname === '/app/profile'
     && new URLSearchParams(location.search).get('setup') === '1';
@@ -179,9 +182,16 @@ function App() {
     }
   }, [showProfileSetup]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('easyparking_token');
+  const logout = useCallback(async () => {
     localStorage.removeItem('easyparking_selected_parking');
+    try {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      // Ignore logout request failures so the client can still clear the local session.
+    }
     setToken('');
     setUser(null);
     setParkings([]);
@@ -213,6 +223,39 @@ function App() {
     } catch (error) {
       setErrorMessage(error.message);
     }
+  }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const restoreSession = async () => {
+      setIsSessionLoading(true);
+
+      try {
+        const response = await apiGetMe();
+        if (!isCurrent) return;
+
+        setUser(response.user);
+        setProfileForm(profileFormFromUser(response.user));
+        if (response.user.preferredLanguage) {
+          await i18n.changeLanguage(response.user.preferredLanguage);
+        }
+        setToken('session');
+      } catch (error) {
+        if (!isCurrent) return;
+        setUser(null);
+        setToken('');
+      } finally {
+        if (isCurrent) {
+          setIsSessionLoading(false);
+        }
+      }
+    };
+
+    restoreSession();
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -297,9 +340,8 @@ function App() {
         }
 
         const response = await apiSignup(payload);
-        localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
-        setToken(response.token);
+        setToken('session');
         setShowProfileSuccess(true);
         navigate('/app/profile?setup=1', { replace: true });
       } else {
@@ -309,9 +351,8 @@ function App() {
           password: authForm.password,
         });
 
-        localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
-        setToken(response.token);
+        setToken('session');
         navigate('/app', { replace: true });
       }
     } catch (error) {
@@ -419,6 +460,11 @@ function App() {
   const renderAuthForm = (mode) => (
     <div className="auth-shell">
       <div className="auth-card">
+        <button type="button" className="auth-back-button" onClick={() => navigate('/')}>
+          <GoogleIcon name="arrow_back" size={18} />
+          <span>Back</span>
+        </button>
+
         <p className="eyebrow">{t('app.name')}</p>
         <h1>{t(mode === 'login' ? 'auth.welcomeBack' : 'auth.createAccount')}</h1>
         <p className="auth-intro">{t(mode === 'login' ? 'auth.loginHint' : 'auth.signupHint')}</p>
@@ -466,23 +512,43 @@ function App() {
 
           <label className="field">
             <span>{t('auth.password')}</span>
-            <input
-              type="password"
-              value={authForm.password}
-              onChange={(event) => handleAuthInput('password', event.target.value)}
-              placeholder={t('auth.passwordPlaceholder')}
-            />
+            <div className="password-input-wrap">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={authForm.password}
+                onChange={(event) => handleAuthInput('password', event.target.value)}
+                placeholder={t('auth.passwordPlaceholder')}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                <GoogleIcon name={showPassword ? 'visibility_off' : 'visibility'} size={18} />
+              </button>
+            </div>
           </label>
 
           {mode === 'signup' && (
             <label className="field">
               <span>{t('auth.confirmPassword')}</span>
-              <input
-                type="password"
-                value={authForm.confirmPassword}
-                onChange={(event) => handleAuthInput('confirmPassword', event.target.value)}
-                placeholder={t('auth.confirmPasswordPlaceholder')}
-              />
+              <div className="password-input-wrap">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={authForm.confirmPassword}
+                  onChange={(event) => handleAuthInput('confirmPassword', event.target.value)}
+                  placeholder={t('auth.confirmPasswordPlaceholder')}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowConfirmPassword((current) => !current)}
+                >
+                  <GoogleIcon name={showConfirmPassword ? 'visibility_off' : 'visibility'} size={18} />
+                </button>
+              </div>
             </label>
           )}
 
@@ -550,7 +616,7 @@ function App() {
       <header className="workspace-heading">
         <div><p className="eyebrow">{t('team.role')}</p><h2>{t('menu.parkingAccess')}</h2></div>
       </header>
-      {activeParking.role === 'owner' && (
+      {activeParking?.role === 'owner' && (
         <section className="panel">
           <div className="panel-header"><h3>{t('team.invite')}</h3></div>
           <form className="form-grid team-invite-form" onSubmit={handleInviteSubmit}>
@@ -654,27 +720,36 @@ function App() {
     </div>
   );
 
-  const renderParkingSettings = () => (
-    <div className="operations-workspace">
-      <header className="workspace-heading">
-        <div><p className="eyebrow">{t('parkingSettings.eyebrow')}</p><h2>{t('parkingSettings.title')}</h2></div>
-      </header>
-      {parkings.length > 1 && (
-        <label className="field dashboard-parking-select">
-          <span>{t('app.selectedParking')}</span>
-          <select value={selectedParkingId} onChange={(event) => setSelectedParkingId(event.target.value)}>
-            {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
-          </select>
-        </label>
-      )}
-      <section className="panel profile-details">
-        <div><span>{t('parkingSettings.name')}</span><strong>{activeParking.name}</strong></div>
-        <div><span>{t('parkingSettings.address')}</span><strong>{activeParking.address || t('app.notProvided')}</strong></div>
-        <div><span>{t('parkingSettings.contact')}</span><strong>{activeParking.contactInfo || t('app.notProvided')}</strong></div>
-        <div><span>{t('team.role')}</span><strong>{t(`team.${activeParking.role}`)}</strong></div>
-      </section>
-    </div>
-  );
+  const renderParkingSettings = () => {
+    const parkingDetails = activeParking || {
+      name: t('profile.notAssigned'),
+      address: '',
+      contactInfo: '',
+      role: 'manager',
+    };
+
+    return (
+      <div className="operations-workspace">
+        <header className="workspace-heading">
+          <div><p className="eyebrow">{t('parkingSettings.eyebrow')}</p><h2>{t('parkingSettings.title')}</h2></div>
+        </header>
+        {parkings.length > 1 && (
+          <label className="field dashboard-parking-select">
+            <span>{t('app.selectedParking')}</span>
+            <select value={selectedParkingId} onChange={(event) => setSelectedParkingId(event.target.value)}>
+              {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
+            </select>
+          </label>
+        )}
+        <section className="panel profile-details">
+          <div><span>{t('parkingSettings.name')}</span><strong>{parkingDetails.name}</strong></div>
+          <div><span>{t('parkingSettings.address')}</span><strong>{parkingDetails.address || t('app.notProvided')}</strong></div>
+          <div><span>{t('parkingSettings.contact')}</span><strong>{parkingDetails.contactInfo || t('app.notProvided')}</strong></div>
+          <div><span>{t('team.role')}</span><strong>{t(`team.${parkingDetails.role}`)}</strong></div>
+        </section>
+      </div>
+    );
+  };
 
   const renderLoadingScreen = () => (
     <main className="auth-shell" aria-busy="true">
@@ -709,7 +784,7 @@ function App() {
     return renderLoadingScreen();
   }
 
-  if (parkings.length === 0 && location.pathname.startsWith('/app') && location.pathname !== '/app/profile') {
+  if ((!activeParking || !activeParking._id) && location.pathname.startsWith('/app') && location.pathname !== '/app/profile') {
     return renderParkingSetup();
   }
 
@@ -756,14 +831,14 @@ function App() {
             </nav>
             <NavLink
               to="/app/profile"
-              aria-label={`${t('menu.profile')}: ${user.fullName}`}
+              aria-label={`${t('menu.profile')}: ${userDisplayName}`}
               className={({ isActive }) => `sidebar-user${isActive ? ' is-active' : ''}`}
             >
               <span className="sidebar-user-avatar" aria-hidden="true">
-                {user.fullName.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join('')}
+                {userDisplayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join('') || 'U'}
               </span>
               <span className="sidebar-user-copy">
-                <strong>{user.fullName}</strong>
+                <strong>{userDisplayName}</strong>
                 <small>{t('menu.profile')}</small>
               </span>
               <GoogleIcon name="chevron_right" size={17} />
@@ -779,8 +854,8 @@ function App() {
               />
               <aside id="mobile-menu-drawer" className="mobile-menu-drawer" aria-label={t('menu.title')}>
                 <div className="mobile-menu-user">
-                  <strong>{user.fullName}</strong>
-                  <span>{t(`team.${activeParking.role}`)}</span>
+                  <strong>{userDisplayName}</strong>
+                  <span>{activeParking?.role ? t(`team.${activeParking.role}`) : t('profile.notAssigned')}</span>
                 </div>
                 <nav className="mobile-menu-links">
                   <NavLink to="/app/settings" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
@@ -827,18 +902,18 @@ function App() {
         </div>
       )}>
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardWorkspace key={`${activeParking?._id}-dashboard`} parkingId={activeParking._id} />} />
-        <Route path="reports" element={<ReportsWorkspace key={`${activeParking?._id}-reports`} parkingId={activeParking._id} />} />
+        <Route path="dashboard" element={<DashboardWorkspace key={`${activeParking?._id || 'no-parking'}-dashboard`} parkingId={activeParking?._id || ''} />} />
+        <Route path="reports" element={<ReportsWorkspace key={`${activeParking?._id || 'no-parking'}-reports`} parkingId={activeParking?._id || ''} />} />
         <Route path="more" element={<MoreWorkspace />} />
         <Route path="settings" element={renderParkingSettings()} />
         <Route path="profile" element={renderProfile()} />
-        <Route path="customers" element={<CustomersWorkspace key={`${activeParking?._id}-customers`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
-        <Route path="customers/:customerId" element={<CustomersWorkspace key={`${activeParking?._id}-customer-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
-        <Route path="vehicles" element={<CustomersWorkspace key={`${activeParking?._id}-vehicles`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="vehicle-search" />} />
-        <Route path="vehicles/:vehicleId" element={<CustomersWorkspace key={`${activeParking?._id}-vehicle-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="vehicle-detail" />} />
-        <Route path="dues" element={<CustomersWorkspace key={`${activeParking?._id}-dues`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="dues" />} />
-        <Route path="payments" element={<CustomersWorkspace key={`${activeParking?._id}-payments`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="payments" />} />
-        <Route path="daily-parking" element={<DailyParkingWorkspace key={`${activeParking?._id}-daily`} parkingId={activeParking._id} />} />
+        <Route path="customers" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-customers`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="customers" />} />
+        <Route path="customers/:customerId" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-customer-detail`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="customers" />} />
+        <Route path="vehicles" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-vehicles`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="vehicle-search" />} />
+        <Route path="vehicles/:vehicleId" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-vehicle-detail`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="vehicle-detail" />} />
+        <Route path="dues" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-dues`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="dues" />} />
+        <Route path="payments" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-payments`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="payments" />} />
+        <Route path="daily-parking" element={<DailyParkingWorkspace key={`${activeParking?._id || 'no-parking'}-daily`} parkingId={activeParking?._id || ''} />} />
         <Route path="team" element={renderTeam()} />
         <Route path="*" element={<NotFoundPage />} />
         </Route>
