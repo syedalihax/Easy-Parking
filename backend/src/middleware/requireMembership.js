@@ -25,6 +25,10 @@ const requireParkingMembership = async (req, res, next) => {
 
     return next();
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid parking ID' });
+    }
+
     return res.status(500).json({ message: 'Could not verify parking membership' });
   }
 };

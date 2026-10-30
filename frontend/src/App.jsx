@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   apiAcceptInvitation,
   apiCreateInvitation,
@@ -9,6 +9,7 @@ import {
   apiLogin,
   apiSignup,
 } from './api';
+import CustomersWorkspace from './components/CustomersWorkspace';
 
 const defaultAuthForm = {
   fullName: '',
@@ -44,23 +45,13 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSessionLoading, setIsSessionLoading] = useState(Boolean(token));
+  const [activeSection, setActiveSection] = useState('customers');
 
   const activeParking = useMemo(
     () => parkings.find((parking) => parking._id === selectedParkingId) || null,
     [parkings, selectedParkingId],
   );
-
-  useEffect(() => {
-    if (!token) {
-      setUser(null);
-      setParkings([]);
-      return;
-    }
-
-    loadCurrentUser();
-    loadParkings();
-    loadPendingInvitations();
-  }, [token]);
 
   useEffect(() => {
     if (selectedParkingId) {
@@ -70,40 +61,7 @@ function App() {
     }
   }, [selectedParkingId]);
 
-  const loadCurrentUser = async () => {
-    try {
-      const response = await apiGetMe();
-      setUser(response.user);
-    } catch (error) {
-      setErrorMessage(error.message);
-      logout();
-    }
-  };
-
-  const loadParkings = async () => {
-    try {
-      const response = await apiGetMyParkings();
-      const nextParkings = response.parkings || [];
-      setParkings(nextParkings);
-
-      if (!selectedParkingId && nextParkings.length > 0) {
-        setSelectedParkingId(nextParkings[0]._id);
-      }
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
-  const loadPendingInvitations = async () => {
-    try {
-      const response = await apiGetPendingInvitations();
-      setPendingInvitations(response.invitations || []);
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('easyparking_token');
     localStorage.removeItem('easyparking_selected_parking');
     setToken('');
@@ -111,7 +69,81 @@ function App() {
     setParkings([]);
     setSelectedParkingId('');
     setPendingInvitations([]);
-  };
+    setIsSessionLoading(false);
+  }, []);
+
+  const loadParkings = useCallback(async () => {
+    try {
+      const response = await apiGetMyParkings();
+      const nextParkings = response.parkings || [];
+      setParkings(nextParkings);
+      setSelectedParkingId((currentId) => (
+        nextParkings.some((parking) => parking._id === currentId)
+          ? currentId
+          : nextParkings[0]?._id || ''
+      ));
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  }, []);
+
+  const loadPendingInvitations = useCallback(async () => {
+    try {
+      const response = await apiGetPendingInvitations();
+      setPendingInvitations(response.invitations || []);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
+    let isCurrent = true;
+
+    const loadSession = async () => {
+      const [userResult, parkingResult, invitationResult] = await Promise.allSettled([
+        apiGetMe(),
+        apiGetMyParkings(),
+        apiGetPendingInvitations(),
+      ]);
+
+      if (!isCurrent) return;
+
+      if (userResult.status === 'rejected') {
+        setErrorMessage(userResult.reason.message);
+        logout();
+        return;
+      }
+
+      setUser(userResult.value.user);
+
+      if (parkingResult.status === 'fulfilled') {
+        const nextParkings = parkingResult.value.parkings || [];
+        setParkings(nextParkings);
+        setSelectedParkingId((currentId) => (
+          nextParkings.some((parking) => parking._id === currentId)
+            ? currentId
+            : nextParkings[0]?._id || ''
+        ));
+      } else {
+        setErrorMessage(parkingResult.reason.message);
+      }
+
+      if (invitationResult.status === 'fulfilled') {
+        setPendingInvitations(invitationResult.value.invitations || []);
+      } else {
+        setErrorMessage(invitationResult.reason.message);
+      }
+
+      setIsSessionLoading(false);
+    };
+
+    loadSession();
+    return () => {
+      isCurrent = false;
+    };
+  }, [token, logout]);
 
   const handleAuthInput = (field, value) => {
     setAuthForm((current) => ({ ...current, [field]: value }));
@@ -142,6 +174,7 @@ function App() {
 
         const response = await apiSignup(payload);
         localStorage.setItem('easyparking_token', response.token);
+        setIsSessionLoading(true);
         setToken(response.token);
         setStatusMessage('Account created successfully');
       } else {
@@ -152,6 +185,7 @@ function App() {
         });
 
         localStorage.setItem('easyparking_token', response.token);
+        setIsSessionLoading(true);
         setToken(response.token);
         setStatusMessage('Logged in successfully');
       }
@@ -395,65 +429,85 @@ function App() {
 
       {activeParking && (
         <>
-          <section className="panel">
-            <div className="panel-header">
-              <h3>Invite teammate</h3>
-            </div>
-            <form className="form-grid" onSubmit={handleInviteSubmit}>
-              <label className="field">
-                <span>Email or phone</span>
-                <input
-                  type="text"
-                  value={inviteForm.emailOrPhone}
-                  onChange={(event) => setInviteForm((current) => ({ ...current, emailOrPhone: event.target.value }))}
-                  placeholder="manager@example.com"
-                />
-              </label>
+          <nav className="workspace-tabs" aria-label="Parking sections">
+            <button type="button" className={activeSection === 'customers' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('customers')}>Customers</button>
+            <button type="button" className={activeSection === 'vehicle-search' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('vehicle-search')}>Vehicle search</button>
+            <button type="button" className={activeSection === 'team' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('team')}>Team</button>
+          </nav>
 
-              <label className="field">
-                <span>Role</span>
-                <select
-                  value={inviteForm.role}
-                  onChange={(event) => setInviteForm((current) => ({ ...current, role: event.target.value }))}
-                >
-                  <option value="manager">Manager</option>
-                  <option value="owner">Owner</option>
-                </select>
-              </label>
+          {activeSection !== 'team' && (
+            <CustomersWorkspace
+              key={`${activeParking._id}-${activeSection}`}
+              parkingId={activeParking._id}
+              initialScreen={activeSection}
+            />
+          )}
 
-              <button type="submit" className="primary-button" disabled={isLoading}>
-                Send invite
-              </button>
-            </form>
-          </section>
-
-          <section className="panel">
-            <div className="panel-header">
-              <h3>Pending invitations</h3>
-            </div>
-
-            {pendingInvitations.length === 0 ? (
-              <p className="muted-text">No pending invitations found.</p>
-            ) : (
-              <div className="list-stack">
-                {pendingInvitations.map((invitation) => (
-                  <div key={invitation._id} className="list-item">
-                    <div>
-                      <strong>{invitation.emailOrPhone}</strong>
-                      <p>{invitation.role} · {invitation.parkingId?.name || 'Parking'}</p>
-                    </div>
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() => handleAcceptInvitation(invitation._id)}
-                    >
-                      Accept
-                    </button>
+          {activeSection === 'team' && (
+            <>
+              {activeParking.role === 'owner' && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <h3>Invite teammate</h3>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
+                  <form className="form-grid" onSubmit={handleInviteSubmit}>
+                    <label className="field">
+                      <span>Email or phone</span>
+                      <input
+                        type="text"
+                        value={inviteForm.emailOrPhone}
+                        onChange={(event) => setInviteForm((current) => ({ ...current, emailOrPhone: event.target.value }))}
+                        placeholder="manager@example.com"
+                      />
+                    </label>
+
+                    <label className="field">
+                      <span>Role</span>
+                      <select
+                        value={inviteForm.role}
+                        onChange={(event) => setInviteForm((current) => ({ ...current, role: event.target.value }))}
+                      >
+                        <option value="manager">Manager</option>
+                        <option value="owner">Owner</option>
+                      </select>
+                    </label>
+
+                    <button type="submit" className="primary-button" disabled={isLoading}>
+                      Send invite
+                    </button>
+                  </form>
+                </section>
+              )}
+
+              <section className="panel">
+                <div className="panel-header">
+                  <h3>Pending invitations</h3>
+                </div>
+
+                {pendingInvitations.length === 0 ? (
+                  <p className="muted-text">No pending invitations found.</p>
+                ) : (
+                  <div className="list-stack">
+                    {pendingInvitations.map((invitation) => (
+                      <div key={invitation._id} className="list-item">
+                        <div>
+                          <strong>{invitation.emailOrPhone}</strong>
+                          <p>{invitation.role} · {invitation.parkingId?.name || 'Parking'}</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => handleAcceptInvitation(invitation._id)}
+                        >
+                          Accept
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
         </>
       )}
 
@@ -463,7 +517,29 @@ function App() {
   );
 
   if (!token || !user) {
+    if (token && isSessionLoading) {
+      return (
+        <main className="auth-shell">
+          <div className="auth-card">
+            <p className="eyebrow">easyParking</p>
+            <h1>Loading your account...</h1>
+          </div>
+        </main>
+      );
+    }
+
     return renderAuthForm();
+  }
+
+  if (isSessionLoading) {
+    return (
+      <main className="auth-shell">
+        <div className="auth-card">
+          <p className="eyebrow">easyParking</p>
+          <h1>Loading your account...</h1>
+        </div>
+      </main>
+    );
   }
 
   if (parkings.length === 0) {

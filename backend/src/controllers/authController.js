@@ -19,23 +19,30 @@ const createToken = (user) => jwt.sign(
     email: user.email || null,
     phone: user.phone || null,
   },
-  process.env.JWT_SECRET || 'dev-secret',
+  process.env.JWT_SECRET,
   { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
 );
 
 const signup = async (req, res) => {
   const { fullName, email, phone, password } = req.body;
 
-  if (!fullName || !password) {
+  if (typeof fullName !== 'string' || !fullName.trim() || typeof password !== 'string' || !password) {
     return res.status(400).json({ message: 'Full name and password are required' });
   }
 
-  if (!email && !phone) {
+  if (
+    (email !== undefined && typeof email !== 'string') ||
+    (phone !== undefined && typeof phone !== 'string')
+  ) {
+    return res.status(400).json({ message: 'Email and phone must be text values' });
+  }
+
+  if (!(email && email.trim()) && !(phone && phone.trim())) {
     return res.status(400).json({ message: 'Email or phone is required' });
   }
 
-  const normalizedEmail = email ? email.trim().toLowerCase() : null;
-  const normalizedPhone = phone ? phone.trim() : null;
+  const normalizedEmail = email && email.trim() ? email.trim().toLowerCase() : undefined;
+  const normalizedPhone = phone && phone.trim() ? phone.trim() : undefined;
 
   try {
     const existingUser = await User.findOne({
@@ -51,12 +58,15 @@ const signup = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
-      fullName,
-      email: normalizedEmail,
-      phone: normalizedPhone,
+    const userDetails = {
+      fullName: fullName.trim(),
       passwordHash,
-    });
+    };
+
+    if (normalizedEmail) userDetails.email = normalizedEmail;
+    if (normalizedPhone) userDetails.phone = normalizedPhone;
+
+    const user = await User.create(userDetails);
 
     const token = createToken(user);
 
@@ -65,6 +75,11 @@ const signup = async (req, res) => {
       user: sanitizeUser(user),
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'An account with this email or phone already exists' });
+    }
+
+    console.error('Signup failed:', error);
     return res.status(500).json({ message: 'Could not create account' });
   }
 };
@@ -72,21 +87,30 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   const { email, phone, password } = req.body;
 
-  const identifier = (email || phone || '').trim();
+  if (
+    (email !== undefined && typeof email !== 'string') ||
+    (phone !== undefined && typeof phone !== 'string') ||
+    typeof password !== 'string'
+  ) {
+    return res.status(400).json({ message: 'Email/phone and password are required' });
+  }
 
-  if (!identifier || !password) {
+  const normalizedEmail = email && email.trim() ? email.trim().toLowerCase() : undefined;
+  const normalizedPhone = phone && phone.trim() ? phone.trim() : undefined;
+
+  if ((!normalizedEmail && !normalizedPhone) || !password) {
     return res.status(400).json({ message: 'Email/phone and password are required' });
   }
 
   try {
     const user = await User.findOne({
       $or: [
-        email ? { email: email.trim().toLowerCase() } : null,
-        phone ? { phone: phone.trim() } : null,
+        normalizedEmail ? { email: normalizedEmail } : null,
+        normalizedPhone ? { phone: normalizedPhone } : null,
       ].filter(Boolean),
     });
 
-    if (!user) {
+    if (!user || user.status !== 'active') {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -103,6 +127,7 @@ const login = async (req, res) => {
       user: sanitizeUser(user),
     });
   } catch (error) {
+    console.error('Login failed:', error);
     return res.status(500).json({ message: 'Could not log in' });
   }
 };
@@ -121,6 +146,7 @@ const getMe = async (req, res) => {
 
     return res.json({ user: sanitizeUser(user) });
   } catch (error) {
+    console.error('Profile lookup failed:', error);
     return res.status(500).json({ message: 'Could not fetch user profile' });
   }
 };

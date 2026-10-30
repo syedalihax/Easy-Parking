@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Parking = require('../models/Parking');
 const Membership = require('../models/Membership');
+const { isTransactionUnsupported } = require('../utils/mongoErrors');
 
 const createParking = async (req, res) => {
   const { name, address, contactInfo } = req.body;
@@ -9,9 +10,10 @@ const createParking = async (req, res) => {
     return res.status(400).json({ message: 'Parking name is required' });
   }
 
-  const session = await mongoose.startSession();
+  let session;
 
   try {
+    session = await mongoose.startSession();
     let createdParking;
 
     await session.withTransaction(async () => {
@@ -45,9 +47,16 @@ const createParking = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Parking creation failed:', error);
+    if (isTransactionUnsupported(error)) {
+      return res.status(503).json({
+        message: 'MongoDB transactions require a replica set. Configure local MongoDB as a replica set before creating a parking.',
+      });
+    }
+
     return res.status(500).json({ message: 'Could not create parking' });
   } finally {
-    session.endSession();
+    if (session) await session.endSession();
   }
 };
 
@@ -68,6 +77,7 @@ const getMyParkings = async (req, res) => {
 
     return res.json({ parkings });
   } catch (error) {
+    console.error('Parking list failed:', error);
     return res.status(500).json({ message: 'Could not load parkings' });
   }
 };

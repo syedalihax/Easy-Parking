@@ -76,9 +76,14 @@ npm install --save-dev nodemon
 
 ```
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/easyparking
+MONGODB_URI=mongodb://127.0.0.1:27017/easyparking?replicaSet=rs0
 NODE_ENV=development
 ```
+
+For local development, configure MongoDB as a single-node replica set named `rs0` and initialize it once. Phase 2 and later phases use MongoDB transactions, which do not work on a standalone MongoDB server:
+
+1. In `mongod.cfg`, set `replication.replSetName` to `rs0`, then restart the MongoDB service.
+2. Run `mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]})"`.
 
 ### `backend/src/config/db.js`
 

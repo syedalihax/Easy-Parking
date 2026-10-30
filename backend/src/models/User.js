@@ -36,16 +36,10 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.pre('validate', function validateUser(next) {
+userSchema.pre('validate', function validateUser() {
   if (!this.email && !this.phone) {
     this.invalidate('email', 'At least one of email or phone is required');
-    this.invalidate('phone', 'At least one of email or phone is required');
   }
-
-  next();
 });
-
-userSchema.index({ email: 1 }, { unique: true, sparse: true });
-userSchema.index({ phone: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('User', userSchema);

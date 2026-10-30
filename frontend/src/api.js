@@ -61,3 +61,52 @@ export const apiGetPendingInvitations = () => jsonRequest('/invitations/pending'
 export const apiAcceptInvitation = (invitationId) => jsonRequest(`/invitations/${invitationId}/accept`, {
   method: 'POST',
 });
+
+export const apiGetCustomers = (parkingId, { search = '', status = 'active', page = 1, limit = 20 } = {}) => {
+  const params = new URLSearchParams({ search, status, page, limit });
+  return jsonRequest(`/parkings/${encodeURIComponent(parkingId)}/customers?${params}`);
+};
+
+export const apiGetCustomer = (parkingId, customerId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}`,
+);
+
+export const apiCreateCustomer = (parkingId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers`,
+  { method: 'POST', body: JSON.stringify(payload) },
+);
+
+export const apiUpdateCustomer = (parkingId, customerId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}`,
+  { method: 'PATCH', body: JSON.stringify(payload) },
+);
+
+export const apiDeactivateCustomer = (parkingId, customerId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/deactivate`,
+  { method: 'PATCH' },
+);
+
+export const apiCreateVehicle = (parkingId, customerId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles`,
+  { method: 'POST', body: JSON.stringify(payload) },
+);
+
+export const apiUpdateVehicle = (parkingId, customerId, vehicleId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}`,
+  { method: 'PATCH', body: JSON.stringify(payload) },
+);
+
+export const apiDeactivateVehicle = (parkingId, customerId, vehicleId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}/deactivate`,
+  { method: 'PATCH' },
+);
+
+export const apiReplaceVehicle = (parkingId, customerId, oldVehicleId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(oldVehicleId)}/replace`,
+  { method: 'POST', body: JSON.stringify(payload) },
+);
+
+export const apiSearchVehicles = (parkingId, search) => {
+  const params = new URLSearchParams({ search });
+  return jsonRequest(`/parkings/${encodeURIComponent(parkingId)}/vehicles?${params}`);
+};
