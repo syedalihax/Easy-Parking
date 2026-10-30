@@ -30,6 +30,7 @@ import i18n from './i18n';
 import {
   BarChart3,
   Car,
+  ChevronRight,
   CreditCard,
   CheckCircle2,
   FileText,
@@ -717,13 +718,19 @@ function App() {
                 </NavLink>
               ))}
             </nav>
-            <NavLink to="/app/profile" className={({ isActive }) => `sidebar-user${isActive ? ' is-active' : ''}`}>
-              <span className="sidebar-user-avatar" aria-hidden="true">{user.fullName.trim().charAt(0).toUpperCase()}</span>
+            <NavLink
+              to="/app/profile"
+              aria-label={`${t('menu.profile')}: ${user.fullName}`}
+              className={({ isActive }) => `sidebar-user${isActive ? ' is-active' : ''}`}
+            >
+              <span className="sidebar-user-avatar" aria-hidden="true">
+                {user.fullName.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join('')}
+              </span>
               <span className="sidebar-user-copy">
                 <strong>{user.fullName}</strong>
                 <small>{t('menu.profile')}</small>
               </span>
-              <UserRound aria-hidden="true" size={18} />
+              <ChevronRight aria-hidden="true" size={17} />
             </NavLink>
           </aside>
           {isMobileMenuOpen && (

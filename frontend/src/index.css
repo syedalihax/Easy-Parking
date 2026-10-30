@@ -420,17 +420,21 @@
   }
 
   .sidebar-user {
-    @apply hidden min-h-14 shrink-0 items-center gap-3 rounded-xl border-t border-border pt-4 text-ink no-underline lg:flex;
+    @apply hidden min-h-[68px] w-full shrink-0 items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5 text-ink no-underline shadow-sm transition;
     margin-top: auto;
   }
 
   .sidebar-user:hover,
   .sidebar-user.is-active {
-    @apply bg-primary-light;
+    @apply border-primary/25 bg-primary-light;
+  }
+
+  .sidebar-user:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
   }
 
   .sidebar-user-avatar {
-    @apply flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white;
+    @apply flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-sm font-extrabold tracking-wide text-primary-dark;
   }
 
   .sidebar-user-copy {
@@ -438,15 +442,24 @@
   }
 
   .sidebar-user-copy strong {
-    @apply truncate text-sm font-semibold;
+    @apply truncate text-[13px] font-bold leading-5;
   }
 
   .sidebar-user-copy small {
-    @apply text-xs text-ink-muted;
+    @apply text-xs font-medium text-ink-muted;
   }
 
   .sidebar-user > svg {
-    @apply shrink-0 text-ink-muted;
+    @apply ms-auto shrink-0 text-ink-muted transition-transform;
+  }
+
+  html[dir="rtl"] .sidebar-user > svg {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-user:hover > svg,
+  .sidebar-user.is-active > svg {
+    @apply text-primary-dark;
   }
 
   .app-main {
