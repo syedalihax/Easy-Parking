@@ -192,7 +192,7 @@ function LandingPage({ onChangeLanguage }) {
             <Suspense fallback={<div className="product-preview product-preview-loading" aria-live="polite"><div className="preview-window-bar"><div className="preview-window-dots" aria-hidden="true"><i /><i /><i /></div><span>{t('landing.hero.previewTitle')}</span></div><div className="preview-content"><div className="preview-placeholder" /></div></div>}>
               <ProductPreview t={t} />
             </Suspense>
-            <span className="hero-side-note" aria-hidden="true">EP · 01</span>
+            
           </motion.div>
         </div>
         <a className="hero-scroll-cue" href="#value" aria-label={t('landing.nav.features')}><span /><GoogleIcon name="keyboard_arrow_down" size={15} /></a>
