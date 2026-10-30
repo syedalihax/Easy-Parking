@@ -1,36 +1,37 @@
 # easyParking frontend
 
-The frontend is a React single-page application with URL-based pages, built with Vite and styled using Tailwind CSS. It is also configured as an installable Progressive Web App (PWA).
+The frontend is a Vite-based React application for the easyParking parking management workflow. It includes a public landing experience, login/signup flow, and an authenticated app shell for parking operations.
 
-## Pages
+## App flow
 
 | Route | Screen |
 |---|---|
-| `/` | Public, multilingual easyParking landing page |
-| `/privacy-policy` | Product privacy information |
-| `/terms` | Product terms information |
+| `/` | Public landing page |
+| `/privacy-policy` | Privacy policy / public legal page |
+| `/terms` | Terms page |
 | `/login` | Sign in |
 | `/signup` | Create an account |
-| `/app` | Authenticated application shell; redirects to the dashboard |
+| `/app` | Authenticated workspace shell |
+| `/app/dashboard` | Parking overview and operational metrics |
 | `/app/customers` | Customer list |
-| `/app/customers/:customerId` | Customer profile, vehicles, subscriptions, dues, and payments |
-| `/app/vehicles` | Search vehicles by registration number |
-| `/app/vehicles/:vehicleId` | Vehicle details and related customer link |
-| `/app/dues` | Select a customer and view monthly dues |
-| `/app/payments` | Select a customer and view or receive payments |
-| `/app/daily-parking` | Record daily vehicle entries, exits, and payments |
-| `/app/dashboard` | Parking metrics, shortcuts, and due reminders |
-| `/app/reports` | Filter and export parking reports |
-| `/app/team` | Invitations and team access |
+| `/app/customers/:customerId` | Customer details, vehicles, dues, and payments |
+| `/app/vehicles` | Search and view vehicles |
+| `/app/vehicles/:vehicleId` | Vehicle details |
+| `/app/dues` | Dues review |
+| `/app/payments` | Payment review and transaction history |
+| `/app/daily-parking` | Daily parking entry and exit workflows |
+| `/app/reports` | Dashboard and CSV report views |
+| `/app/team` | Parking access and invitations |
+| `/app/settings` | Parking configuration |
+| `/app/profile` | User profile and preference details |
 
-Authenticated routes require a valid session and parking membership. The dashboard has responsive navigation and the parking switcher (shown when the account has more than one parking).
-
-The public landing page and legal-information pages are separate from the authenticated `/app` workspace. Non-homepage routes are marked `noindex,nofollow`; `public/robots.txt` also excludes application and authentication routes.
+The public landing pages are separate from the authenticated `/app` workspace. Non-home pages are kept out of search indexing via metadata and robots settings.
 
 ## Requirements
 
-- Node.js 20.19+ (or 22.12+) and npm
-- Backend API running locally, unless configured to use another API
+- Node.js 20.19+ or 22.12+
+- npm
+- A running backend API on the local network or a configured `VITE_API_BASE_URL`
 
 ## Install and run
 
@@ -39,59 +40,52 @@ npm install
 npm run dev -- --host
 ```
 
-Vite prints a `Network` URL after startup. To test on a phone, connect the phone and computer to the same Wi-Fi and open that `Network` URL on the phone. The backend listens on all network interfaces at port `5000`; its development CORS middleware accepts browser origins. The frontend automatically targets port `5000` on the same computer hostname used to open Vite.
-
-Do not use `localhost` on the phone: it points back to the phone itself, not the computer running the API. The frontend rewrites a configured loopback API address to the computer hostname during local development, but remove an old `.env.local` override if it points to the wrong server. If the computer's firewall prompts, allow the backend and Vite on the private network. To use a different API host, create `.env.local` in the `frontend` folder:
+Vite prints a local network URL after startup. Use that URL from a phone on the same Wi-Fi, not `localhost` from the device itself. If you need a different API host, create `frontend/.env.local`:
 
 ```env
 VITE_API_BASE_URL=http://192.168.1.23:5000/api
 ```
 
-Replace the example address with the computer's current LAN IP. Restart Vite after changing environment variables. Only expose development servers on a trusted network.
+The backend expects a trusted same-site cookie session and responds with `credentials: 'include'` requests. No JWT token is stored in browser localStorage.
 
-## Public site deployment
+## Production build
 
-Set `VITE_PUBLIC_SITE_URL` to the real HTTPS production origin when building the public site:
-
-```env
-VITE_PUBLIC_SITE_URL=https://your-production-domain.example
+```powershell
+npm run build
 ```
 
-The value must be an HTTPS origin without a path, query, or fragment. The build uses it for the homepage canonical and social image URLs and emits a root-only `sitemap.xml`. Without it, no production canonical URL or sitemap is generated; do not substitute a local or placeholder URL in a production build. Homepage metadata and the software-application JSON-LD are included in `index.html`; the language selector updates page language, direction, title, and description. No separate translated URLs exist, so no `hreflang` links are emitted.
-
-The privacy and terms routes are product-information drafts, not provider-specific legal policies. Confirm hosting, retention, support, jurisdiction, and operator details before publishing them as binding policies.
+The generated `dist/` folder includes the installable PWA assets. Use `npm run preview` to preview the production bundle locally.
 
 ## Scripts
 
 | Command | Description |
 |---|---|
-| `npm run dev -- --host` | Start the Vite development server |
-| `npm run lint` | Run Oxlint |
-| `npm run build` | Create the production/PWA build in `dist/` |
-| `npm run preview` | Preview the production build |
+| `npm run dev -- --host` | Start the Vite dev server |
+| `npm run lint` | Run static lint checks |
+| `npm run build` | Build production assets |
+| `npm run preview` | Preview the built app |
 
 ## Frontend structure
 
 ```text
 src/
-  App.jsx                    Public/authenticated routes and workspace layout
-  api.js                     Authenticated REST API helper
+  App.jsx                    Public/authenticated route shell and app layout
+  api.js                     API requests with cookie-based session support
   components/
-    LandingPage.jsx          Public landing and legal-information pages
-    CustomersWorkspace.jsx   Member, vehicle, dues, and payment screens
-    OperationsWorkspace.jsx  Dashboard, reports, and secondary navigation
+    LandingPage.jsx          Landing and legal-information pages
+    CustomersWorkspace.jsx   Customer, vehicle, due, and payment screens
+    OperationsWorkspace.jsx  Dashboard, reports, and secondary workspace views
     DailyParkingWorkspace.jsx Daily parking operations
-  index.css                  Tailwind import, theme tokens, component utilities
-  main.jsx                   React and BrowserRouter entry point
+  i18n.js                    Locale setup and browser-language detection
+  index.css                  Tailwind import, theme tokens, and custom styles
+  main.jsx                   BrowserRouter bootstrap
 public/                      PWA icons and static assets
 vite.config.js               Vite, Tailwind, and PWA configuration
 ```
 
 ## Notes
 
-- Authentication currently stores the access token in browser local storage.
-- Billing amounts and payment allocation decisions come from the backend API.
-- PWA settings and the brand palette are configured in `vite.config.js` and `src/index.css`.
-- The generated manifest uses the 192px, 512px, and maskable SVG brand icons. The service worker precaches static build assets.
-- The app is online-first: an offline banner appears and API helpers reject requests instead of queuing writes. No offline write/sync support is implemented.
+- JWTs are stored in secure HttpOnly cookies; localStorage is not used for authentication.
+- Auth screens include a home/back action, password show/hide controls, and stronger card elevation.
+- The app is online-first and shows an offline banner instead of queuing writes for offline sync.
 - Backend setup, MongoDB configuration, and API routes are documented in [../backend/README.md](../backend/README.md).
