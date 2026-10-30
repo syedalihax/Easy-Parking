@@ -34,7 +34,7 @@ Do not commit `.env` or share its secret. Ensure MongoDB is available at the con
 npm run dev
 ```
 
-The API listens on port `5000` by default. Verify startup at `http://localhost:5000/api/health`.
+The API listens on all network interfaces at port `5000` by default, so a phone on the same trusted Wi-Fi can reach it through the computer's LAN IP. Verify on the computer at `http://localhost:5000/api/health`; from a phone use `http://<computer-LAN-IP>:5000/api/health`. Keep the phone and computer on the same Wi-Fi and allow Node.js through the Windows firewall for private networks if prompted. The API has development CORS enabled for browser requests; using `localhost` from a phone is incorrect because it refers to the phone itself.
 
 ## Scripts
 
@@ -43,6 +43,16 @@ The API listens on port `5000` by default. Verify startup at `http://localhost:5
 | `npm run dev` | Start the API with Nodemon |
 | `npm start` | Start the API without Nodemon |
 | `npm test` | Run backend tests with Node's built-in test runner |
+| `npm run import:demo` | Validate the synthetic demo dataset and show a dry-run summary |
+
+The demo importer defaults to the included `data/easyParking_50_Customers_Demo_Data.json`, targets the only parking in the configured MongoDB database, and never overwrites existing records. Review its dry-run before applying:
+
+```powershell
+npm run import:demo
+npm run import:demo -- --apply
+```
+
+If the database contains multiple parkings, provide `--parking-id <id>` after `--` to both commands. The importer refuses remote MongoDB writes unless `--allow-remote` is explicitly supplied. It inserts customers, vehicles, subscriptions, monthly dues, payments, and allocations in one transaction; the database must support MongoDB transactions.
 
 ## API overview
 
