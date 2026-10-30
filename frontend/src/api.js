@@ -29,7 +29,7 @@ const ensureOnline = () => {
   }
 };
 
-const jsonRequest = async (endpoint, options = {}) => {
+const jsonRequest = async (endpoint, options = {}, retry = true) => {
   ensureOnline();
   const headers = {
     ...(options.headers || {}),
@@ -50,6 +50,21 @@ const jsonRequest = async (endpoint, options = {}) => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error(offlineMessage());
     if (error instanceof TypeError) throw new Error(apiUnavailableMessage());
     throw error;
+  }
+
+  if (response.status === 401 && retry && endpoint !== '/auth/refresh') {
+    try {
+      const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (refreshResponse.ok) {
+        return jsonRequest(endpoint, options, false);
+      }
+    } catch (error) {
+      // Fall back to the original error if the refresh call fails.
+    }
   }
 
   const data = await response.json().catch(() => ({}));

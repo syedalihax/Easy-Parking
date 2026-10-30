@@ -139,6 +139,28 @@ function App() {
     document.documentElement.dir = ['fa-IR', 'ur'].includes(language) ? 'rtl' : 'ltr';
   }, [currentLanguage]);
 
+  const clearStaleAuthArtifacts = useCallback(async () => {
+    const staleKeys = ['easyparking_selected_parking', 'jwt', 'access_token', 'refresh_token', 'token'];
+    staleKeys.forEach((key) => localStorage.removeItem(key));
+    sessionStorage.clear();
+
+    if ('caches' in window) {
+      const cacheNames = await caches.keys().catch(() => []);
+      await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+    }
+
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations().catch(() => []);
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname === '/login' || location.pathname === '/signup') {
+      clearStaleAuthArtifacts();
+    }
+  }, [clearStaleAuthArtifacts, location.pathname]);
+
   useEffect(() => {
     let robots = document.querySelector('meta[name="robots"]');
     if (!robots) {
@@ -184,8 +206,10 @@ function App() {
 
   const logout = useCallback(async () => {
     localStorage.removeItem('easyparking_selected_parking');
+    await clearStaleAuthArtifacts();
+    const logoutTarget = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
     try {
-      await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/logout`, {
+      await fetch(`${logoutTarget}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -199,7 +223,7 @@ function App() {
     setPendingInvitations([]);
     setIsSessionLoading(false);
     navigate('/login', { replace: true });
-  }, [navigate]);
+  }, [clearStaleAuthArtifacts, navigate]);
 
   const loadParkings = useCallback(async () => {
     try {

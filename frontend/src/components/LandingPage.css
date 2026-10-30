@@ -308,7 +308,7 @@ html {
 .landing-hero {
   position: relative;
   min-height: 620px;
-  padding: clamp(58px, 8vw, 108px) var(--landing-gutter) 74px;
+  padding: clamp(28px, 4vw, 72px) var(--landing-gutter) 74px;
   background:
     radial-gradient(ellipse at 84% 17%, rgb(183 228 106 / 26%), transparent 31%),
     #f4f1e8;

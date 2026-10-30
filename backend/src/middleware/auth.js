@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 const getTokenFromRequest = (req) => {
-  if (req.cookies && req.cookies.jwt) {
-    return req.cookies.jwt;
+  if (req.cookies && req.cookies.access_token) {
+    return req.cookies.access_token;
   }
 
   const authHeader = req.headers.authorization;
@@ -22,6 +22,9 @@ const requireAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.tokenType && decoded.tokenType !== 'access') {
+      return res.status(401).json({ message: 'Invalid access token' });
+    }
 
     req.user = {
       id: decoded.id,

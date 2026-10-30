@@ -13,33 +13,52 @@ const sanitizeUser = (user) => ({
   updatedAt: user.updatedAt,
 });
 
-const createToken = (user) => jwt.sign(
+const ACCESS_TOKEN_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN || '15m';
+const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+
+const createAccessToken = (user) => jwt.sign(
   {
     id: user._id,
     email: user.email || null,
     phone: user.phone || null,
+    tokenType: 'access',
   },
-  process.env.JWT_SECRET,
-  { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+  JWT_SECRET,
+  { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
 );
 
-const cookieOptions = {
+const createRefreshToken = (user) => jwt.sign(
+  {
+    id: user._id,
+    tokenType: 'refresh',
+  },
+  JWT_REFRESH_SECRET,
+  { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
+);
+
+const createAuthTokens = (user) => ({
+  accessToken: createAccessToken(user),
+  refreshToken: createRefreshToken(user),
+});
+
+const cookieOptions = (maxAgeMs) => ({
   httpOnly: true,
   sameSite: 'lax',
   secure: process.env.NODE_ENV === 'production',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
+  maxAge: maxAgeMs,
+});
+
+const setAuthCookies = (res, accessToken, refreshToken) => {
+  res.cookie('access_token', accessToken, cookieOptions(15 * 60 * 1000));
+  res.cookie('refresh_token', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 };
 
-const setAuthCookie = (res, token) => {
-  res.cookie('jwt', token, cookieOptions);
-};
-
-const clearAuthCookie = (res) => {
-  res.clearCookie('jwt', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  });
+const clearAuthCookies = (res) => {
+  res.clearCookie('access_token', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
+  res.clearCookie('refresh_token', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
 };
 
 const signup = async (req, res) => {
@@ -91,9 +110,8 @@ const signup = async (req, res) => {
     if (normalizedPhone) userDetails.phone = normalizedPhone;
 
     const user = await User.create(userDetails);
-
-    const token = createToken(user);
-    setAuthCookie(res, token);
+    const { accessToken, refreshToken } = createAuthTokens(user);
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(201).json({
       user: sanitizeUser(user),
@@ -144,8 +162,8 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = createToken(user);
-    setAuthCookie(res, token);
+    const { accessToken, refreshToken } = createAuthTokens(user);
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.json({
       user: sanitizeUser(user),
@@ -156,8 +174,38 @@ const login = async (req, res) => {
   }
 };
 
+const refresh = async (req, res) => {
+  const refreshToken = req.cookies?.refresh_token;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token is required' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    if (decoded.tokenType !== 'refresh') {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user || user.status !== 'active') {
+      return res.status(401).json({ message: 'Session expired' });
+    }
+
+    const { accessToken, refreshToken: nextRefreshToken } = createAuthTokens(user);
+    setAuthCookies(res, accessToken, nextRefreshToken);
+
+    return res.json({
+      user: sanitizeUser(user),
+    });
+  } catch (error) {
+    console.error('Refresh token failed:', error);
+    return res.status(401).json({ message: 'Session expired' });
+  }
+};
+
 const logout = (req, res) => {
-  clearAuthCookie(res);
+  clearAuthCookies(res);
   return res.json({ message: 'Logged out successfully.' });
 };
 
@@ -227,6 +275,7 @@ const updateMe = async (req, res) => {
 module.exports = {
   signup,
   login,
+  refresh,
   logout,
   getMe,
   updateMe,
