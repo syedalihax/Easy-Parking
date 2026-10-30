@@ -6,7 +6,8 @@
   "scripts": {
     "i": "npm install",
     "start": "npm install --prefix backend && npm install --prefix frontend",
-    "dev": "concurrently --kill-others --names backend,frontend \"npm --prefix backend run dev\" \"npm --prefix frontend run dev -- --host\""
+    "dev": "concurrently --kill-others --names backend,frontend \"npm --prefix backend run dev\" \"npm --prefix frontend run dev -- --host\"",
+    "preview": "npm --prefix frontend run build && npm --prefix frontend run preview -- --host 0.0.0.0"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"

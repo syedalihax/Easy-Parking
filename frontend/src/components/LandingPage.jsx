@@ -28,24 +28,38 @@ function LandingPage({ onChangeLanguage }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const isMobileInstallEligible = typeof window !== 'undefined'
-    && window.matchMedia('(max-width: 768px)').matches
-    && !(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [isStandaloneApp, setIsStandaloneApp] = useState(false);
   const language = i18n.resolvedLanguage || i18n.language || 'en';
 
   useEffect(() => {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (typeof window === 'undefined') return undefined;
 
-    if (!isMobile || isStandalone) {
-      setShowInstallPrompt(false);
-      return undefined;
-    }
+    const updateMobileState = () => {
+      const mobileQuery = window.matchMedia('(max-width: 768px)');
+      const touchQuery = window.matchMedia('(pointer: coarse)');
+      const standaloneQuery = window.matchMedia('(display-mode: standalone)');
+      const isMobile = mobileQuery.matches || touchQuery.matches;
+      const isStandalone = standaloneQuery.matches || window.navigator.standalone === true;
+
+      setIsMobileView(isMobile);
+      setIsStandaloneApp(isStandalone);
+
+      if (!isMobile || isStandalone) {
+        setShowInstallPrompt(false);
+      }
+    };
 
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
       setInstallPrompt(event);
-      setShowInstallPrompt(true);
+
+      const isMobile = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+      if (isMobile && !isStandalone) {
+        setShowInstallPrompt(true);
+      }
     };
 
     const handleAppInstalled = () => {
@@ -53,10 +67,13 @@ function LandingPage({ onChangeLanguage }) {
       setShowInstallPrompt(false);
     };
 
+    updateMobileState();
+    window.addEventListener('resize', updateMobileState);
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      window.removeEventListener('resize', updateMobileState);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
@@ -247,11 +264,9 @@ function LandingPage({ onChangeLanguage }) {
               <motion.article
                 className="feature-item"
                 key={feature.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                variants={revealUp}
-                custom={index}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: 'easeOut', delay: index * 0.08 }}
                 whileHover={{ y: -6, transition: { duration: 0.2 } }}
               >
                 <div className="feature-item-top"><span className="feature-number">0{index + 1}</span><GoogleIcon name={Icon} size={20} /></div>
@@ -348,7 +363,7 @@ function LandingPage({ onChangeLanguage }) {
         </div>
       </section>
 
-      {isMobileInstallEligible && (
+      {isMobileView && !isStandaloneApp && (
         <section className="mobile-install-section">
           <div className="mobile-install-card">
             <div className="mobile-install-copy">

@@ -253,6 +253,20 @@ function App() {
     let isCurrent = true;
 
     const restoreSession = async () => {
+      const hasSessionCookie = document.cookie.split(';').some((cookie) => {
+        const trimmed = cookie.trim();
+        return trimmed.startsWith('access_token=') || trimmed.startsWith('refresh_token=');
+      });
+
+      if (!hasSessionCookie) {
+        if (isCurrent) {
+          setUser(null);
+          setToken('');
+          setIsSessionLoading(false);
+        }
+        return;
+      }
+
       setIsSessionLoading(true);
 
       try {
