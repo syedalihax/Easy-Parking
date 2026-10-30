@@ -4,6 +4,10 @@
 
 ---
 
+## Implementation status
+
+The daily parking API and workspace are implemented and included in the Phase 6 commit. Backend tests and the frontend lint/build passed during implementation. The Definition of Done checklist below remains a manual acceptance checklist; repeat the rate-snapshot and role scenarios against a configured database before release.
+
 ## Goal of This Phase
 
 By the end of this phase:

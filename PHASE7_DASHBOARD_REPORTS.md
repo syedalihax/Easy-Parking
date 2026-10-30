@@ -4,6 +4,10 @@
 
 ---
 
+## Implementation status
+
+The dashboard, reminders, the seven report routes listed in this specification, CSV export, and the reports UI are implemented and included in the Phase 7 commit. Backend tests and frontend lint/build passed during implementation. The Definition of Done says “all 8 reports” while the route list specifies seven; reconcile that count before claiming the eighth report is covered. Verify report contents against live sample data before release.
+
 ## Goal of This Phase
 
 By the end of this phase:

@@ -14,6 +14,9 @@ The frontend is a React single-page application with URL-based pages, built with
 | `/app/vehicles/:vehicleId` | Vehicle details and related customer link |
 | `/app/dues` | Select a customer and view monthly dues |
 | `/app/payments` | Select a customer and view or receive payments |
+| `/app/daily-parking` | Record daily vehicle entries, exits, and payments |
+| `/app/dashboard` | Parking metrics, shortcuts, and due reminders |
+| `/app/reports` | Filter and export parking reports |
 | `/app/team` | Invitations and team access |
 
 Authenticated routes require a valid session and parking membership. The dashboard has responsive navigation, a parking switcher, and a payment shortcut.
@@ -68,4 +71,6 @@ vite.config.js               Vite, Tailwind, and PWA configuration
 - Authentication currently stores the access token in browser local storage.
 - Billing amounts and payment allocation decisions come from the backend API.
 - PWA settings and the brand palette are configured in `vite.config.js` and `src/index.css`.
+- The generated manifest uses the 192px, 512px, and maskable SVG brand icons. The service worker precaches static build assets.
+- The app is online-first: an offline banner appears and API helpers reject requests instead of queuing writes. No offline write/sync support is implemented.
 - Backend setup, MongoDB configuration, and API routes are documented in [../backend/README.md](../backend/README.md).

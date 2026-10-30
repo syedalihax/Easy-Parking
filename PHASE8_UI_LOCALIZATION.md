@@ -4,6 +4,10 @@
 
 ---
 
+## Implementation status
+
+The four locale resources, language preference persistence, RTL direction switching, responsive navigation, icons, and UI polish are implemented and included in the Phase 8 commit. Translation-key coverage, backend tests, frontend lint, and the production build passed during implementation. The authentication rate-limit message is localized; other API-provided validation/error text can still be English. Native Urdu/Persian review and a manual visual pass across every RTL screen remain release checks.
+
 ## Goal of This Phase
 
 By the end of this phase:

@@ -26,6 +26,8 @@ JWT_SECRET=replace_with_a_long_random_string
 JWT_EXPIRES_IN=7d
 ```
 
+If the API is behind a trusted reverse proxy, set `TRUST_PROXY_HOPS` to the exact number of trusted proxy hops so IP-based authentication throttling uses the client address. Do not set it to an unbounded trust value.
+
 Do not commit `.env` or share its secret. Ensure MongoDB is available at the configured URI, then run:
 
 ```powershell
@@ -49,7 +51,7 @@ Every parking-scoped endpoint authenticates the user and verifies active members
 | Prefix | Purpose |
 |---|---|
 | `/api/health` | Health check |
-| `/api/auth` | Signup, login, logout, and current user |
+| `/api/auth` | Signup, login, logout, and current user; signup/login share a limit of 10 requests per IP per 15 minutes |
 | `/api/parkings` | Create a parking and list the current user's parkings |
 | `/api/invitations` | Create, list, and accept team invitations |
 | `/api/parkings/:parkingId/customers` | Customer and vehicle records |
@@ -59,8 +61,13 @@ Every parking-scoped endpoint authenticates the user and verifies active members
 | `/api/parkings/:parkingId/payments/:paymentId/corrections/request` | Request a payment correction |
 | `/api/parkings/:parkingId/payments/:paymentId/corrections/:auditLogId/approve` | Owner approves a correction |
 | `/api/parkings/:parkingId/payments/:paymentId/corrections/:auditLogId/reject` | Owner rejects a correction |
+| `/api/parkings/:parkingId/daily-rate` and `/api/parkings/:parkingId/daily-parking` | Daily rate, entry, active list, exit, payment, and history |
+| `/api/parkings/:parkingId/dashboard` and `/reminders` | Dashboard metrics and due reminders |
+| `/api/parkings/:parkingId/reports` | Filterable JSON reports and CSV downloads |
 
 The API expects a bearer token in the `Authorization` header for protected routes. All money and due calculations are performed server-side. Payment allocation uses MongoDB transactions, defaults to oldest outstanding dues, and reports any unallocated remainder.
+
+Unhandled Express errors are logged server-side and return a generic message in production; unknown API paths return JSON `404` responses. Set `NODE_ENV=production` in the hosting environment. The built-in rate-limit store is process-local, so deployments with multiple backend instances should configure a shared store before scaling horizontally.
 
 ## Structure
 

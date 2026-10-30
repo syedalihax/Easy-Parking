@@ -12,9 +12,11 @@ The app supports an owner and managers. Each parking business is a separate tena
 - Cash, Easypaisa, and JazzCash payment recording
 - Oldest-first and manual payment allocation, with unallocated excess reported
 - Owner approval for payment correction requests
-- Installable PWA interface
-
-Daily parking, reports, and localization are described in the project phase documents and are not represented here as finished features.
+- Daily parking with rate snapshots, entry/exit, and payment tracking
+- Operational dashboard, reminders, customer statements, and filterable CSV reports
+- English, Iranian Persian, Urdu, and Roman Urdu, including RTL layout
+- Installable PWA with static-asset caching and an explicit online-first offline notice
+- IP-based signup/login rate limiting and production-safe generic API error responses
 
 ## Technology
 
@@ -81,9 +83,14 @@ npm run lint
 npm run build
 ```
 
+The PWA is configured to cache static build assets; it does not queue writes while offline. Before production, complete the manual role/isolation and billing scenarios in [Phase 9](./PHASE9_PWA_TESTING_DEPLOYMENT.md), deploy over HTTPS, and verify database backups and mobile installation. Those external checks have not been performed by the local build.
+
 ## Project references
 
 - [Project context](./PROJECT_CONTEXT.md) — business rules and architecture
 - [Database schema](./DATABASE_SCHEMA.md) — data model
 - [Design guide](./DESIGN.md) — palette and UI conventions
-- [Phase specifications](.) — scope and status of planned phases
+- [Phase 6: Daily Parking](./PHASE6_DAILY_PARKING.md)
+- [Phase 7: Dashboard & Reports](./PHASE7_DASHBOARD_REPORTS.md)
+- [Phase 8: UI/UX & Localization](./PHASE8_UI_LOCALIZATION.md)
+- [Phase 9: PWA, Testing & Deployment](./PHASE9_PWA_TESTING_DEPLOYMENT.md)
