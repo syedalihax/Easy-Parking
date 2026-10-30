@@ -29,12 +29,6 @@ const ensureOnline = () => {
   }
 };
 
-const authHeaders = () => {
-  const token = localStorage.getItem('easyparking_token');
-
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
 const jsonRequest = async (endpoint, options = {}) => {
   ensureOnline();
   const headers = {
@@ -49,10 +43,8 @@ const jsonRequest = async (endpoint, options = {}) => {
   try {
     response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
-      headers: {
-        ...authHeaders(),
-        ...headers,
-      },
+      credentials: 'include',
+      headers,
     });
   } catch (error) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error(offlineMessage());
@@ -123,7 +115,7 @@ export const apiDownloadReport = async (parkingId, reportName, filters = {}) => 
   try {
     response = await fetch(
       `${API_BASE_URL}/parkings/${encodeURIComponent(parkingId)}/reports/${reportName}?${params}`,
-      { headers: authHeaders() },
+      { credentials: 'include' },
     );
   } catch (error) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error(offlineMessage());
