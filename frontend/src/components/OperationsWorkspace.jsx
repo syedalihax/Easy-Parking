@@ -9,10 +9,8 @@ import {
   CarFront,
   CircleAlert,
   Clock3,
-  CreditCard,
   FileText,
   ParkingCircle,
-  Search,
   Settings,
   UserRound,
   UserRoundPlus,
@@ -42,12 +40,8 @@ const reports = [
 
 const actionLinks = [
   { key: 'dashboard.addCustomer', to: '/app/customers', Icon: UserRoundPlus },
-  { key: 'dashboard.addVehicle', to: '/app/customers', Icon: Car },
   { key: 'nav.receivePayment', to: '/app/payments', Icon: Banknote },
-  { key: 'dashboard.searchCustomer', to: '/app/customers', Icon: Search },
-  { key: 'dashboard.searchVehicle', to: '/app/vehicles', Icon: CarFront },
   { key: 'dashboard.pendingPayments', to: '/app/dues', Icon: Wallet },
-  { key: 'dashboard.paymentHistory', to: '/app/payments', Icon: CreditCard },
   { key: 'nav.dailyParking', to: '/app/daily-parking', Icon: ParkingCircle },
 ];
 
@@ -86,29 +80,44 @@ function DashboardWorkspace({ parkingId }) {
   const [summary, setSummary] = useState(null);
   const [reminders, setReminders] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
-    Promise.all([apiGetDashboard(parkingId), apiGetDashboardReminders(parkingId)])
-      .then(([nextSummary, nextReminders]) => {
+    Promise.allSettled([apiGetDashboard(parkingId), apiGetDashboardReminders(parkingId)])
+      .then(([summaryResult, remindersResult]) => {
         if (!active) return;
-        setSummary(nextSummary);
-        setReminders(nextReminders);
+        if (summaryResult.status === 'fulfilled') {
+          setSummary(summaryResult.value);
+        } else {
+          setSummary(null);
+          setErrorMessage(summaryResult.reason.message || t('errors.couldNotLoad'));
+        }
+
+        if (remindersResult.status === 'fulfilled') {
+          setReminders(remindersResult.value);
+        } else {
+          setReminders(null);
+          setErrorMessage(remindersResult.reason.message || t('errors.couldNotLoad'));
+        }
       })
-      .catch((error) => {
-        if (active) setErrorMessage(error.message || t('errors.couldNotLoad'));
+      .finally(() => {
+        if (active) setIsLoading(false);
       });
-    return () => { active = false; };
-  }, [parkingId, t]);
+    return () => {
+      active = false;
+    };
+  }, [parkingId, reloadKey, t]);
 
   const cards = summary ? [
+    { label: t('dashboard.outstanding'), detail: t('dashboard.outstandingHelp'), value: money(summary.totalOutstandingAmount), Icon: Wallet, kind: 'financial' },
+    { label: t('dashboard.paymentsThisMonth'), detail: t('dashboard.paymentsThisMonthHelp'), value: money(summary.paymentsReceivedThisPeriod), Icon: Banknote, kind: 'financial' },
+    { label: t('dashboard.activeCustomers'), detail: t('dashboard.activePeopleHelp'), value: summary.totalActiveCustomers, Icon: Users, tone: 'green' },
     { label: t('dashboard.activeVehicles'), detail: t('dashboard.activeVehiclesHelp'), value: summary.totalActiveVehicles, Icon: CarFront, tone: 'green' },
-    { label: t('dashboard.activeCustomers'), detail: t('dashboard.activePeopleHelp'), value: summary.totalActiveCustomers, Icon: Users, tone: 'blue' },
     { label: t('dashboard.customersWithDues'), detail: t('dashboard.peopleWithDuesHelp'), value: summary.customersWithPendingDues, Icon: CircleAlert, tone: 'amber' },
     { label: t('dashboard.overSevenDays'), detail: t('dashboard.overSevenDaysHelp'), value: summary.customersWithOverdueDues, Icon: Clock3, tone: 'rose' },
-    { label: t('dashboard.outstanding'), detail: t('dashboard.outstandingHelp'), value: money(summary.totalOutstandingAmount), Icon: Wallet, tone: 'amber' },
-    { label: t('dashboard.paymentsThisMonth'), detail: t('dashboard.paymentsThisMonthHelp'), value: money(summary.paymentsReceivedThisPeriod), Icon: Banknote, tone: 'green' },
-    { label: t('dashboard.currentlyParked'), detail: t('dashboard.currentlyParkedHelp'), value: summary.dailyVehiclesCurrentlyParked, Icon: ParkingCircle, tone: 'blue' },
+    { label: t('dashboard.currentlyParked'), detail: t('dashboard.currentlyParkedHelp'), value: summary.dailyVehiclesCurrentlyParked, Icon: ParkingCircle, tone: 'green' },
   ] : [];
 
   return (
@@ -120,12 +129,44 @@ function DashboardWorkspace({ parkingId }) {
           <p className="workspace-hint">{t('dashboard.subtitle')}</p>
         </div>
       </header>
-      {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
-      {!summary ? <p className="muted-text">{t('dashboard.loading')}</p> : (
+      {errorMessage && summary && <p className="error-text" role="alert">{errorMessage}</p>}
+      {isLoading ? (
+        <section className="dashboard-loading" aria-label={t('dashboard.loading')} aria-busy="true">
+          <span /><span /><span />
+        </section>
+      ) : !summary ? (
+        <div className="dashboard-error-state" role="alert">
+          <CircleAlert aria-hidden="true" size={22} />
+          <p>{errorMessage || t('errors.couldNotLoad')}</p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              setErrorMessage('');
+              setIsLoading(true);
+              setReloadKey((key) => key + 1);
+            }}
+          >
+            {t('errors.retry')}
+          </button>
+        </div>
+      ) : (
         <>
-          <section className="stats-grid" aria-label={t('dashboard.overview')}>
-            {cards.map(({ label, detail, value, Icon, tone }) => (
-              <article className={`stat-card stat-card-${tone}`} key={label}>
+          <section className="stats-grid dashboard-financial-stats" aria-label={t('dashboard.outstanding')}>
+            {cards.filter((card) => card.kind === 'financial').map(({ label, detail, value, Icon }) => (
+              <article className="stat-card stat-card-financial" key={label}>
+                <div className="stat-card-top">
+                  <span>{label}</span>
+                  <span className="stat-card-icon"><Icon aria-hidden="true" size={19} strokeWidth={1.9} /></span>
+                </div>
+                <strong>{value}</strong>
+                <small>{detail}</small>
+              </article>
+            ))}
+          </section>
+          <section className="stats-grid dashboard-operations-stats" aria-label={t('dashboard.overview')}>
+            {cards.filter((card) => card.kind !== 'financial').map(({ label, detail, value, Icon, tone }) => (
+              <article className={`stat-card stat-card-operations stat-card-${tone}`} key={label}>
                 <div className="stat-card-top">
                   <span>{label}</span>
                   <span className="stat-card-icon"><Icon aria-hidden="true" size={19} strokeWidth={1.9} /></span>
@@ -145,11 +186,6 @@ function DashboardWorkspace({ parkingId }) {
                   <ArrowUpRight aria-hidden="true" className="quick-action-arrow" size={15} />
                 </Link>
               ))}
-              <Link className="quick-action" to="/app/reports">
-                <span className="quick-action-icon"><BarChart3 aria-hidden="true" size={18} /></span>
-                <span>{t('nav.reports')}</span>
-                <ArrowUpRight aria-hidden="true" className="quick-action-arrow" size={15} />
-              </Link>
             </div>
           </section>
           {reminders && (

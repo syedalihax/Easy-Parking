@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#F4F1E8"/>
+  <circle cx="1054" cy="68" r="220" fill="#B7E46A" fill-opacity=".26"/>
+  <image href="/favicon.svg" x="64" y="58" width="58" height="58"/>
+  <text x="140" y="98" fill="#18352D" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="800" letter-spacing="-1.6">easyParking</text>
+  <text x="64" y="236" fill="#18352D" font-family="Inter, Arial, sans-serif" font-size="60" font-weight="750" letter-spacing="-3.5">Your parking business.</text>
+  <text x="64" y="304" fill="#18352D" font-family="Inter, Arial, sans-serif" font-size="60" font-weight="750" letter-spacing="-3.5">Finally organized.</text>
+  <rect x="64" y="359" width="490" height="2" fill="#D9E1D4"/>
+  <text x="64" y="411" fill="#52635B" font-family="Inter, Arial, sans-serif" font-size="23">Members · vehicles · monthly plans · payments</text>
+  <text x="64" y="448" fill="#52635B" font-family="Inter, Arial, sans-serif" font-size="23">One simple parking management workspace.</text>
+  <rect x="686" y="141" width="454" height="388" rx="20" fill="#FFFFFF" stroke="#E5E9E1"/>
+  <path d="M686 160C686 149.507 694.507 141 705 141H1121C1131.49 141 1140 149.507 1140 160V190H686V160Z" fill="#18352D"/>
+  <circle cx="711" cy="166" r="5" fill="#C94B4B"/>
+  <circle cx="729" cy="166" r="5" fill="#F0A44B"/>
+  <circle cx="747" cy="166" r="5" fill="#B7E46A"/>
+  <rect x="716" y="219" width="182" height="118" rx="12" fill="#F4F8EF" stroke="#DCEBCF"/>
+  <rect x="916" y="219" width="190" height="118" rx="12" fill="#FFFFFF" stroke="#E5E9E1"/>
+  <rect x="716" y="353" width="182" height="118" rx="12" fill="#FFFFFF" stroke="#E5E9E1"/>
+  <rect x="916" y="353" width="190" height="118" rx="12" fill="#FFF9F0" stroke="#F0E4D2"/>
+  <rect x="733" y="239" width="96" height="9" rx="4.5" fill="#718078" fill-opacity=".6"/>
+  <rect x="733" y="267" width="130" height="25" rx="5" fill="#087F5B"/>
+  <rect x="733" y="307" width="78" height="7" rx="3.5" fill="#718078" fill-opacity=".35"/>
+  <rect x="933" y="239" width="108" height="9" rx="4.5" fill="#718078" fill-opacity=".6"/>
+  <rect x="933" y="270" width="59" height="24" rx="5" fill="#18352D"/>
+  <rect x="933" y="307" width="132" height="7" rx="3.5" fill="#718078" fill-opacity=".35"/>
+  <rect x="733" y="373" width="102" height="9" rx="4.5" fill="#718078" fill-opacity=".6"/>
+  <rect x="733" y="402" width="63" height="24" rx="5" fill="#18352D"/>
+  <rect x="733" y="440" width="118" height="7" rx="3.5" fill="#718078" fill-opacity=".35"/>
+  <rect x="933" y="373" width="97" height="9" rx="4.5" fill="#718078" fill-opacity=".6"/>
+  <rect x="933" y="402" width="62" height="24" rx="5" fill="#A66C24"/>
+  <rect x="933" y="440" width="128" height="7" rx="3.5" fill="#718078" fill-opacity=".35"/>
+  <rect x="780" y="552" width="360" height="10" rx="5" fill="#18352D" fill-opacity=".08"/>
+</svg>

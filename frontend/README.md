@@ -6,8 +6,12 @@ The frontend is a React single-page application with URL-based pages, built with
 
 | Route | Screen |
 |---|---|
+| `/` | Public, multilingual easyParking landing page |
+| `/privacy-policy` | Product privacy information |
+| `/terms` | Product terms information |
 | `/login` | Sign in |
 | `/signup` | Create an account |
+| `/app` | Authenticated application shell; redirects to the dashboard |
 | `/app/customers` | Customer list |
 | `/app/customers/:customerId` | Customer profile, vehicles, subscriptions, dues, and payments |
 | `/app/vehicles` | Search vehicles by registration number |
@@ -20,6 +24,8 @@ The frontend is a React single-page application with URL-based pages, built with
 | `/app/team` | Invitations and team access |
 
 Authenticated routes require a valid session and parking membership. The dashboard has responsive navigation and the parking switcher (shown when the account has more than one parking).
+
+The public landing page and legal-information pages are separate from the authenticated `/app` workspace. Non-homepage routes are marked `noindex,nofollow`; `public/robots.txt` also excludes application and authentication routes.
 
 ## Requirements
 
@@ -43,6 +49,18 @@ VITE_API_BASE_URL=http://192.168.1.23:5000/api
 
 Replace the example address with the computer's current LAN IP. Restart Vite after changing environment variables. Only expose development servers on a trusted network.
 
+## Public site deployment
+
+Set `VITE_PUBLIC_SITE_URL` to the real HTTPS production origin when building the public site:
+
+```env
+VITE_PUBLIC_SITE_URL=https://your-production-domain.example
+```
+
+The value must be an HTTPS origin without a path, query, or fragment. The build uses it for the homepage canonical and social image URLs and emits a root-only `sitemap.xml`. Without it, no production canonical URL or sitemap is generated; do not substitute a local or placeholder URL in a production build. Homepage metadata and the software-application JSON-LD are included in `index.html`; the language selector updates page language, direction, title, and description. No separate translated URLs exist, so no `hreflang` links are emitted.
+
+The privacy and terms routes are product-information drafts, not provider-specific legal policies. Confirm hosting, retention, support, jurisdiction, and operator details before publishing them as binding policies.
+
 ## Scripts
 
 | Command | Description |
@@ -56,10 +74,13 @@ Replace the example address with the computer's current LAN IP. Restart Vite aft
 
 ```text
 src/
-  App.jsx                    Application routes and shared workspace layout
+  App.jsx                    Public/authenticated routes and workspace layout
   api.js                     Authenticated REST API helper
   components/
-    CustomersWorkspace.jsx   Customer, vehicle, dues, and payment screens
+    LandingPage.jsx          Public landing and legal-information pages
+    CustomersWorkspace.jsx   Member, vehicle, dues, and payment screens
+    OperationsWorkspace.jsx  Dashboard, reports, and secondary navigation
+    DailyParkingWorkspace.jsx Daily parking operations
   index.css                  Tailwind import, theme tokens, component utilities
   main.jsx                   React and BrowserRouter entry point
 public/                      PWA icons and static assets

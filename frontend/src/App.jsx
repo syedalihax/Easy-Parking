@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Link,
   Navigate,
@@ -21,19 +21,29 @@ import {
   apiUpdateProfile,
   apiUpdatePreferredLanguage,
 } from './api';
-import CustomersWorkspace from './components/CustomersWorkspace';
-import DailyParkingWorkspace from './components/DailyParkingWorkspace';
-import { DashboardWorkspace, MoreWorkspace, ReportsWorkspace } from './components/OperationsWorkspace';
 import LanguageSelector from './components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
+
+const CustomersWorkspace = lazy(() => import('./components/CustomersWorkspace'));
+const DailyParkingWorkspace = lazy(() => import('./components/DailyParkingWorkspace'));
+const LandingPage = lazy(() => import('./components/LandingPage'));
+const LandingLegalPage = lazy(() => import('./components/LandingPage').then((module) => ({
+  default: module.LandingLegalPage,
+})));
+const DashboardWorkspace = lazy(() => import('./components/OperationsWorkspace').then((module) => ({
+  default: module.DashboardWorkspace,
+})));
+const MoreWorkspace = lazy(() => import('./components/OperationsWorkspace').then((module) => ({
+  default: module.MoreWorkspace,
+})));
+const ReportsWorkspace = lazy(() => import('./components/OperationsWorkspace').then((module) => ({
+  default: module.ReportsWorkspace,
+})));
 import {
-  BarChart3,
-  Car,
   ChevronRight,
   CreditCard,
   CheckCircle2,
-  FileText,
   LayoutDashboard,
   Menu,
   MoreHorizontal,
@@ -73,21 +83,12 @@ const profileFormFromUser = (profile) => ({
 const desktopNavigation = [
   { to: '/app/dashboard', key: 'nav.dashboard', Icon: LayoutDashboard },
   { to: '/app/customers', key: 'nav.customers', Icon: Users, end: true },
-  { to: '/app/vehicles', key: 'nav.vehicles', Icon: Car },
-  { to: '/app/dues', key: 'nav.dues', Icon: FileText },
   { to: '/app/payments', key: 'nav.payments', Icon: CreditCard },
   { to: '/app/daily-parking', key: 'nav.dailyParking', Icon: ParkingCircle },
-  { to: '/app/reports', key: 'nav.reports', Icon: BarChart3 },
-  { to: '/app/team', key: 'nav.team', Icon: UserRound },
-];
-
-const mobileNavigation = [
-  desktopNavigation[0],
-  desktopNavigation[1],
-  desktopNavigation[4],
-  desktopNavigation[5],
   { to: '/app/more', key: 'nav.more', Icon: MoreHorizontal },
 ];
+
+const mobileNavigation = desktopNavigation;
 
 function App() {
   const { t } = useTranslation();
@@ -117,6 +118,14 @@ function App() {
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
   const showProfileSetup = location.pathname === '/app/profile'
     && new URLSearchParams(location.search).get('setup') === '1';
+  const isMoreSectionActive = [
+    '/app/vehicles',
+    '/app/dues',
+    '/app/reports',
+    '/app/team',
+    '/app/settings',
+    '/app/profile',
+  ].some((path) => location.pathname.startsWith(path));
 
   useEffect(() => {
     if (!statusMessage) return undefined;
@@ -138,6 +147,20 @@ function App() {
     document.documentElement.lang = language;
     document.documentElement.dir = ['fa-IR', 'ur'].includes(language) ? 'rtl' : 'ltr';
   }, [currentLanguage]);
+
+  useEffect(() => {
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.name = 'robots';
+      document.head.append(robots);
+    }
+    robots.content = location.pathname === '/' ? 'index,follow' : 'noindex,nofollow';
+
+    if (location.pathname.startsWith('/app')) {
+      document.title = `${t('app.name')} — ${t('app.parkingManagement')}`;
+    }
+  }, [location.pathname, t]);
 
   const changeLanguage = async (language) => {
     const previousLanguage = currentLanguage;
@@ -655,50 +678,58 @@ function App() {
     </div>
   );
 
+  const renderLoadingScreen = () => (
+    <main className="auth-shell" aria-busy="true">
+      <div className="auth-card">
+        <p className="eyebrow">{t('app.name')}</p>
+        <h1>{t('app.loading')}</h1>
+      </div>
+    </main>
+  );
+
   if (!token || !user) {
     if (token && isSessionLoading) {
-      return (
-        <main className="auth-shell">
-          <div className="auth-card">
-            <p className="eyebrow">{t('app.name')}</p>
-            <h1>{t('app.loading')}</h1>
-          </div>
-        </main>
-      );
+      return renderLoadingScreen();
     }
 
     return (
-      <Routes>
-        <Route path="/login" element={renderAuthForm('login')} />
-        <Route path="/signup" element={renderAuthForm('signup')} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <Suspense fallback={renderLoadingScreen()}>
+        <Routes>
+          <Route path="/" element={<LandingPage onChangeLanguage={changeLanguage} />} />
+          <Route path="/privacy-policy" element={<LandingLegalPage page="privacy" />} />
+          <Route path="/terms" element={<LandingLegalPage page="terms" />} />
+          <Route path="/login" element={renderAuthForm('login')} />
+          <Route path="/signup" element={renderAuthForm('signup')} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 
   if (isSessionLoading) {
-    return (
-      <main className="auth-shell">
-        <div className="auth-card">
-          <p className="eyebrow">{t('app.name')}</p>
-          <h1>{t('app.loading')}</h1>
-        </div>
-      </main>
-    );
+    return renderLoadingScreen();
   }
 
-  if (parkings.length === 0 && location.pathname !== '/app/profile') {
+  if (parkings.length === 0 && location.pathname.startsWith('/app') && location.pathname !== '/app/profile') {
     return renderParkingSetup();
   }
 
   return (
-    <Routes>
-      <Route path="/app" element={(
+    <Suspense fallback={renderLoadingScreen()}>
+      <Routes>
+        <Route path="/" element={<LandingPage onChangeLanguage={changeLanguage} />} />
+        <Route path="/privacy-policy" element={<LandingLegalPage page="privacy" />} />
+        <Route path="/terms" element={<LandingLegalPage page="terms" />} />
+        <Route path="/app" element={(
         <div className="app-shell">
+          <a className="skip-link" href="#app-content">{t('nav.skipToContent')}</a>
           <aside className="app-sidebar">
             <Link to="/app/customers" className="brand-lockup" onClick={() => setIsMobileMenuOpen(false)}>
               <img src="/favicon.svg" alt="" className="brand-logo" />
-              <strong>{t('app.name')}</strong>
+              <span className="brand-copy">
+                <strong>{t('app.name')}</strong>
+                <small>{activeParking?.name || t('app.parkingManagement')}</small>
+              </span>
             </Link>
             <button
               type="button"
@@ -712,7 +743,12 @@ function App() {
             </button>
             <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
               {desktopNavigation.map(({ to, key, Icon, end }) => (
-                <NavLink key={to} to={to} end={end} className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className={({ isActive }) => `nav-link${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
+                >
                   <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
                   <span>{t(key)}</span>
                 </NavLink>
@@ -770,13 +806,19 @@ function App() {
               <span>{statusMessage}</span>
             </div>
           )}
-          <main className="app-main">
+          <main className="app-main" id="app-content" tabIndex="-1">
             <Outlet />
             {errorMessage && <p className="error-text">{errorMessage}</p>}
           </main>
           <nav className="mobile-tab-bar" aria-label={t('nav.main')}>
-            {mobileNavigation.map(({ to, key, Icon }) => (
-              <NavLink key={key} to={to} onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-tab${isActive ? ' is-active' : ''}`}>
+            {mobileNavigation.map(({ to, key, Icon, end }) => (
+              <NavLink
+                key={key}
+                to={to}
+                end={end}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={({ isActive }) => `mobile-tab${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
+              >
                 <Icon aria-hidden="true" size={17} strokeWidth={1.8} />
                 <span>{t(key)}</span>
               </NavLink>
@@ -799,9 +841,10 @@ function App() {
         <Route path="daily-parking" element={<DailyParkingWorkspace key={`${activeParking?._id}-daily`} parkingId={activeParking._id} />} />
         <Route path="team" element={renderTeam()} />
         <Route path="*" element={<Navigate to="/app/customers" replace />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/app/customers" replace />} />
-    </Routes>
+        </Route>
+        <Route path="*" element={<Navigate to="/app/customers" replace />} />
+      </Routes>
+    </Suspense>
   );
 }
 
