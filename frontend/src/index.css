@@ -17,22 +17,22 @@
 }
 
 @theme {
-  --color-primary: #087f5b;
-  --color-primary-dark: #18352d;
-  --color-primary-light: #e9f4e3;
+  --color-primary: #0e7a5d;
+  --color-primary-dark: #1b3d35;
+  --color-primary-light: #edf9f3;
   --color-highlight: #b7e46a;
-  --color-amber: #f0a44b;
-  --color-ink: #24332d;
-  --color-ink-muted: #718078;
-  --color-background: #f4f1e8;
+  --color-amber: #d89b4b;
+  --color-ink: #1f2e2a;
+  --color-ink-muted: #536560;
+  --color-background: #f6f3ee;
   --color-surface: #ffffff;
-  --color-border: #e5e9e1;
-  --color-success: #21865d;
-  --color-success-bg: #e8f4eb;
-  --color-warning: #a66c24;
-  --color-warning-bg: #fff2df;
-  --color-danger: #c94b4b;
-  --color-danger-bg: #f9eded;
+  --color-border: #dfe7e2;
+  --color-success: #1a7a59;
+  --color-success-bg: #eaf7f1;
+  --color-warning: #9e6622;
+  --color-warning-bg: #fff3e3;
+  --color-danger: #b5564a;
+  --color-danger-bg: #f9eeee;
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -128,10 +128,27 @@
   .auth-card {
     @apply mx-auto max-w-lg;
     border-top: 3px solid var(--color-primary);
+    box-shadow: 0 14px 32px rgb(31 46 42 / 12%), 0 4px 12px rgb(31 46 42 / 6%);
   }
 
   .auth-intro {
     @apply mb-0 mt-2 text-sm text-ink-muted;
+  }
+
+  .auth-back-button {
+    @apply mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-semibold text-ink no-underline transition hover:border-primary/30 hover:bg-primary-light hover:text-primary-dark;
+  }
+
+  .password-input-wrap {
+    @apply relative;
+  }
+
+  .password-input-wrap input {
+    @apply pr-12;
+  }
+
+  .password-toggle {
+    @apply absolute inset-y-0 end-2 my-auto flex h-9 w-9 items-center justify-center rounded-md border-0 bg-transparent text-ink-muted transition hover:text-primary-dark;
   }
 
   .dashboard-shell {
@@ -195,10 +212,12 @@
 
   .primary-button {
     @apply border-0 bg-primary text-white shadow-none hover:bg-primary-dark;
+    box-shadow: 0 2px 8px rgb(14 122 93 / 18%);
   }
 
   .secondary-button {
     @apply border border-border bg-surface text-ink hover:bg-background;
+    box-shadow: inset 0 0 0 1px rgb(31 46 42 / 2%);
   }
 
   .success-text,
@@ -435,6 +454,7 @@
 
   .nav-link.is-active {
     @apply bg-primary-light font-bold text-primary-dark;
+    box-shadow: inset 0 0 0 1px rgb(14 122 93 / 10%);
   }
 
   .sidebar-user {
