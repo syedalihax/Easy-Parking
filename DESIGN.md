@@ -41,10 +41,10 @@ This app must feel like a **merge of two specific references** — not a copy of
 
 ## 3. Color Palette
 
-Use CSS custom properties (`:root` variables), never hardcode hex codes directly in components.
+Define the project palette as Tailwind theme tokens; use the generated color utilities in components instead of hardcoding hex values.
 
 ```css
-:root {
+@theme {
   /* Brand */
   --color-primary: #0F6B4C;        /* deep trustworthy green — evokes money/growth, not generic tech-blue */
   --color-primary-dark: #0A4F38;
@@ -53,7 +53,7 @@ Use CSS custom properties (`:root` variables), never hardcode hex codes directly
   /* Neutrals (off-black / off-white, never pure) */
   --color-ink: #16201C;            /* primary text */
   --color-ink-muted: #5B6B63;      /* secondary text */
-  --color-bg: #FAFBF9;             /* page background */
+  --color-background: #FAFBF9;     /* page background */
   --color-surface: #FFFFFF;        /* card/surface background */
   --color-border: #E3E8E4;
 
@@ -81,8 +81,8 @@ Why green instead of blue/purple: this is a money-tracking app. Green reads as "
 - Recommended: `Inter` or `Manrope` (both free, both have a confident-but-friendly feel appropriate to both references). Load via self-hosted font files or a font-display:swap strategy for PWA performance — do not block render on a slow external font request.
 
 ```css
-:root {
-  --font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+@theme {
+  --font-sans: Inter, -apple-system, 'Segoe UI', sans-serif;
 
   /* Type scale */
   --text-xs: 12px;
@@ -93,23 +93,11 @@ Why green instead of blue/purple: this is a money-tracking app. Green reads as "
   --text-2xl: 28px;   /* used for big money numbers on dashboard/customer profile */
   --text-3xl: 36px;
 
-  /* Spacing scale (use multiples of 4) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-8: 48px;
-
-  /* Radius scale — pick from here only */
-  --radius-sm: 6px;   /* inputs, small buttons, badges */
-  --radius-md: 10px;  /* cards */
-  --radius-lg: 16px;  /* modals, bottom sheets */
+  /* Use Tailwind's 4px-based spacing and rounded-md/rounded-xl utilities. */
 }
 ```
 
-Money amounts (dues, payments) should always use `--text-xl` or larger, bold weight, and a tabular/monospaced-number font-feature if available (`font-variant-numeric: tabular-nums;`) so figures align cleanly in lists.
+Money amounts (dues, payments) should always use `text-xl` or larger, `font-bold`, and `tabular-nums` so figures align cleanly in lists.
 
 ---
 
@@ -160,7 +148,7 @@ Not required for v1. Build with the light palette in section 3 only. Do not spen
 ## 8. RTL Support (Urdu & Persian)
 
 Because two of the four required languages (Urdu, Iranian Persian) are RTL:
-- Use CSS logical properties (`margin-inline-start`, `padding-inline-end`, etc.) instead of `margin-left`/`margin-right` wherever direction-sensitive spacing is used, so the layout mirrors correctly under `dir="rtl"`.
+- Use Tailwind logical utilities (`ms-*`, `me-*`, `ps-*`, `pe-*`) instead of left/right spacing utilities wherever direction-sensitive spacing is used, so the layout mirrors correctly under `dir="rtl"`.
 - Icons that imply direction (e.g. a "back" arrow) must flip automatically based on `dir`.
 - Numbers (money amounts, dates) stay in their normal left-to-right numeral order even inside an RTL layout — don't mirror digit order.
 

@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const Customer = require('../models/Customer');
 const Vehicle = require('../models/Vehicle');
+const ParkingSubscription = require('../models/ParkingSubscription');
+const { generateMissingDues } = require('../services/dueGeneration');
+const { getFinalBillingPeriod } = require('../utils/billingPeriods');
+const { isTransactionUnsupported } = require('../utils/mongoErrors');
 
 const CUSTOMER_FIELDS = [
   'fullName',
@@ -184,27 +188,57 @@ const updateCustomer = async (req, res) => {
 };
 
 const deactivateCustomer = async (req, res) => {
+  let session;
   try {
-    const customer = await Customer.findOneAndUpdate(
-      {
+    session = await mongoose.startSession();
+    let customer;
+    await session.withTransaction(async () => {
+      customer = await Customer.findOne({
         _id: req.params.customerId,
         parkingId: req.params.parkingId,
-      },
-      { $set: { status: 'inactive' } },
-      { returnDocument: 'after', runValidators: true },
-    );
+      }).session(session);
 
-    if (!customer) {
-      return res.status(404).json({ message: 'Customer not found' });
-    }
+      if (!customer) {
+        const error = new Error('Customer not found');
+        error.status = 404;
+        throw error;
+      }
+
+      const subscriptions = await ParkingSubscription.find({
+        parkingId: req.params.parkingId,
+        customerId: customer._id,
+        status: 'active',
+      }).session(session);
+      for (const subscription of subscriptions) {
+        await generateMissingDues(subscription._id, { session });
+        const endedAt = new Date();
+        const finalPeriod = getFinalBillingPeriod(subscription.startDate, endedAt);
+        subscription.status = 'ended';
+        subscription.endedAt = endedAt;
+        if (subscription.pendingRateChange?.effectiveFrom
+          && new Date(subscription.pendingRateChange.effectiveFrom) > finalPeriod.start) {
+          subscription.pendingRateChange = undefined;
+        }
+        await subscription.save({ session });
+      }
+
+      customer.status = 'inactive';
+      await customer.save({ session });
+    });
 
     return res.json({ customer });
   } catch (error) {
+    if (error.status === 404) return res.status(404).json({ message: error.message });
     if (error.name === 'CastError') {
       return res.status(400).json({ message: 'Invalid customer ID' });
     }
+    if (isTransactionUnsupported(error)) {
+      return res.status(503).json({ message: 'MongoDB transactions require a replica set to deactivate customers and subscriptions safely' });
+    }
 
     return res.status(500).json({ message: 'Could not deactivate customer' });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 

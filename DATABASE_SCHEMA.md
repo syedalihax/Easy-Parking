@@ -129,6 +129,7 @@ One active subscription per vehicle at a time. Ending a subscription does not de
 | vehicleId | ObjectId ref `Vehicle` | required |
 | monthlyRate | Number | required |
 | startDate | Date | required — anchor date for billing periods |
+| endedAt | Date | optional — records when billing stopped so the final full period can be generated once |
 | billingCycleDay | Number | derived from `startDate`'s day-of-month, used for period math |
 | status | String enum | `active`, `paused`, `ended` — default `active` |
 | pendingRateChange | Object | optional — `{ newRate: Number, effectiveFrom: Date }` used when Owner schedules a rate change for "next cycle" instead of applying immediately (see PROJECT_CONTEXT.md section 5.3) |
@@ -208,7 +209,7 @@ Tracks important changes — especially payment corrections and manual adjustmen
 | parkingId | ObjectId ref `Parking` | required |
 | actionType | String enum | e.g. `payment_correction`, `manual_due_adjustment`, `membership_change` |
 | performedBy | ObjectId ref `User` | who requested it |
-| approvedBy | ObjectId ref `User` | required for corrections — must be an Owner (see PROJECT_CONTEXT.md section 4) |
+| approvedBy | ObjectId ref `User` | null while a correction is pending; set to an Owner when approved (see PROJECT_CONTEXT.md section 4) |
 | targetCollection | String | e.g. `Payment`, `MonthlyDue` |
 | targetId | ObjectId | the record affected |
 | reason | String | required |
@@ -216,7 +217,7 @@ Tracks important changes — especially payment corrections and manual adjustmen
 | newValue | Mixed | snapshot after change |
 | createdAt | Date | via timestamps |
 
-Indexes: index on `{ parkingId, targetCollection, targetId }`.
+Indexes: index on `{ parkingId, targetCollection, targetId }`; only one pending correction is allowed per payment.
 
 ---
 

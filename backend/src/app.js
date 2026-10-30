@@ -4,6 +4,7 @@ const authRoutes = require('./routes/authRoutes');
 const parkingRoutes = require('./routes/parkingRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
 const customerRoutes = require('./routes/customerRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
 
@@ -18,5 +19,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/parkings', parkingRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/parkings/:parkingId', customerRoutes);
+app.use('/api/parkings/:parkingId', paymentRoutes);
 
 module.exports = app;

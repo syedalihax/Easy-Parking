@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const Customer = require('../models/Customer');
 const Vehicle = require('../models/Vehicle');
+const ParkingSubscription = require('../models/ParkingSubscription');
+const { getBillingPeriod, getFinalBillingPeriod } = require('../utils/billingPeriods');
+const { generateMissingDues } = require('../services/dueGeneration');
 const { isTransactionUnsupported } = require('../utils/mongoErrors');
 
 const VEHICLE_FIELDS = [
@@ -48,25 +51,44 @@ const isDuplicateRegistration = (error) => error.code === 11000;
 const createVehicle = async (req, res) => {
   const fields = normalizeVehicleFields(getVehicleFields(req.body));
   const validationMessage = validateVehicleFields(fields, true);
+  const monthlyRate = Number(req.body.monthlyRate);
 
   if (validationMessage) {
     return res.status(400).json({ message: validationMessage });
   }
+  if (!Number.isFinite(monthlyRate) || monthlyRate < 0) {
+    return res.status(400).json({ message: 'A non-negative monthlyRate is required to add a vehicle' });
+  }
 
+  let session;
   try {
     const customer = await Customer.findOne({
       _id: req.params.customerId,
       parkingId: req.params.parkingId,
+      status: 'active',
     });
 
     if (!customer) {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    const vehicle = await Vehicle.create({
-      ...fields,
-      parkingId: req.params.parkingId,
-      customerId: customer._id,
+    session = await mongoose.startSession();
+    let vehicle;
+    await session.withTransaction(async () => {
+      [vehicle] = await Vehicle.create([{
+        ...fields,
+        parkingId: req.params.parkingId,
+        customerId: customer._id,
+      }], { session });
+      await ParkingSubscription.create([{
+        parkingId: req.params.parkingId,
+        customerId: customer._id,
+        vehicleId: vehicle._id,
+        monthlyRate,
+        startDate: vehicle.parkingStartDate,
+        billingCycleDay: vehicle.parkingStartDate.getUTCDate(),
+        createdBy: req.user.id,
+      }], { session });
     });
 
     return res.status(201).json({ vehicle });
@@ -77,8 +99,13 @@ const createVehicle = async (req, res) => {
     if (error.name === 'ValidationError' || error.name === 'CastError') {
       return res.status(400).json({ message: error.message });
     }
+    if (isTransactionUnsupported(error)) {
+      return res.status(503).json({ message: 'MongoDB transactions require a replica set to add vehicles and subscriptions safely' });
+    }
 
     return res.status(500).json({ message: 'Could not create vehicle' });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
@@ -117,6 +144,19 @@ const updateVehicle = async (req, res) => {
   }
 
   try {
+    if (Object.hasOwn(updates, 'parkingStartDate')) {
+      const activeSubscription = await ParkingSubscription.findOne({
+        parkingId: req.params.parkingId,
+        customerId: req.params.customerId,
+        vehicleId: req.params.vehicleId,
+        status: 'active',
+      }).select('startDate');
+      if (activeSubscription
+        && new Date(updates.parkingStartDate).getTime() !== new Date(activeSubscription.startDate).getTime()) {
+        return res.status(409).json({ message: 'A vehicle start date anchors its subscription and cannot be changed while active' });
+      }
+    }
+
     const vehicle = await Vehicle.findOneAndUpdate(
       {
         _id: req.params.vehicleId,
@@ -145,28 +185,57 @@ const updateVehicle = async (req, res) => {
 };
 
 const deactivateVehicle = async (req, res) => {
+  let session;
   try {
-    const vehicle = await Vehicle.findOneAndUpdate(
-      {
+    session = await mongoose.startSession();
+    let vehicle;
+    await session.withTransaction(async () => {
+      vehicle = await Vehicle.findOne({
         _id: req.params.vehicleId,
         parkingId: req.params.parkingId,
         customerId: req.params.customerId,
-      },
-      { $set: { status: 'inactive' } },
-      { returnDocument: 'after', runValidators: true },
-    );
+      }).session(session);
+      if (!vehicle) {
+        const error = new Error('Vehicle not found');
+        error.status = 404;
+        throw error;
+      }
 
-    if (!vehicle) {
-      return res.status(404).json({ message: 'Vehicle not found' });
-    }
+      const subscription = await ParkingSubscription.findOne({
+        parkingId: req.params.parkingId,
+        customerId: req.params.customerId,
+        vehicleId: vehicle._id,
+        status: 'active',
+      }).session(session);
+      if (subscription) {
+        await generateMissingDues(subscription._id, { session });
+        const endedAt = new Date();
+        const finalPeriod = getFinalBillingPeriod(subscription.startDate, endedAt);
+        subscription.status = 'ended';
+        subscription.endedAt = endedAt;
+        if (subscription.pendingRateChange?.effectiveFrom
+          && new Date(subscription.pendingRateChange.effectiveFrom) > finalPeriod.start) {
+          subscription.pendingRateChange = undefined;
+        }
+        await subscription.save({ session });
+      }
+      vehicle.status = 'inactive';
+      await vehicle.save({ session });
+    });
 
     return res.json({ vehicle });
   } catch (error) {
+    if (error.status === 404) return res.status(404).json({ message: error.message });
     if (error.name === 'CastError') {
       return res.status(400).json({ message: 'Invalid vehicle ID' });
     }
+    if (isTransactionUnsupported(error)) {
+      return res.status(503).json({ message: 'MongoDB transactions require a replica set to deactivate vehicles and subscriptions safely' });
+    }
 
     return res.status(500).json({ message: 'Could not deactivate vehicle' });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
@@ -198,24 +267,64 @@ const replaceVehicle = async (req, res) => {
         throw error;
       }
 
+      const oldSubscription = await ParkingSubscription.findOne({
+        parkingId: req.params.parkingId,
+        customerId: req.params.customerId,
+        vehicleId: oldVehicle._id,
+        status: 'active',
+      }).session(session);
+      const nextStartDate = oldSubscription
+        ? getBillingPeriod(oldSubscription.startDate).nextStart
+        : fields.parkingStartDate;
+      const monthlyRate = oldSubscription?.monthlyRate ?? Number(req.body.monthlyRate);
+      if (!Number.isFinite(monthlyRate) || monthlyRate < 0) {
+        const error = new Error('A non-negative monthlyRate is required when the previous vehicle has no subscription');
+        error.status = 400;
+        throw error;
+      }
+
+      if (oldSubscription) {
+        await generateMissingDues(oldSubscription._id, { session });
+        oldSubscription.status = 'ended';
+        oldSubscription.endedAt = nextStartDate;
+        const finalPeriod = getFinalBillingPeriod(oldSubscription.startDate, nextStartDate);
+        if (oldSubscription.pendingRateChange?.effectiveFrom
+          && new Date(oldSubscription.pendingRateChange.effectiveFrom) > finalPeriod.start) {
+          oldSubscription.pendingRateChange = undefined;
+        }
+        await oldSubscription.save({ session });
+      }
+
       oldVehicle.status = 'inactive';
       await oldVehicle.save({ session });
 
-      // Phase 4 creates the replacement vehicle's subscription from the next billing period.
       [replacement] = await Vehicle.create(
         [{
           ...fields,
+          parkingStartDate: nextStartDate,
           parkingId: req.params.parkingId,
           customerId: req.params.customerId,
         }],
         { session },
       );
+      await ParkingSubscription.create([{
+        parkingId: req.params.parkingId,
+        customerId: req.params.customerId,
+        vehicleId: replacement._id,
+        monthlyRate,
+        startDate: nextStartDate,
+        billingCycleDay: nextStartDate.getUTCDate(),
+        createdBy: req.user.id,
+      }], { session });
     });
 
     return res.status(201).json({ vehicle: replacement });
   } catch (error) {
     if (error.status === 404) {
       return res.status(404).json({ message: error.message });
+    }
+    if (error.status === 400) {
+      return res.status(400).json({ message: error.message });
     }
     if (isDuplicateRegistration(error)) {
       return res.status(409).json({ message: 'An active vehicle already uses this registration number' });

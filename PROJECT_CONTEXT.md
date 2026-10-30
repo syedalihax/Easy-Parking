@@ -26,7 +26,7 @@ easyParking is a **mobile-first, installable PWA (Progressive Web App)** that re
 | Auth | JWT-based authentication |
 | Password hashing | bcrypt |
 | API style | REST |
-| Styling | Plain CSS / CSS variables (see `DESIGN.md`) — no heavy generic UI kit that looks "default AI generated" |
+| Styling | Tailwind CSS utilities and theme tokens (see `DESIGN.md`) — no heavy generic UI kit that looks "default AI generated" |
 
 Architecture flow:
 

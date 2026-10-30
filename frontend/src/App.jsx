@@ -405,7 +405,10 @@ function App() {
           <p className="eyebrow">Dashboard</p>
           <h2>{user?.fullName}</h2>
         </div>
-        <button type="button" className="secondary-button" onClick={logout}>Logout</button>
+        <div className="action-row">
+          <button type="button" className="primary-button" onClick={() => setActiveSection('payments')}>Receive payment</button>
+          <button type="button" className="secondary-button" onClick={logout}>Logout</button>
+        </div>
       </header>
 
       <section className="panel">
@@ -432,6 +435,8 @@ function App() {
           <nav className="workspace-tabs" aria-label="Parking sections">
             <button type="button" className={activeSection === 'customers' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('customers')}>Customers</button>
             <button type="button" className={activeSection === 'vehicle-search' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('vehicle-search')}>Vehicle search</button>
+            <button type="button" className={activeSection === 'dues' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('dues')}>Dues</button>
+            <button type="button" className={activeSection === 'payments' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('payments')}>Payments</button>
             <button type="button" className={activeSection === 'team' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('team')}>Team</button>
           </nav>
 
@@ -439,6 +444,7 @@ function App() {
             <CustomersWorkspace
               key={`${activeParking._id}-${activeSection}`}
               parkingId={activeParking._id}
+              parkingRole={activeParking.role}
               initialScreen={activeSection}
             />
           )}

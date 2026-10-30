@@ -110,3 +110,54 @@ export const apiSearchVehicles = (parkingId, search) => {
   const params = new URLSearchParams({ search });
   return jsonRequest(`/parkings/${encodeURIComponent(parkingId)}/vehicles?${params}`);
 };
+
+export const apiGetSubscriptions = (parkingId, customerId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions`,
+);
+
+export const apiChangeSubscriptionRate = (parkingId, customerId, subscriptionId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions/${encodeURIComponent(subscriptionId)}/rate`,
+  { method: 'PATCH', body: JSON.stringify(payload) },
+);
+
+export const apiEndSubscription = (parkingId, customerId, subscriptionId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions/${encodeURIComponent(subscriptionId)}/end`,
+  { method: 'PATCH' },
+);
+
+export const apiGetDues = (parkingId, customerId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/dues`,
+);
+
+export const apiCreatePayment = (parkingId, customerId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments`,
+  { method: 'POST', body: JSON.stringify(payload) },
+);
+
+export const apiPreviewPayment = (parkingId, customerId, amount, manualDueOrder) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments/preview`,
+  { method: 'POST', body: JSON.stringify({ amount, ...(manualDueOrder === undefined ? {} : { manualDueOrder }) }) },
+);
+
+export const apiGetPayments = (parkingId, customerId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments`,
+);
+
+export const apiGetPayment = (parkingId, customerId, paymentId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments/${encodeURIComponent(paymentId)}`,
+);
+
+export const apiRequestPaymentCorrection = (parkingId, paymentId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/payments/${encodeURIComponent(paymentId)}/corrections/request`,
+  { method: 'POST', body: JSON.stringify(payload) },
+);
+
+export const apiApprovePaymentCorrection = (parkingId, paymentId, auditLogId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/payments/${encodeURIComponent(paymentId)}/corrections/${encodeURIComponent(auditLogId)}/approve`,
+  { method: 'POST' },
+);
+
+export const apiRejectPaymentCorrection = (parkingId, paymentId, auditLogId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/payments/${encodeURIComponent(paymentId)}/corrections/${encodeURIComponent(auditLogId)}/reject`,
+  { method: 'POST' },
+);
