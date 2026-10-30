@@ -28,6 +28,9 @@ function LandingPage({ onChangeLanguage }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const isMobileInstallEligible = typeof window !== 'undefined'
+    && window.matchMedia('(max-width: 768px)').matches
+    && !(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
   const language = i18n.resolvedLanguage || i18n.language || 'en';
 
   useEffect(() => {
@@ -344,6 +347,31 @@ function LandingPage({ onChangeLanguage }) {
           ))}
         </div>
       </section>
+
+      {isMobileInstallEligible && (
+        <section className="mobile-install-section">
+          <div className="mobile-install-card">
+            <div className="mobile-install-copy">
+              <p className="landing-eyebrow"><GoogleIcon name="download" size={15} />Install app</p>
+              <h2>Install Easy Parking on your Android</h2>
+              <p>Open the browser menu and add this app to your home screen for faster access and a native app experience.</p>
+            </div>
+            <div className="mobile-install-steps" aria-label="Install app steps">
+              <div className="install-step"><span>1</span><p>Tap the browser menu</p></div>
+              <div className="install-step"><span>2</span><p>Select “Install app” or “Add to Home screen”</p></div>
+              <div className="install-step"><span>3</span><p>Tap “Install” and use it like a normal app</p></div>
+            </div>
+            <button
+              type="button"
+              className="button-primary mobile-install-button"
+              onClick={handleInstallClick}
+              disabled={!installPrompt}
+            >
+              {installPrompt ? 'Install app now' : 'Install option not available'}
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="landing-cta">
         <div className="landing-cta-copy"><p className="landing-eyebrow">{t('app.name')}</p><h2>{t('landing.cta.title')}</h2><p>{t('landing.cta.description')}</p></div>
