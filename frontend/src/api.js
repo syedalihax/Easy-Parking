@@ -1,4 +1,13 @@
+import i18n from './i18n';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const offlineMessage = () => i18n.t('errors.offline');
+
+const ensureOnline = () => {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    throw new Error(offlineMessage());
+  }
+};
 
 const authHeaders = () => {
   const token = localStorage.getItem('easyparking_token');
@@ -7,6 +16,7 @@ const authHeaders = () => {
 };
 
 const jsonRequest = async (endpoint, options = {}) => {
+  ensureOnline();
   const headers = {
     ...(options.headers || {}),
   };
@@ -15,17 +25,24 @@ const jsonRequest = async (endpoint, options = {}) => {
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      ...authHeaders(),
-      ...headers,
-    },
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...authHeaders(),
+        ...headers,
+      },
+    });
+  } catch (error) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error(offlineMessage());
+    throw error;
+  }
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if (response.status === 429) throw new Error(i18n.t('errors.tooManyRequests'));
     throw new Error(data.message || 'Request failed');
   }
 
@@ -74,11 +91,18 @@ export const apiGetReport = (parkingId, reportName, filters = {}) => {
 };
 
 export const apiDownloadReport = async (parkingId, reportName, filters = {}) => {
+  ensureOnline();
   const params = new URLSearchParams({ ...filters, format: 'csv' });
-  const response = await fetch(
-    `${API_BASE_URL}/parkings/${encodeURIComponent(parkingId)}/reports/${reportName}?${params}`,
-    { headers: authHeaders() },
-  );
+  let response;
+  try {
+    response = await fetch(
+      `${API_BASE_URL}/parkings/${encodeURIComponent(parkingId)}/reports/${reportName}?${params}`,
+      { headers: authHeaders() },
+    );
+  } catch (error) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error(offlineMessage());
+    throw error;
+  }
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     throw new Error(data.message || 'Could not export report');

@@ -358,6 +358,7 @@
   "errors": {
     "couldNotLoad": "Maloomat load nahin ho sakin. Dobara koshish karein.",
     "couldNotSave": "Tabdeeliyan save nahin ho sakin. Dobara koshish karein.",
-    "offline": "Aap offline hain — jari rakhne ke liye internet se dobara rabta karein."
+    "offline": "Aap offline hain — jari rakhne ke liye internet se dobara rabta karein.",
+    "tooManyRequests": "Koshishen bohat zyada ho gayi hain. Chand minute intezar karein, phir dobara koshish karein."
   }
 }

@@ -10,6 +10,15 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
+const trustProxyHops = process.env.TRUST_PROXY_HOPS;
+
+if (trustProxyHops) {
+  const hopCount = Number(trustProxyHops);
+  if (!Number.isSafeInteger(hopCount) || hopCount < 1) {
+    throw new Error('TRUST_PROXY_HOPS must be a positive integer');
+  }
+  app.set('trust proxy', hopCount);
+}
 
 app.use(cors());
 app.use(express.json());
@@ -27,5 +36,25 @@ app.use('/api/parkings/:parkingId/reports', reportRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/parkings/:parkingId', customerRoutes);
 app.use('/api/parkings/:parkingId', paymentRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not found' });
+});
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+  console.error('Unhandled request error:', {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+  });
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600
+    ? error.status
+    : 500;
+  const message = process.env.NODE_ENV === 'production'
+    ? 'An unexpected error occurred'
+    : error.message || 'Internal server error';
+  return res.status(status).json({ message });
+});
 
 module.exports = app;

@@ -585,6 +585,10 @@
     @apply text-primary-dark;
   }
 
+  .offline-notice {
+    @apply fixed inset-x-0 top-0 z-50 border-b border-danger bg-danger-bg px-4 py-3 text-center text-sm font-bold text-danger shadow-sm;
+  }
+
   .money-figure,
   .report-money {
     direction: ltr;

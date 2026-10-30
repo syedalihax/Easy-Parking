@@ -358,6 +358,7 @@
   "errors": {
     "couldNotLoad": "Could not load data. Please try again.",
     "couldNotSave": "Could not save changes. Please try again.",
-    "offline": "You're offline — please reconnect to continue."
+    "offline": "You're offline — please reconnect to continue.",
+    "tooManyRequests": "Too many attempts. Please wait a few minutes and try again."
   }
 }

@@ -9,10 +9,12 @@ import '@fontsource/inter/latin-800.css'
 import './index.css'
 import './i18n'
 import App from './App.jsx'
+import OfflineNotice from './components/OfflineNotice.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
+      <OfflineNotice />
       <App />
     </BrowserRouter>
   </StrictMode>

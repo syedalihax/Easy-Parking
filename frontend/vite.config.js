@@ -12,23 +12,35 @@ export default defineConfig({
       manifest: {
         name: 'easyParking',
         short_name: 'easyParking',
+        description: 'Parking customers, subscriptions, dues, payments, and daily parking in one simple register.',
         theme_color: '#0F6B4C',
         background_color: '#FAFBF9',
         display: 'standalone',
+        scope: '/',
+        start_url: '/',
         icons: [
           {
             src: '/pwa-192x192.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
-            purpose: 'any maskable',
+            purpose: 'any',
           },
           {
             src: '/pwa-512x512.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
-            purpose: 'any maskable',
+            purpose: 'any',
+          },
+          {
+            src: '/pwa-maskable.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'maskable',
           },
         ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,txt,woff2,webmanifest}'],
       },
     }),
   ],
