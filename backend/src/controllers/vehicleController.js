@@ -373,6 +373,22 @@ const searchVehicles = async (req, res) => {
   }
 };
 
+const getVehicle = async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findOne({
+      _id: req.params.vehicleId,
+      parkingId: req.params.parkingId,
+    })
+      .populate('customerId', 'fullName primaryPhone status')
+      .lean();
+    if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
+    return res.json({ vehicle: { ...vehicle, customer: vehicle.customerId, customerId: vehicle.customerId?._id } });
+  } catch (error) {
+    if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid vehicle ID' });
+    return res.status(500).json({ message: 'Could not load vehicle details' });
+  }
+};
+
 module.exports = {
   createVehicle,
   listCustomerVehicles,
@@ -380,4 +396,5 @@ module.exports = {
   deactivateVehicle,
   replaceVehicle,
   searchVehicles,
+  getVehicle,
 };

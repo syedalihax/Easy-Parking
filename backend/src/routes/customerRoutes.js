@@ -13,6 +13,7 @@ const {
   deactivateVehicle,
   replaceVehicle,
   searchVehicles,
+  getVehicle,
 } = require('../controllers/vehicleController');
 const {
   createSubscription,
@@ -29,6 +30,7 @@ const router = express.Router({ mergeParams: true });
 router.use(requireAuth, requireParkingMembership);
 
 router.get('/vehicles', searchVehicles);
+router.get('/vehicles/:vehicleId', getVehicle);
 
 router.post('/customers', createCustomer);
 router.get('/customers', listCustomers);

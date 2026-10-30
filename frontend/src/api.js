@@ -111,6 +111,10 @@ export const apiSearchVehicles = (parkingId, search) => {
   return jsonRequest(`/parkings/${encodeURIComponent(parkingId)}/vehicles?${params}`);
 };
 
+export const apiGetVehicle = (parkingId, vehicleId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/vehicles/${encodeURIComponent(vehicleId)}`,
+);
+
 export const apiGetSubscriptions = (parkingId, customerId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions`,
 );

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   apiCreateCustomer,
   apiCreateVehicle,
@@ -9,6 +10,7 @@ import {
   apiGetPayments,
   apiGetPayment,
   apiGetSubscriptions,
+  apiGetVehicle,
   apiPreviewPayment,
   apiGetCustomer,
   apiGetCustomers,
@@ -43,7 +45,9 @@ const emptyVehicle = {
 };
 
 function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen = 'customers' }) {
-  const [screen, setScreen] = useState(initialScreen);
+  const navigate = useNavigate();
+  const { customerId: routeCustomerId, vehicleId: routeVehicleId } = useParams();
+  const screen = routeCustomerId ? 'profile' : routeVehicleId ? 'vehicle-detail' : initialScreen;
   const [customers, setCustomers] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [statusFilter, setStatusFilter] = useState('active');
@@ -51,6 +55,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [vehicleResults, setVehicleResults] = useState([]);
   const [customer, setCustomer] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [customerForm, setCustomerForm] = useState(emptyCustomer);
   const [vehicleForm, setVehicleForm] = useState(emptyVehicle);
   const [editingCustomer, setEditingCustomer] = useState(false);
@@ -90,6 +95,41 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
     setPayments(paymentResult.payments || []);
     setSubscriptions(subscriptionResult.subscriptions || []);
   }, [parkingId]);
+
+  useEffect(() => {
+    if (!routeCustomerId) return undefined;
+    let isCurrent = true;
+    const fetchCustomer = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+      try {
+        const [customerResult] = await Promise.all([
+          apiGetCustomer(parkingId, routeCustomerId),
+          loadBilling(routeCustomerId),
+        ]);
+        if (isCurrent) setCustomer(customerResult.customer);
+      } catch (error) {
+        if (isCurrent) setErrorMessage(error.message || 'Could not load customer profile');
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
+    };
+    fetchCustomer();
+    return () => { isCurrent = false; };
+  }, [loadBilling, parkingId, routeCustomerId]);
+
+  useEffect(() => {
+    if (!routeVehicleId) return undefined;
+    let isCurrent = true;
+    apiGetVehicle(parkingId, routeVehicleId)
+      .then(({ vehicle }) => {
+        if (isCurrent) setSelectedVehicle(vehicle);
+      })
+      .catch((error) => {
+        if (isCurrent) setErrorMessage(error.message || 'Could not load vehicle details');
+      });
+    return () => { isCurrent = false; };
+  }, [parkingId, routeVehicleId]);
 
   useEffect(() => {
     if (!customer || !paymentForm.amount || !Number.isFinite(Number(paymentForm.amount)) || Number(paymentForm.amount) <= 0) {
@@ -170,7 +210,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
       const response = await apiGetCustomer(parkingId, customerId);
       setCustomer(response.customer);
       await loadBilling(customerId);
-      setScreen('profile');
+      navigate(`/app/customers/${customerId}`);
       setShowCustomerForm(false);
       setShowVehicleForm(false);
     } catch (error) {
@@ -208,7 +248,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
         const response = await apiCreateCustomer(parkingId, customerForm);
         setStatusMessage('Customer added');
         setCustomer(response.customer);
-        setScreen('profile');
+        navigate(`/app/customers/${response.customer._id}`);
       }
       setShowCustomerForm(false);
       await loadCustomers(pagination.page);
@@ -522,6 +562,30 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
       {errorMessage && !showCustomerForm && !showVehicleForm && <p className="error-text">{errorMessage}</p>}
       {statusMessage && <p className="success-text">{statusMessage}</p>}
 
+      {screen === 'vehicle-detail' && selectedVehicle && (
+        <>
+          <Link to="/app/vehicles" className="text-button" onClick={() => setSelectedVehicle(null)}>Back to vehicle search</Link>
+          <section className="panel vehicle-detail-panel">
+            <div className="workspace-heading">
+              <div>
+                <p className="eyebrow">Vehicle record</p>
+                <h2>{selectedVehicle.registrationNumber}</h2>
+              </div>
+              <span className={selectedVehicle.status === 'active' ? 'status-label is-active' : 'status-label'}>{selectedVehicle.status}</span>
+            </div>
+            <div className="vehicle-detail-grid">
+              <div><span>Customer</span><Link to={`/app/customers/${selectedVehicle.customer?._id}`}>{selectedVehicle.customer?.fullName || 'Customer profile'}</Link></div>
+              <div><span>Phone</span><strong>{selectedVehicle.customer?.primaryPhone || 'Not provided'}</strong></div>
+              <div><span>Vehicle type</span><strong>{selectedVehicle.vehicleType || 'Not provided'}</strong></div>
+              <div><span>Make / model</span><strong>{selectedVehicle.makeModel || 'Not provided'}</strong></div>
+              <div><span>Color</span><strong>{selectedVehicle.color || 'Not provided'}</strong></div>
+              <div><span>Parking start date</span><strong>{new Date(selectedVehicle.parkingStartDate).toLocaleDateString()}</strong></div>
+              {selectedVehicle.notes && <div className="vehicle-notes"><span>Notes</span><strong>{selectedVehicle.notes}</strong></div>}
+            </div>
+          </section>
+        </>
+      )}
+
       {(screen === 'dues' || screen === 'payments') && !customer && (
         <>
           <div className="workspace-heading">
@@ -602,7 +666,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
 
       {screen === 'profile' && customer && (
         <>
-          <button type="button" className="text-button" onClick={() => { setCustomer(null); setScreen('customers'); }}>Back to customers</button>
+          <Link to="/app/customers" className="text-button" onClick={() => setCustomer(null)}>Back to customers</Link>
           <section className="panel profile-header">
             <div>
               <p className="eyebrow">Customer profile</p>
@@ -632,7 +696,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                 {customer.vehicles.map((vehicle) => (
                   <article key={vehicle._id} className="vehicle-card">
                     <div className="vehicle-summary">
-                      <strong>{vehicle.registrationNumber}</strong>
+                      <Link className="vehicle-registration-link" to={`/app/vehicles/${vehicle._id}`}>{vehicle.registrationNumber}</Link>
                       <span className={vehicle.status === 'active' ? 'status-label is-active' : 'status-label'}>{vehicle.status}</span>
                       <p>{[vehicle.vehicleType, vehicle.makeModel, vehicle.color].filter(Boolean).join(' · ') || 'Vehicle details not added'}</p>
                       <p className="muted-text">Since {new Date(vehicle.parkingStartDate).toLocaleDateString()}</p>
@@ -886,12 +950,12 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
           </form>
           <div className="vehicle-list">
             {vehicleResults.map((vehicle) => (
-              <button key={vehicle._id} className="vehicle-search-result" type="button" onClick={() => openCustomer(vehicle.customer?._id)}>
+              <Link key={vehicle._id} className="vehicle-search-result" to={`/app/vehicles/${vehicle._id}`}>
                 <strong>{vehicle.registrationNumber}</strong>
                 <span>{vehicle.customer?.fullName || 'Customer'}</span>
                 <span className="customer-phone">{vehicle.customer?.primaryPhone || ''}</span>
                 <span className={vehicle.status === 'active' ? 'status-label is-active' : 'status-label'}>{vehicle.status}</span>
-              </button>
+              </Link>
             ))}
           </div>
         </>

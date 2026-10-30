@@ -321,4 +321,144 @@
   .action-row {
     @apply flex-wrap;
   }
+
+  .app-shell {
+    @apply min-h-screen bg-background lg:grid lg:grid-cols-[260px_minmax(0,1fr)];
+  }
+
+  .app-sidebar {
+    @apply z-20 flex flex-col gap-6 border-b border-border bg-surface p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-7;
+  }
+
+  .brand-lockup {
+    @apply flex items-center gap-3 text-ink no-underline;
+  }
+
+  .brand-lockup > span:last-child {
+    @apply grid;
+  }
+
+  .brand-lockup strong {
+    @apply text-lg font-extrabold;
+  }
+
+  .brand-lockup small {
+    @apply text-xs text-ink-muted;
+  }
+
+  .brand-mark {
+    @apply grid size-11 place-items-center rounded-xl bg-primary font-extrabold text-white;
+  }
+
+  .sidebar-parking {
+    @apply rounded-xl bg-background p-3;
+  }
+
+  .sidebar-nav {
+    @apply flex gap-2 overflow-x-auto lg:flex-1 lg:flex-col lg:overflow-visible;
+  }
+
+  .nav-link {
+    @apply flex min-h-11 shrink-0 items-center rounded-lg px-4 font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
+  }
+
+  .nav-link.is-active {
+    @apply bg-primary-light font-bold text-primary-dark;
+  }
+
+  .sidebar-user {
+    @apply hidden items-center justify-between gap-3 border-t border-border pt-5 lg:flex;
+  }
+
+  .sidebar-user > div {
+    @apply grid min-w-0;
+  }
+
+  .sidebar-user strong {
+    @apply truncate text-sm;
+  }
+
+  .sidebar-user span {
+    @apply text-xs capitalize text-ink-muted;
+  }
+
+  .app-main {
+    @apply mx-auto grid w-full min-w-0 content-start gap-6 p-4 sm:p-6 lg:max-w-[1680px] lg:gap-8 lg:px-10 lg:py-9;
+  }
+
+  .app-topbar {
+    @apply flex flex-col items-stretch justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-center;
+  }
+
+  .app-topbar h1 {
+    @apply m-0 text-2xl font-bold text-ink lg:text-3xl;
+  }
+
+  .customer-grid,
+  .vehicle-list {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  }
+
+  .vehicle-detail-grid {
+    @apply mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .vehicle-detail-grid > div {
+    @apply grid content-start gap-1 rounded-lg bg-background p-4;
+  }
+
+  .vehicle-detail-grid span {
+    @apply text-sm text-ink-muted;
+  }
+
+  .vehicle-detail-grid strong,
+  .vehicle-detail-grid a {
+    @apply break-words font-bold text-ink;
+  }
+
+  .vehicle-detail-grid a {
+    @apply text-primary-dark;
+  }
+
+  .vehicle-notes {
+    @apply sm:col-span-2 xl:col-span-3;
+  }
+
+  .vehicle-registration-link {
+    @apply w-fit text-lg font-bold text-primary-dark underline-offset-4 hover:underline;
+  }
+
+  .team-invite-form {
+    @apply lg:grid-cols-[minmax(0,1fr)_220px_auto] lg:items-end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    @apply p-7;
+  }
+}
+
+@media (max-width: 1023px) {
+  .sidebar-user {
+    @apply flex border-0 p-0;
+  }
+}
+
+@media (max-width: 639px) {
+  .app-sidebar {
+    @apply gap-4;
+  }
+
+  .sidebar-parking {
+    @apply max-w-full;
+  }
+
+  .sidebar-user .secondary-button {
+    @apply min-h-10 px-3 py-2;
+  }
+
+  .app-topbar > a {
+    @apply w-full text-center;
+  }
 }

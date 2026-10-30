@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Link,
+  Navigate,
+  NavLink,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
+import {
   apiAcceptInvitation,
   apiCreateInvitation,
   apiCreateParking,
@@ -31,13 +41,14 @@ const defaultInviteForm = {
 };
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [token, setToken] = useState(localStorage.getItem('easyparking_token') || '');
   const [user, setUser] = useState(null);
   const [parkings, setParkings] = useState([]);
   const [selectedParkingId, setSelectedParkingId] = useState(
     localStorage.getItem('easyparking_selected_parking') || '',
   );
-  const [authMode, setAuthMode] = useState('login');
   const [authForm, setAuthForm] = useState(defaultAuthForm);
   const [parkingForm, setParkingForm] = useState(defaultParkingForm);
   const [inviteForm, setInviteForm] = useState(defaultInviteForm);
@@ -46,7 +57,6 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSessionLoading, setIsSessionLoading] = useState(Boolean(token));
-  const [activeSection, setActiveSection] = useState('customers');
 
   const activeParking = useMemo(
     () => parkings.find((parking) => parking._id === selectedParkingId) || null,
@@ -70,7 +80,8 @@ function App() {
     setSelectedParkingId('');
     setPendingInvitations([]);
     setIsSessionLoading(false);
-  }, []);
+    navigate('/login', { replace: true });
+  }, [navigate]);
 
   const loadParkings = useCallback(async () => {
     try {
@@ -163,7 +174,7 @@ function App() {
         password: authForm.password,
       };
 
-      if (authMode === 'signup') {
+      if (location.pathname === '/signup') {
         if (!payload.fullName || (!payload.email && !payload.phone)) {
           throw new Error('Full name and email or phone are required');
         }
@@ -177,6 +188,7 @@ function App() {
         setIsSessionLoading(true);
         setToken(response.token);
         setStatusMessage('Account created successfully');
+        navigate('/app', { replace: true });
       } else {
         const response = await apiLogin({
           email: authForm.email || undefined,
@@ -188,6 +200,7 @@ function App() {
         setIsSessionLoading(true);
         setToken(response.token);
         setStatusMessage('Logged in successfully');
+        navigate('/app', { replace: true });
       }
     } catch (error) {
       setErrorMessage(error.message || 'Authentication failed');
@@ -208,6 +221,7 @@ function App() {
       setParkingForm(defaultParkingForm);
       setStatusMessage('Parking created successfully');
       await loadParkings();
+      navigate('/app/customers');
     } catch (error) {
       setErrorMessage(error.message || 'Could not create parking');
     } finally {
@@ -259,31 +273,23 @@ function App() {
     }
   };
 
-  const renderAuthForm = () => (
+  const renderAuthForm = (mode) => (
     <div className="auth-shell">
       <div className="auth-card">
         <p className="eyebrow">easyParking</p>
-        <h1>{authMode === 'login' ? 'Welcome back' : 'Create account'}</h1>
+        <h1>{mode === 'login' ? 'Welcome back' : 'Create account'}</h1>
 
         <div className="toggle-row" role="tablist" aria-label="Authentication mode">
-          <button
-            type="button"
-            className={authMode === 'login' ? 'pill-button is-active' : 'pill-button'}
-            onClick={() => setAuthMode('login')}
-          >
+          <Link to="/login" className={mode === 'login' ? 'pill-button is-active' : 'pill-button'}>
             Login
-          </button>
-          <button
-            type="button"
-            className={authMode === 'signup' ? 'pill-button is-active' : 'pill-button'}
-            onClick={() => setAuthMode('signup')}
-          >
+          </Link>
+          <Link to="/signup" className={mode === 'signup' ? 'pill-button is-active' : 'pill-button'}>
             Sign up
-          </button>
+          </Link>
         </div>
 
         <form className="form-grid" onSubmit={handleAuthSubmit}>
-          {authMode === 'signup' && (
+          {mode === 'signup' && (
             <label className="field">
               <span>Full name</span>
               <input
@@ -296,7 +302,7 @@ function App() {
           )}
 
           <label className="field">
-            <span>{authMode === 'signup' ? 'Email or phone' : 'Email / phone'}</span>
+            <span>{mode === 'signup' ? 'Email or phone' : 'Email / phone'}</span>
             <input
               type="text"
               value={authForm.email || authForm.phone}
@@ -310,7 +316,7 @@ function App() {
                   handleAuthInput('email', '');
                 }
               }}
-              placeholder={authMode === 'signup' ? 'name@example.com or 0300...' : 'name@example.com or 0300...'}
+              placeholder="name@example.com or 0300..."
             />
           </label>
 
@@ -324,7 +330,7 @@ function App() {
             />
           </label>
 
-          {authMode === 'signup' && (
+          {mode === 'signup' && (
             <label className="field">
               <span>Confirm password</span>
               <input
@@ -340,7 +346,7 @@ function App() {
           {statusMessage && <p className="success-text">{statusMessage}</p>}
 
           <button type="submit" className="primary-button" disabled={isLoading}>
-            {isLoading ? 'Please wait...' : authMode === 'login' ? 'Login' : 'Create account'}
+            {isLoading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Create account'}
           </button>
         </form>
       </div>
@@ -398,128 +404,46 @@ function App() {
     </div>
   );
 
-  const renderDashboard = () => (
-    <div className="dashboard-shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">Dashboard</p>
-          <h2>{user?.fullName}</h2>
-        </div>
-        <div className="action-row">
-          <button type="button" className="primary-button" onClick={() => setActiveSection('payments')}>Receive payment</button>
-          <button type="button" className="secondary-button" onClick={logout}>Logout</button>
-        </div>
-      </header>
-
-      <section className="panel">
-        <div className="panel-header">
-          <h3>Parking switcher</h3>
-        </div>
-        <div className="select-wrap">
-          <label className="field">
-            <span>Selected parking</span>
-            <select
-              value={selectedParkingId}
-              onChange={(event) => setSelectedParkingId(event.target.value)}
-            >
-              {parkings.map((parking) => (
-                <option key={parking._id} value={parking._id}>{parking.name}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </section>
-
-      {activeParking && (
-        <>
-          <nav className="workspace-tabs" aria-label="Parking sections">
-            <button type="button" className={activeSection === 'customers' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('customers')}>Customers</button>
-            <button type="button" className={activeSection === 'vehicle-search' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('vehicle-search')}>Vehicle search</button>
-            <button type="button" className={activeSection === 'dues' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('dues')}>Dues</button>
-            <button type="button" className={activeSection === 'payments' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('payments')}>Payments</button>
-            <button type="button" className={activeSection === 'team' ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setActiveSection('team')}>Team</button>
-          </nav>
-
-          {activeSection !== 'team' && (
-            <CustomersWorkspace
-              key={`${activeParking._id}-${activeSection}`}
-              parkingId={activeParking._id}
-              parkingRole={activeParking.role}
-              initialScreen={activeSection}
-            />
-          )}
-
-          {activeSection === 'team' && (
-            <>
-              {activeParking.role === 'owner' && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <h3>Invite teammate</h3>
-                  </div>
-                  <form className="form-grid" onSubmit={handleInviteSubmit}>
-                    <label className="field">
-                      <span>Email or phone</span>
-                      <input
-                        type="text"
-                        value={inviteForm.emailOrPhone}
-                        onChange={(event) => setInviteForm((current) => ({ ...current, emailOrPhone: event.target.value }))}
-                        placeholder="manager@example.com"
-                      />
-                    </label>
-
-                    <label className="field">
-                      <span>Role</span>
-                      <select
-                        value={inviteForm.role}
-                        onChange={(event) => setInviteForm((current) => ({ ...current, role: event.target.value }))}
-                      >
-                        <option value="manager">Manager</option>
-                        <option value="owner">Owner</option>
-                      </select>
-                    </label>
-
-                    <button type="submit" className="primary-button" disabled={isLoading}>
-                      Send invite
-                    </button>
-                  </form>
-                </section>
-              )}
-
-              <section className="panel">
-                <div className="panel-header">
-                  <h3>Pending invitations</h3>
-                </div>
-
-                {pendingInvitations.length === 0 ? (
-                  <p className="muted-text">No pending invitations found.</p>
-                ) : (
-                  <div className="list-stack">
-                    {pendingInvitations.map((invitation) => (
-                      <div key={invitation._id} className="list-item">
-                        <div>
-                          <strong>{invitation.emailOrPhone}</strong>
-                          <p>{invitation.role} · {invitation.parkingId?.name || 'Parking'}</p>
-                        </div>
-                        <button
-                          type="button"
-                          className="secondary-button"
-                          onClick={() => handleAcceptInvitation(invitation._id)}
-                        >
-                          Accept
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-            </>
-          )}
-        </>
+  const renderTeam = () => (
+    <>
+      {activeParking.role === 'owner' && (
+        <section className="panel">
+          <div className="panel-header"><h3>Invite teammate</h3></div>
+          <form className="form-grid team-invite-form" onSubmit={handleInviteSubmit}>
+            <label className="field">
+              <span>Email or phone</span>
+              <input
+                type="text"
+                value={inviteForm.emailOrPhone}
+                onChange={(event) => setInviteForm((current) => ({ ...current, emailOrPhone: event.target.value }))}
+                placeholder="manager@example.com"
+              />
+            </label>
+            <label className="field">
+              <span>Role</span>
+              <select value={inviteForm.role} onChange={(event) => setInviteForm((current) => ({ ...current, role: event.target.value }))}>
+                <option value="manager">Manager</option>
+                <option value="owner">Owner</option>
+              </select>
+            </label>
+            <button type="submit" className="primary-button" disabled={isLoading}>Send invite</button>
+          </form>
+        </section>
       )}
-
-      {errorMessage && <p className="error-text">{errorMessage}</p>}
-      {statusMessage && <p className="success-text">{statusMessage}</p>}
-    </div>
+      <section className="panel">
+        <div className="panel-header"><h3>Pending invitations</h3></div>
+        {pendingInvitations.length === 0 ? <p className="muted-text">No pending invitations found.</p> : (
+          <div className="list-stack">
+            {pendingInvitations.map((invitation) => (
+              <div key={invitation._id} className="list-item">
+                <div><strong>{invitation.emailOrPhone}</strong><p>{invitation.role} · {invitation.parkingId?.name || 'Parking'}</p></div>
+                <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>Accept</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
   );
 
   if (!token || !user) {
@@ -534,7 +458,13 @@ function App() {
       );
     }
 
-    return renderAuthForm();
+    return (
+      <Routes>
+        <Route path="/login" element={renderAuthForm('login')} />
+        <Route path="/signup" element={renderAuthForm('signup')} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
   }
 
   if (isSessionLoading) {
@@ -552,7 +482,59 @@ function App() {
     return renderParkingSetup();
   }
 
-  return renderDashboard();
+  return (
+    <Routes>
+      <Route path="/app" element={(
+        <div className="app-shell">
+          <aside className="app-sidebar">
+            <Link to="/app/customers" className="brand-lockup">
+              <span className="brand-mark">eP</span>
+              <span><strong>easyParking</strong><small>Parking management</small></span>
+            </Link>
+            <div className="sidebar-parking">
+              <label className="field">
+                <span>Selected parking</span>
+                <select value={selectedParkingId} onChange={(event) => setSelectedParkingId(event.target.value)}>
+                  {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
+                </select>
+              </label>
+            </div>
+            <nav className="sidebar-nav" aria-label="Main navigation">
+              <NavLink to="/app/customers" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`} end>Customers</NavLink>
+              <NavLink to="/app/vehicles" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Vehicles</NavLink>
+              <NavLink to="/app/dues" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Dues</NavLink>
+              <NavLink to="/app/payments" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Payments</NavLink>
+              <NavLink to="/app/team" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Team</NavLink>
+            </nav>
+            <div className="sidebar-user">
+              <div><strong>{user?.fullName}</strong><span>{activeParking?.role || 'member'}</span></div>
+              <button type="button" className="secondary-button" onClick={logout}>Logout</button>
+            </div>
+          </aside>
+          <main className="app-main">
+            <header className="app-topbar">
+              <div><p className="eyebrow">{activeParking?.name || 'Parking workspace'}</p><h1>{user?.fullName}</h1></div>
+              <Link to="/app/payments" className="primary-button">Receive payment</Link>
+            </header>
+            <Outlet />
+            {errorMessage && <p className="error-text">{errorMessage}</p>}
+            {statusMessage && <p className="success-text">{statusMessage}</p>}
+          </main>
+        </div>
+      )}>
+        <Route index element={<Navigate to="customers" replace />} />
+        <Route path="customers" element={<CustomersWorkspace key={`${activeParking?._id}-customers`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
+        <Route path="customers/:customerId" element={<CustomersWorkspace key={`${activeParking?._id}-customer-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
+        <Route path="vehicles" element={<CustomersWorkspace key={`${activeParking?._id}-vehicles`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="vehicle-search" />} />
+        <Route path="vehicles/:vehicleId" element={<CustomersWorkspace key={`${activeParking?._id}-vehicle-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="vehicle-detail" />} />
+        <Route path="dues" element={<CustomersWorkspace key={`${activeParking?._id}-dues`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="dues" />} />
+        <Route path="payments" element={<CustomersWorkspace key={`${activeParking?._id}-payments`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="payments" />} />
+        <Route path="team" element={renderTeam()} />
+        <Route path="*" element={<Navigate to="/app/customers" replace />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/app/customers" replace />} />
+    </Routes>
+  );
 }
 
 export default App;
