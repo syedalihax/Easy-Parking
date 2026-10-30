@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0f6b4c;
-  --color-primary-dark: #0a4f38;
-  --color-primary-light: #e6f4ee;
-  --color-ink: #16201c;
-  --color-ink-muted: #5b6b63;
-  --color-background: #fafbf9;
-  --color-surface: #ffffff;
-  --color-border: #e3e8e4;
-  --color-success: #1b8a5a;
-  --color-success-bg: #e7f6ee;
-  --color-warning: #b97a1a;
-  --color-warning-bg: #fbf0dd;
-  --color-danger: #c23b3b;
-  --color-danger-bg: #fbeaea;
+  --color-primary: #17684f;
+  --color-primary-dark: #124d3d;
+  --color-primary-light: #eaf2ed;
+  --color-ink: #202b27;
+  --color-ink-muted: #68746d;
+  --color-background: #f5f6f2;
+  --color-surface: #fffefa;
+  --color-border: #e2e5df;
+  --color-success: #287451;
+  --color-success-bg: #edf5ef;
+  --color-warning: #9a6a20;
+  --color-warning-bg: #f8f2e5;
+  --color-danger: #a84343;
+  --color-danger-bg: #f8eded;
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.profile-form {
+  @apply max-w-3xl sm:grid-cols-2;
+}
+
+.profile-save {
+  @apply sm:col-span-2 sm:w-fit sm:min-w-36;
+}
+
+.profile-setup-backdrop {
+  @apply fixed inset-0 z-[70] flex items-center justify-center bg-ink/40 p-4;
+}
+
+.profile-setup-dialog {
+  @apply max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-xl sm:p-7;
+}
+
+.profile-setup-dialog h2 {
+  @apply mb-2 mt-0 text-xl font-bold;
+}
+
+.profile-setup-dialog > p:not(.eyebrow) {
+  @apply mb-5 mt-0 text-sm leading-6 text-ink-muted;
+}
+
+.profile-setup-mark {
+  @apply mb-4 flex size-11 items-center justify-center rounded-full bg-primary-light text-primary-dark;
+}
+
+.profile-later {
+  @apply mx-auto text-sm;
 }
 
 @layer base {
   * {
     @apply box-border;
+  }
+
+  .stat-card-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .stat-card small {
+    font-size: 0.65rem;
+    line-height: 1.35;
   }
 
   html,
@@ -57,11 +104,16 @@
 
   .auth-card,
   .panel {
-    @apply w-full rounded-xl border border-border bg-surface p-5 shadow-md md:p-8;
+    @apply w-full rounded-xl border border-border bg-surface p-5 shadow-sm md:p-8;
   }
 
   .auth-card {
-    @apply mx-auto max-w-xl;
+    @apply mx-auto max-w-lg;
+    border-top: 3px solid var(--color-primary);
+  }
+
+  .auth-intro {
+    @apply mb-0 mt-2 text-sm text-ink-muted;
   }
 
   .dashboard-shell {
@@ -74,7 +126,7 @@
 
   .topbar h2,
   .auth-card h1 {
-    @apply m-0 text-3xl font-bold text-ink md:text-4xl;
+    @apply m-0 text-2xl font-bold text-ink md:text-3xl;
   }
 
   .eyebrow {
@@ -82,7 +134,7 @@
   }
 
   .toggle-row {
-    @apply my-5 inline-flex rounded-full bg-primary-light p-1;
+    @apply my-5 grid w-full grid-cols-2 rounded-lg bg-background p-1;
   }
 
   .pill-button,
@@ -92,11 +144,12 @@
   }
 
   .pill-button {
-    @apply flex-1 border-0 bg-transparent text-ink-muted;
+    @apply flex min-w-0 items-center justify-center border-0 bg-transparent text-center text-ink-muted no-underline;
   }
 
   .pill-button.is-active {
     @apply bg-surface text-primary-dark shadow-sm;
+    box-shadow: 0 1px 3px rgb(32 43 39 / 12%);
   }
 
   .form-grid {
@@ -113,7 +166,7 @@
 
   .field input,
   .field select {
-    @apply min-h-11 w-full rounded-md border border-border bg-surface px-4 py-3 text-ink;
+    @apply min-h-11 w-full rounded-lg border border-border bg-surface px-4 py-3 text-ink;
   }
 
   .field input:focus,
@@ -123,7 +176,7 @@
   }
 
   .primary-button {
-    @apply border-0 bg-primary text-white shadow-sm hover:bg-primary-dark;
+    @apply border-0 bg-primary text-white shadow-none hover:bg-primary-dark;
   }
 
   .secondary-button {
@@ -212,7 +265,11 @@
 
   .workspace-heading h2,
   .profile-header h2 {
-    @apply m-0 text-2xl font-bold;
+    @apply m-0 text-xl font-bold;
+  }
+
+  .workspace-hint {
+    @apply mb-0 mt-1 text-sm text-ink-muted;
   }
 
   .customer-search {
@@ -327,7 +384,7 @@
   }
 
   .app-sidebar {
-    @apply z-20 flex flex-col gap-6 border-b border-border bg-surface p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-e lg:px-5 lg:py-7;
+    @apply z-20 flex min-w-0 flex-col gap-6 border-b border-border bg-background p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-e lg:px-4 lg:py-6;
   }
 
   .brand-lockup {
@@ -347,7 +404,7 @@
   }
 
   .sidebar-nav {
-    @apply flex gap-2 overflow-x-auto lg:flex-1 lg:flex-col lg:overflow-visible;
+    @apply flex gap-2 overflow-x-auto lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden;
   }
 
   .desktop-sidebar-nav {
@@ -355,7 +412,7 @@
   }
 
   .nav-link {
-    @apply flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-4 font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
+    @apply flex min-h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-sm font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
   }
 
   .nav-link.is-active {
@@ -363,19 +420,33 @@
   }
 
   .sidebar-user {
-    @apply hidden items-center justify-between gap-3 border-t border-border pt-5 lg:flex;
+    @apply hidden min-h-14 shrink-0 items-center gap-3 rounded-xl border-t border-border pt-4 text-ink no-underline lg:flex;
+    margin-top: auto;
   }
 
-  .sidebar-user > div {
-    @apply grid min-w-0;
+  .sidebar-user:hover,
+  .sidebar-user.is-active {
+    @apply bg-primary-light;
   }
 
-  .sidebar-user strong {
-    @apply truncate text-sm;
+  .sidebar-user-avatar {
+    @apply flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white;
   }
 
-  .sidebar-user span {
-    @apply text-xs capitalize text-ink-muted;
+  .sidebar-user-copy {
+    @apply grid min-w-0 flex-1 gap-0.5;
+  }
+
+  .sidebar-user-copy strong {
+    @apply truncate text-sm font-semibold;
+  }
+
+  .sidebar-user-copy small {
+    @apply text-xs text-ink-muted;
+  }
+
+  .sidebar-user > svg {
+    @apply shrink-0 text-ink-muted;
   }
 
   .app-main {
@@ -473,15 +544,46 @@
   }
 
   .stat-card {
-    @apply grid min-h-32 content-between gap-4 rounded-xl border border-border bg-surface p-5 shadow-sm;
+    @apply grid min-h-32 content-between gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm;
+  }
+
+  .stat-card-top {
+    @apply flex min-w-0 items-start justify-between gap-2;
   }
 
   .stat-card span {
-    @apply text-sm font-semibold text-ink-muted;
+    @apply text-sm font-semibold leading-5 text-ink-muted;
   }
 
   .stat-card strong {
-    @apply text-3xl font-extrabold tabular-nums text-ink;
+    @apply text-2xl font-bold tabular-nums text-ink;
+  }
+
+  .stat-card small {
+    @apply text-xs leading-5 text-ink-muted;
+  }
+
+  .stat-card-icon {
+    @apply flex size-9 shrink-0 items-center justify-center rounded-full;
+  }
+
+  .stat-card-green .stat-card-icon {
+    @apply bg-primary-light text-primary-dark;
+  }
+
+  .stat-card-blue .stat-card-icon {
+    background: #eaf0f6;
+    color: #42627c;
+  }
+
+  .stat-card-amber .stat-card-icon {
+    background: #f7f0e2;
+    color: #8d672a;
+  }
+
+  .stat-card-rose .stat-card-icon {
+    background: #f5ebea;
+    color: #9c5e56;
   }
 
   .quick-actions {
@@ -489,7 +591,19 @@
   }
 
   .quick-action {
-    @apply flex min-h-14 items-center rounded-lg border border-border bg-background px-4 font-bold text-primary-dark no-underline hover:bg-primary-light;
+    @apply flex min-h-14 min-w-0 items-center gap-3 rounded-lg border border-border bg-background px-3 text-sm font-semibold text-ink no-underline transition hover:border-primary/30 hover:bg-primary-light;
+  }
+
+  .quick-action-icon {
+    @apply flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary-dark;
+  }
+
+  .quick-action > span:nth-child(2) {
+    @apply min-w-0 flex-1;
+  }
+
+  .quick-action-arrow {
+    @apply shrink-0 text-ink-muted;
   }
 
   .reminder-grid {
@@ -562,7 +676,7 @@
   }
 
   .mobile-tab {
-    @apply flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 py-1 text-xs font-semibold text-ink-muted no-underline;
+    @apply flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-1 text-[10px] font-semibold text-ink-muted no-underline;
   }
 
   .mobile-tab.is-active {
@@ -582,6 +696,131 @@
   .app-main {
     @apply pb-24 lg:pb-9;
   }
+
+  .mobile-menu-button {
+    @apply hidden size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-ink;
+  }
+
+  .mobile-menu-backdrop {
+    @apply fixed inset-0 z-40 border-0 bg-ink/30;
+    animation: backdrop-in 160ms ease-out;
+  }
+
+  .mobile-menu-drawer {
+    @apply fixed inset-y-0 end-0 z-50 flex w-[min(84vw,340px)] flex-col gap-5 border-s border-border bg-surface p-5 shadow-xl;
+    animation: drawer-in 200ms cubic-bezier(0.2, 0.75, 0.25, 1);
+  }
+
+  .mobile-menu-user {
+    @apply grid gap-1 border-b border-border pb-4;
+  }
+
+  .mobile-menu-user strong {
+    @apply break-words text-base font-bold;
+  }
+
+  .mobile-menu-user span {
+    @apply text-sm capitalize text-ink-muted;
+  }
+
+  .mobile-menu-links {
+    @apply grid gap-2;
+  }
+
+  .mobile-menu-link {
+    @apply flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold text-ink no-underline hover:bg-primary-light;
+  }
+
+  .mobile-menu-link.is-active {
+    @apply bg-primary-light text-primary-dark;
+  }
+
+  .mobile-menu-logout {
+    @apply mt-auto min-h-11 rounded-lg border border-danger bg-surface px-3 text-start font-bold text-danger;
+  }
+
+  .toast-notification {
+    @apply fixed inset-x-3 top-3 z-[60] mx-auto flex max-w-md items-center gap-2 rounded-lg border border-success/20 bg-surface px-4 py-3 text-sm font-semibold text-success shadow-lg;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    animation: toast-in 160ms ease-out;
+  }
+
+  .profile-details {
+    @apply grid gap-5 sm:grid-cols-2;
+  }
+
+  .profile-details > div {
+    @apply grid min-w-0 gap-1;
+  }
+
+  .profile-details > div span {
+    @apply text-xs font-semibold text-ink-muted;
+  }
+
+  .profile-details > div strong {
+    @apply break-words text-sm font-bold;
+  }
+
+  .more-intro {
+    @apply -mt-3 max-w-2xl;
+  }
+
+  .more-links {
+    @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .more-link {
+    @apply flex min-h-20 min-w-0 items-center gap-3 rounded-xl border border-border bg-surface p-4 text-ink no-underline transition hover:border-primary/40 hover:bg-primary-light;
+  }
+
+  .more-link-icon {
+    @apply flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary-dark;
+  }
+
+  .more-link-copy {
+    @apply grid min-w-0 flex-1 gap-1;
+  }
+
+  .more-link-copy strong {
+    @apply text-sm font-bold;
+  }
+
+  .more-link-copy small {
+    @apply text-xs leading-5 text-ink-muted;
+  }
+
+  .more-link-arrow {
+    @apply shrink-0 text-ink-muted;
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -591,17 +830,203 @@
 }
 
 @media (max-width: 1023px) {
+  .app-shell {
+    display: block;
+    min-height: 100dvh;
+  }
+
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    height: 60px;
+    min-height: 60px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    border-bottom: 1px solid var(--color-border);
+    padding: 0 16px;
+  }
+
+  .brand-lockup {
+    gap: 0;
+  }
+
+  .brand-lockup strong {
+    display: none;
+  }
+
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobile-menu-button {
+    display: inline-flex;
+  }
+
   .sidebar-user {
-    @apply flex border-0 p-0;
+    display: none;
+  }
+
+  .app-main {
+    padding: 20px 20px 80px;
   }
 }
 
 @media (max-width: 639px) {
-  .app-sidebar {
-    @apply gap-4;
+  body {
+    font-size: 14px;
+    line-height: 1.45;
   }
 
-  .sidebar-user .secondary-button {
-    @apply min-h-10 px-3 py-2;
+  .app-main {
+    gap: 16px;
+    padding: 16px 14px 76px;
+  }
+
+  .panel,
+  .auth-card {
+    padding: 16px;
+  }
+
+  .workspace-heading h2,
+  .profile-header h2 {
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+
+  .topbar h2,
+  .auth-card h1 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .eyebrow {
+    margin-bottom: 4px;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+  }
+
+  .panel-header h3,
+  .report-toolbar h3 {
+    font-size: 0.95rem;
+  }
+
+  .field span,
+  .field input,
+  .field select,
+  .primary-button,
+  .secondary-button,
+  .workspace-tab,
+  .filter-chip {
+    font-size: 0.875rem;
+  }
+
+  .field input,
+  .field select {
+    min-height: 42px;
+    padding: 9px 11px;
+  }
+
+  .primary-button,
+  .secondary-button {
+    min-height: 40px;
+    padding: 9px 12px;
+  }
+
+  .mobile-tab-bar {
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .mobile-tab {
+    gap: 1px;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stat-card {
+    min-height: 104px;
+    gap: 7px;
+    padding: 11px;
+  }
+
+  .stat-card span {
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .stat-card strong {
+    font-size: 1.125rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .report-toolbar {
+    gap: 12px;
+  }
+
+  .report-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .report-filters .field {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .report-filters > button {
+    width: 100%;
+  }
+
+  .report-table {
+    font-size: 0.72rem;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 8px;
+  }
+
+  .workspace-tab {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 0.75rem;
+  }
+
+  .auth-shell {
+    padding: 14px;
+  }
+
+  .auth-card {
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .auth-intro {
+    font-size: 0.82rem;
+  }
+
+  .toggle-row {
+    display: grid;
+    width: 100%;
+  }
+
+  .pill-button {
+    min-height: 40px;
+    padding: 8px;
+    font-size: 0.875rem;
   }
 }

@@ -18,11 +18,12 @@ import {
   apiGetPendingInvitations,
   apiLogin,
   apiSignup,
+  apiUpdateProfile,
   apiUpdatePreferredLanguage,
 } from './api';
 import CustomersWorkspace from './components/CustomersWorkspace';
 import DailyParkingWorkspace from './components/DailyParkingWorkspace';
-import { DashboardWorkspace, ReportsWorkspace } from './components/OperationsWorkspace';
+import { DashboardWorkspace, MoreWorkspace, ReportsWorkspace } from './components/OperationsWorkspace';
 import LanguageSelector from './components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
@@ -30,12 +31,17 @@ import {
   BarChart3,
   Car,
   CreditCard,
+  CheckCircle2,
   FileText,
   LayoutDashboard,
+  Menu,
   MoreHorizontal,
   ParkingCircle,
+  Settings,
+  Shield,
   Users,
   UserRound,
+  X,
 } from 'lucide-react';
 
 const defaultAuthForm = {
@@ -57,6 +63,12 @@ const defaultInviteForm = {
   role: 'manager',
 };
 
+const profileFormFromUser = (profile) => ({
+  fullName: profile.fullName || '',
+  email: profile.email || '',
+  phone: profile.phone || '',
+});
+
 const desktopNavigation = [
   { to: '/app/dashboard', key: 'nav.dashboard', Icon: LayoutDashboard },
   { to: '/app/customers', key: 'nav.customers', Icon: Users, end: true },
@@ -73,7 +85,7 @@ const mobileNavigation = [
   desktopNavigation[1],
   desktopNavigation[4],
   desktopNavigation[5],
-  { to: '/app/reports', key: 'nav.more', Icon: MoreHorizontal },
+  { to: '/app/more', key: 'nav.more', Icon: MoreHorizontal },
 ];
 
 function App() {
@@ -87,9 +99,11 @@ function App() {
     localStorage.getItem('easyparking_selected_parking') || '',
   );
   const [authForm, setAuthForm] = useState(defaultAuthForm);
+  const [profileForm, setProfileForm] = useState({ fullName: '', email: '', phone: '' });
   const [parkingForm, setParkingForm] = useState(defaultParkingForm);
   const [inviteForm, setInviteForm] = useState(defaultInviteForm);
   const [pendingInvitations, setPendingInvitations] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -100,6 +114,23 @@ function App() {
     [parkings, selectedParkingId],
   );
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
+  const showProfileSetup = location.pathname === '/app/profile'
+    && new URLSearchParams(location.search).get('setup') === '1';
+
+  useEffect(() => {
+    if (!statusMessage) return undefined;
+    const timer = window.setTimeout(() => setStatusMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [statusMessage]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     const language = i18n.resolvedLanguage || i18n.language || 'en';
@@ -187,6 +218,7 @@ function App() {
       }
 
       setUser(userResult.value.user);
+      setProfileForm(profileFormFromUser(userResult.value.user));
       if (userResult.value.user.preferredLanguage) {
         await i18n.changeLanguage(userResult.value.user.preferredLanguage);
       }
@@ -250,7 +282,7 @@ function App() {
         localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
         setToken(response.token);
-        navigate('/app', { replace: true });
+        navigate('/app/profile?setup=1', { replace: true });
       } else {
         const response = await apiLogin({
           email: authForm.email || undefined,
@@ -334,12 +366,43 @@ function App() {
     }
   };
 
+  const handleProfileInput = (field, value) => {
+    setProfileForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    setErrorMessage('');
+    if (!profileForm.email.trim() && !profileForm.phone.trim()) {
+      setErrorMessage(t('profile.contactRequired'));
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await apiUpdateProfile({
+        fullName: profileForm.fullName,
+        email: profileForm.email,
+        phone: profileForm.phone,
+      });
+      setUser(response.user);
+      setProfileForm(profileFormFromUser(response.user));
+      setStatusMessage(t('profile.saved'));
+      if (showProfileSetup) navigate('/app/profile', { replace: true });
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderAuthForm = (mode) => (
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-language"><LanguageSelector value={currentLanguage} onChange={changeLanguage} /></div>
         <p className="eyebrow">{t('app.name')}</p>
         <h1>{t(mode === 'login' ? 'auth.welcomeBack' : 'auth.createAccount')}</h1>
+        <p className="auth-intro">{t(mode === 'login' ? 'auth.loginHint' : 'auth.signupHint')}</p>
 
         <div className="toggle-row" role="tablist" aria-label={t('auth.login')}>
           <Link to="/login" className={mode === 'login' ? 'pill-button is-active' : 'pill-button'}>
@@ -405,8 +468,6 @@ function App() {
           )}
 
           {errorMessage && <p className="error-text">{errorMessage}</p>}
-          {statusMessage && <p className="success-text">{statusMessage}</p>}
-
           <button type="submit" className="primary-button" disabled={isLoading}>
             {isLoading ? t('auth.pleaseWait') : t(mode === 'login' ? 'auth.login' : 'auth.createAccount')}
           </button>
@@ -458,8 +519,6 @@ function App() {
         </label>
 
         {errorMessage && <p className="error-text">{errorMessage}</p>}
-        {statusMessage && <p className="success-text">{statusMessage}</p>}
-
         <button type="submit" className="primary-button" disabled={isLoading}>
           {isLoading ? t('setup.creating') : t('setup.create')}
         </button>
@@ -469,6 +528,9 @@ function App() {
 
   const renderTeam = () => (
     <>
+      <header className="workspace-heading">
+        <div><p className="eyebrow">{t('team.role')}</p><h2>{t('menu.parkingAccess')}</h2></div>
+      </header>
       {activeParking.role === 'owner' && (
         <section className="panel">
           <div className="panel-header"><h3>{t('team.invite')}</h3></div>
@@ -509,6 +571,89 @@ function App() {
     </>
   );
 
+  const renderProfile = () => (
+    <div className="operations-workspace">
+      <header className="workspace-heading">
+        <div><p className="eyebrow">{t('profile.eyebrow')}</p><h2>{t('profile.title')}</h2></div>
+      </header>
+      <form className="panel form-grid profile-form" onSubmit={handleProfileSubmit}>
+        <label className="field">
+          <span>{t('profile.name')}</span>
+          <input required autoComplete="name" value={profileForm.fullName} onChange={(event) => handleProfileInput('fullName', event.target.value)} />
+        </label>
+        <label className="field">
+          <span>{t('profile.email')}</span>
+          <input type="email" autoComplete="email" value={profileForm.email} onChange={(event) => handleProfileInput('email', event.target.value)} />
+        </label>
+        <label className="field">
+          <span>{t('profile.phone')}</span>
+          <input type="tel" autoComplete="tel" value={profileForm.phone} onChange={(event) => handleProfileInput('phone', event.target.value)} />
+        </label>
+        <label className="field">
+          <span>{t('team.role')}</span>
+          <input value={activeParking?.role ? t(`team.${activeParking.role}`) : t('profile.notAssigned')} readOnly />
+        </label>
+        <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
+        <button type="submit" className="primary-button profile-save" disabled={isLoading}>
+          {isLoading ? t('app.saving') : t('app.save')}
+        </button>
+      </form>
+      {showProfileSetup && (
+        <div className="profile-setup-backdrop">
+          <section className="profile-setup-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-setup-title">
+            <div className="profile-setup-mark"><UserRound aria-hidden="true" size={22} /></div>
+            <p className="eyebrow">{t('profile.eyebrow')}</p>
+            <h2 id="profile-setup-title">{t('profile.completeTitle')}</h2>
+            <p>{t('profile.completeMessage')}</p>
+            <form className="form-grid" onSubmit={handleProfileSubmit}>
+              <label className="field">
+                <span>{t('profile.name')}</span>
+                <input required autoComplete="name" autoFocus value={profileForm.fullName} onChange={(event) => handleProfileInput('fullName', event.target.value)} />
+              </label>
+              <label className="field">
+                <span>{t('profile.email')}</span>
+                <input type="email" autoComplete="email" value={profileForm.email} onChange={(event) => handleProfileInput('email', event.target.value)} />
+              </label>
+              <label className="field">
+                <span>{t('profile.phone')}</span>
+                <input type="tel" autoComplete="tel" value={profileForm.phone} onChange={(event) => handleProfileInput('phone', event.target.value)} />
+              </label>
+              {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
+              <button type="submit" className="primary-button" disabled={isLoading}>
+                {isLoading ? t('app.saving') : t('profile.completeButton')}
+              </button>
+              <button type="button" className="text-button profile-later" onClick={() => navigate('/app/profile', { replace: true })}>
+                {t('profile.doLater')}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderParkingSettings = () => (
+    <div className="operations-workspace">
+      <header className="workspace-heading">
+        <div><p className="eyebrow">{t('parkingSettings.eyebrow')}</p><h2>{t('parkingSettings.title')}</h2></div>
+      </header>
+      {parkings.length > 1 && (
+        <label className="field dashboard-parking-select">
+          <span>{t('app.selectedParking')}</span>
+          <select value={selectedParkingId} onChange={(event) => setSelectedParkingId(event.target.value)}>
+            {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
+          </select>
+        </label>
+      )}
+      <section className="panel profile-details">
+        <div><span>{t('parkingSettings.name')}</span><strong>{activeParking.name}</strong></div>
+        <div><span>{t('parkingSettings.address')}</span><strong>{activeParking.address || t('app.notProvided')}</strong></div>
+        <div><span>{t('parkingSettings.contact')}</span><strong>{activeParking.contactInfo || t('app.notProvided')}</strong></div>
+        <div><span>{t('team.role')}</span><strong>{t(`team.${activeParking.role}`)}</strong></div>
+      </section>
+    </div>
+  );
+
   if (!token || !user) {
     if (token && isSessionLoading) {
       return (
@@ -541,7 +686,7 @@ function App() {
     );
   }
 
-  if (parkings.length === 0) {
+  if (parkings.length === 0 && location.pathname !== '/app/profile') {
     return renderParkingSetup();
   }
 
@@ -550,10 +695,20 @@ function App() {
       <Route path="/app" element={(
         <div className="app-shell">
           <aside className="app-sidebar">
-            <Link to="/app/customers" className="brand-lockup">
+            <Link to="/app/customers" className="brand-lockup" onClick={() => setIsMobileMenuOpen(false)}>
               <img src="/favicon.svg" alt="" className="brand-logo" />
               <strong>{t('app.name')}</strong>
             </Link>
+            <button
+              type="button"
+              className="mobile-menu-button"
+              aria-label={isMobileMenuOpen ? t('menu.close') : t('menu.open')}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu-drawer"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+            >
+              {isMobileMenuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
+            </button>
             <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
               {desktopNavigation.map(({ to, key, Icon, end }) => (
                 <NavLink key={to} to={to} end={end} className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
@@ -562,21 +717,60 @@ function App() {
                 </NavLink>
               ))}
             </nav>
-            <div className="sidebar-user">
-              <div><strong>{user?.fullName}</strong><span>{activeParking?.role ? t(`team.${activeParking.role}`) : ''}</span></div>
-              <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
-              <button type="button" className="secondary-button" onClick={logout}>{t('app.logout')}</button>
-            </div>
+            <NavLink to="/app/profile" className={({ isActive }) => `sidebar-user${isActive ? ' is-active' : ''}`}>
+              <span className="sidebar-user-avatar" aria-hidden="true">{user.fullName.trim().charAt(0).toUpperCase()}</span>
+              <span className="sidebar-user-copy">
+                <strong>{user.fullName}</strong>
+                <small>{t('menu.profile')}</small>
+              </span>
+              <UserRound aria-hidden="true" size={18} />
+            </NavLink>
           </aside>
+          {isMobileMenuOpen && (
+            <>
+              <button
+                type="button"
+                className="mobile-menu-backdrop"
+                aria-label={t('menu.close')}
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+              <aside id="mobile-menu-drawer" className="mobile-menu-drawer" aria-label={t('menu.title')}>
+                <div className="mobile-menu-user">
+                  <strong>{user.fullName}</strong>
+                  <span>{t(`team.${activeParking.role}`)}</span>
+                </div>
+                <nav className="mobile-menu-links">
+                  <NavLink to="/app/settings" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                    <Settings aria-hidden="true" size={19} /><span>{t('menu.parkingSettings')}</span>
+                  </NavLink>
+                  <NavLink to="/app/team" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                    <Shield aria-hidden="true" size={19} /><span>{t('menu.parkingAccess')}</span>
+                  </NavLink>
+                  <NavLink to="/app/profile" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                    <UserRound aria-hidden="true" size={19} /><span>{t('menu.profile')}</span>
+                  </NavLink>
+                </nav>
+                <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
+                <button type="button" className="mobile-menu-logout" onClick={logout}>
+                  <span>{t('app.logout')}</span>
+                </button>
+              </aside>
+            </>
+          )}
+          {statusMessage && (
+            <div className="toast-notification" role="status" aria-live="polite">
+              <CheckCircle2 aria-hidden="true" size={18} />
+              <span>{statusMessage}</span>
+            </div>
+          )}
           <main className="app-main">
             <Outlet />
             {errorMessage && <p className="error-text">{errorMessage}</p>}
-            {statusMessage && <p className="success-text">{statusMessage}</p>}
           </main>
           <nav className="mobile-tab-bar" aria-label={t('nav.main')}>
             {mobileNavigation.map(({ to, key, Icon }) => (
-              <NavLink key={key} to={to} className={({ isActive }) => `mobile-tab${isActive ? ' is-active' : ''}`}>
-                <Icon aria-hidden="true" size={19} strokeWidth={1.8} />
+              <NavLink key={key} to={to} onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-tab${isActive ? ' is-active' : ''}`}>
+                <Icon aria-hidden="true" size={17} strokeWidth={1.8} />
                 <span>{t(key)}</span>
               </NavLink>
             ))}
@@ -584,16 +778,11 @@ function App() {
         </div>
       )}>
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={(
-          <DashboardWorkspace
-            key={`${activeParking?._id}-dashboard`}
-            parkingId={activeParking._id}
-            parkings={parkings}
-            selectedParkingId={selectedParkingId}
-            onParkingChange={setSelectedParkingId}
-          />
-        )} />
+        <Route path="dashboard" element={<DashboardWorkspace key={`${activeParking?._id}-dashboard`} parkingId={activeParking._id} />} />
         <Route path="reports" element={<ReportsWorkspace key={`${activeParking?._id}-reports`} parkingId={activeParking._id} />} />
+        <Route path="more" element={<MoreWorkspace />} />
+        <Route path="settings" element={renderParkingSettings()} />
+        <Route path="profile" element={renderProfile()} />
         <Route path="customers" element={<CustomersWorkspace key={`${activeParking?._id}-customers`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
         <Route path="customers/:customerId" element={<CustomersWorkspace key={`${activeParking?._id}-customer-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
         <Route path="vehicles" element={<CustomersWorkspace key={`${activeParking?._id}-vehicles`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="vehicle-search" />} />

@@ -87,6 +87,11 @@ export const apiUpdatePreferredLanguage = (preferredLanguage) => jsonRequest('/a
   body: JSON.stringify({ preferredLanguage }),
 });
 
+export const apiUpdateProfile = (profile) => jsonRequest('/auth/me', {
+  method: 'PATCH',
+  body: JSON.stringify(profile),
+});
+
 export const apiGetMyParkings = () => jsonRequest('/parkings/my');
 
 export const apiGetDailyRate = (parkingId) => jsonRequest(

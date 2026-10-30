@@ -2,6 +2,24 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  ArrowUpRight,
+  Banknote,
+  BarChart3,
+  Car,
+  CarFront,
+  CircleAlert,
+  Clock3,
+  CreditCard,
+  FileText,
+  ParkingCircle,
+  Search,
+  Settings,
+  UserRound,
+  UserRoundPlus,
+  Users,
+  Wallet,
+} from 'lucide-react';
+import {
   apiDownloadReport,
   apiGetCustomers,
   apiGetDashboard,
@@ -23,17 +41,47 @@ const reports = [
 ];
 
 const actionLinks = [
-  ['dashboard.addCustomer', '/app/customers'],
-  ['dashboard.addVehicle', '/app/customers'],
-  ['nav.receivePayment', '/app/payments'],
-  ['dashboard.searchCustomer', '/app/customers'],
-  ['dashboard.searchVehicle', '/app/vehicles'],
-  ['dashboard.pendingPayments', '/app/dues'],
-  ['dashboard.paymentHistory', '/app/payments'],
-  ['nav.dailyParking', '/app/daily-parking'],
+  { key: 'dashboard.addCustomer', to: '/app/customers', Icon: UserRoundPlus },
+  { key: 'dashboard.addVehicle', to: '/app/customers', Icon: Car },
+  { key: 'nav.receivePayment', to: '/app/payments', Icon: Banknote },
+  { key: 'dashboard.searchCustomer', to: '/app/customers', Icon: Search },
+  { key: 'dashboard.searchVehicle', to: '/app/vehicles', Icon: CarFront },
+  { key: 'dashboard.pendingPayments', to: '/app/dues', Icon: Wallet },
+  { key: 'dashboard.paymentHistory', to: '/app/payments', Icon: CreditCard },
+  { key: 'nav.dailyParking', to: '/app/daily-parking', Icon: ParkingCircle },
 ];
 
-function DashboardWorkspace({ parkingId, parkings, selectedParkingId, onParkingChange }) {
+const moreLinks = [
+  { to: '/app/vehicles', label: 'nav.vehicles', detail: 'more.vehiclesDetail', Icon: Car },
+  { to: '/app/dues', label: 'nav.dues', detail: 'more.duesDetail', Icon: FileText },
+  { to: '/app/reports', label: 'nav.reports', detail: 'more.reportsDetail', Icon: BarChart3 },
+  { to: '/app/team', label: 'menu.parkingAccess', detail: 'more.accessDetail', Icon: Users },
+  { to: '/app/settings', label: 'menu.parkingSettings', detail: 'more.settingsDetail', Icon: Settings },
+  { to: '/app/profile', label: 'menu.profile', detail: 'more.profileDetail', Icon: UserRound },
+];
+
+function MoreWorkspace() {
+  const { t } = useTranslation();
+  return (
+    <div className="operations-workspace">
+      <header className="workspace-heading">
+        <div><p className="eyebrow">{t('more.eyebrow')}</p><h2>{t('nav.more')}</h2></div>
+      </header>
+      <p className="muted-text more-intro">{t('more.intro')}</p>
+      <nav className="more-links" aria-label={t('nav.more')}>
+        {moreLinks.map(({ to, label, detail, Icon }) => (
+          <Link className="more-link" to={to} key={to}>
+            <span className="more-link-icon"><Icon aria-hidden="true" size={19} /></span>
+            <span className="more-link-copy"><strong>{t(label)}</strong><small>{t(detail)}</small></span>
+            <ArrowUpRight aria-hidden="true" className="more-link-arrow" size={17} />
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function DashboardWorkspace({ parkingId }) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState(null);
   const [reminders, setReminders] = useState(null);
@@ -54,41 +102,54 @@ function DashboardWorkspace({ parkingId, parkings, selectedParkingId, onParkingC
   }, [parkingId, t]);
 
   const cards = summary ? [
-    [t('dashboard.activeVehicles'), summary.totalActiveVehicles],
-    [t('dashboard.activeCustomers'), summary.totalActiveCustomers],
-    [t('dashboard.customersWithDues'), summary.customersWithPendingDues],
-    [t('dashboard.overSevenDays'), summary.customersWithOverdueDues],
-    [t('dashboard.outstanding'), money(summary.totalOutstandingAmount)],
-    [t('dashboard.paymentsThisMonth'), money(summary.paymentsReceivedThisPeriod)],
-    [t('dashboard.currentlyParked'), summary.dailyVehiclesCurrentlyParked],
+    { label: t('dashboard.activeVehicles'), detail: t('dashboard.activeVehiclesHelp'), value: summary.totalActiveVehicles, Icon: CarFront, tone: 'green' },
+    { label: t('dashboard.activeCustomers'), detail: t('dashboard.activePeopleHelp'), value: summary.totalActiveCustomers, Icon: Users, tone: 'blue' },
+    { label: t('dashboard.customersWithDues'), detail: t('dashboard.peopleWithDuesHelp'), value: summary.customersWithPendingDues, Icon: CircleAlert, tone: 'amber' },
+    { label: t('dashboard.overSevenDays'), detail: t('dashboard.overSevenDaysHelp'), value: summary.customersWithOverdueDues, Icon: Clock3, tone: 'rose' },
+    { label: t('dashboard.outstanding'), detail: t('dashboard.outstandingHelp'), value: money(summary.totalOutstandingAmount), Icon: Wallet, tone: 'amber' },
+    { label: t('dashboard.paymentsThisMonth'), detail: t('dashboard.paymentsThisMonthHelp'), value: money(summary.paymentsReceivedThisPeriod), Icon: Banknote, tone: 'green' },
+    { label: t('dashboard.currentlyParked'), detail: t('dashboard.currentlyParkedHelp'), value: summary.dailyVehiclesCurrentlyParked, Icon: ParkingCircle, tone: 'blue' },
   ] : [];
 
   return (
     <div className="operations-workspace">
       <header className="workspace-heading">
-        <div><p className="eyebrow">{t('dashboard.overview')}</p><h2>{t('nav.dashboard')}</h2></div>
-        {parkings.length > 1 && (
-          <label className="field dashboard-parking-select">
-            <span>{t('app.selectedParking')}</span>
-            <select value={selectedParkingId} onChange={(event) => onParkingChange(event.target.value)}>
-              {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
-            </select>
-          </label>
-        )}
+        <div>
+          <p className="eyebrow">{t('dashboard.overview')}</p>
+          <h2>{t('nav.dashboard')}</h2>
+          <p className="workspace-hint">{t('dashboard.subtitle')}</p>
+        </div>
       </header>
       {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
       {!summary ? <p className="muted-text">{t('dashboard.loading')}</p> : (
         <>
           <section className="stats-grid" aria-label={t('dashboard.overview')}>
-            {cards.map(([label, value]) => (
-              <article className="stat-card" key={label}><span>{label}</span><strong>{value}</strong></article>
+            {cards.map(({ label, detail, value, Icon, tone }) => (
+              <article className={`stat-card stat-card-${tone}`} key={label}>
+                <div className="stat-card-top">
+                  <span>{label}</span>
+                  <span className="stat-card-icon"><Icon aria-hidden="true" size={19} strokeWidth={1.9} /></span>
+                </div>
+                <strong>{value}</strong>
+                <small>{detail}</small>
+              </article>
             ))}
           </section>
           <section className="panel">
             <div className="panel-header"><h3>{t('dashboard.quickActions')}</h3></div>
             <div className="quick-actions">
-              {actionLinks.map(([key, to]) => <Link className="quick-action" to={to} key={key}>{t(key)}</Link>)}
-              <Link className="quick-action" to="/app/reports">{t('nav.reports')}</Link>
+              {actionLinks.map(({ key, to, Icon }) => (
+                <Link className="quick-action" to={to} key={key}>
+                  <span className="quick-action-icon"><Icon aria-hidden="true" size={18} /></span>
+                  <span>{t(key)}</span>
+                  <ArrowUpRight aria-hidden="true" className="quick-action-arrow" size={15} />
+                </Link>
+              ))}
+              <Link className="quick-action" to="/app/reports">
+                <span className="quick-action-icon"><BarChart3 aria-hidden="true" size={18} /></span>
+                <span>{t('nav.reports')}</span>
+                <ArrowUpRight aria-hidden="true" className="quick-action-arrow" size={15} />
+              </Link>
             </div>
           </section>
           {reminders && (
@@ -266,4 +327,4 @@ function ReportsWorkspace({ parkingId }) {
   );
 }
 
-export { DashboardWorkspace, ReportsWorkspace };
+export { DashboardWorkspace, MoreWorkspace, ReportsWorkspace };

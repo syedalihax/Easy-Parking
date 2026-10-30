@@ -157,20 +157,49 @@ const getMe = async (req, res) => {
 };
 
 const updateMe = async (req, res) => {
-  const { preferredLanguage } = req.body;
-  if (!['en', 'fa-IR', 'ur', 'ur-Latn'].includes(preferredLanguage)) {
+  const allowedFields = new Set(['fullName', 'email', 'phone', 'preferredLanguage']);
+  if (Object.keys(req.body).some((field) => !allowedFields.has(field))) {
+    return res.status(400).json({ message: 'Only profile details and preferred language can be updated' });
+  }
+
+  const { fullName, email, phone, preferredLanguage } = req.body;
+  if (preferredLanguage !== undefined && !['en', 'fa-IR', 'ur', 'ur-Latn'].includes(preferredLanguage)) {
     return res.status(400).json({ message: 'Unsupported preferred language' });
   }
+
+  if (fullName !== undefined && (typeof fullName !== 'string' || !fullName.trim())) {
+    return res.status(400).json({ message: 'Name cannot be empty' });
+  }
+  if (email !== undefined && typeof email !== 'string') {
+    return res.status(400).json({ message: 'Email must be text' });
+  }
+  if (phone !== undefined && typeof phone !== 'string') {
+    return res.status(400).json({ message: 'Phone must be text' });
+  }
+
   try {
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: { preferredLanguage } },
-      { returnDocument: 'after', runValidators: true },
-    ).lean();
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (fullName !== undefined) user.fullName = fullName.trim();
+    if (email !== undefined) user.email = email.trim() ? email.trim().toLowerCase() : undefined;
+    if (phone !== undefined) user.phone = phone.trim() || undefined;
+    if (preferredLanguage !== undefined) user.preferredLanguage = preferredLanguage;
+    if (!user.email && !user.phone) {
+      return res.status(400).json({ message: 'At least one email address or phone number is required' });
+    }
+
+    await user.save();
     return res.json({ user: sanitizeUser(user) });
   } catch (error) {
-    console.error('Profile language update failed:', error);
+    if (error.code === 11000) {
+      const field = Object.hasOwn(error.keyPattern || {}, 'email') ? 'email' : 'phone';
+      return res.status(409).json({ message: `This ${field} is already used by another account` });
+    }
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error('Profile update failed:', error);
     return res.status(500).json({ message: 'Could not update user profile' });
   }
 };
