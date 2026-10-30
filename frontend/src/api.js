@@ -44,6 +44,11 @@ export const apiLogin = (payload) => jsonRequest('/auth/login', {
 
 export const apiGetMe = () => jsonRequest('/auth/me');
 
+export const apiUpdatePreferredLanguage = (preferredLanguage) => jsonRequest('/auth/me', {
+  method: 'PATCH',
+  body: JSON.stringify({ preferredLanguage }),
+});
+
 export const apiGetMyParkings = () => jsonRequest('/parkings/my');
 
 export const apiGetDailyRate = (parkingId) => jsonRequest(

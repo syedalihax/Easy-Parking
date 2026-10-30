@@ -52,12 +52,12 @@
 @layer components {
   .auth-shell,
   .dashboard-shell {
-    @apply flex min-h-screen items-center justify-center bg-gradient-to-b from-[#f5f8f6] to-background p-4 md:p-8;
+    @apply flex min-h-screen items-center justify-center bg-background p-4 md:p-8;
   }
 
   .auth-card,
   .panel {
-    @apply w-full rounded-2xl border border-border bg-surface p-5 shadow-lg md:p-8;
+    @apply w-full rounded-xl border border-border bg-surface p-5 shadow-md md:p-8;
   }
 
   .auth-card {
@@ -127,7 +127,7 @@
   }
 
   .secondary-button {
-    @apply border border-border bg-surface text-ink hover:bg-slate-50;
+    @apply border border-border bg-surface text-ink hover:bg-background;
   }
 
   .success-text,
@@ -235,7 +235,7 @@
   .customer-card,
   .vehicle-card,
   .vehicle-search-result {
-    @apply w-full rounded-lg border border-border bg-surface p-4 text-left shadow-sm;
+    @apply w-full rounded-lg border border-border bg-surface p-4 text-start shadow-sm;
   }
 
   .customer-card {
@@ -327,7 +327,7 @@
   }
 
   .app-sidebar {
-    @apply z-20 flex flex-col gap-6 border-b border-border bg-surface p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-7;
+    @apply z-20 flex flex-col gap-6 border-b border-border bg-surface p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-e lg:px-5 lg:py-7;
   }
 
   .brand-lockup {
@@ -358,8 +358,12 @@
     @apply flex gap-2 overflow-x-auto lg:flex-1 lg:flex-col lg:overflow-visible;
   }
 
+  .desktop-sidebar-nav {
+    @apply hidden lg:flex;
+  }
+
   .nav-link {
-    @apply flex min-h-11 shrink-0 items-center rounded-lg px-4 font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
+    @apply flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-4 font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
   }
 
   .nav-link.is-active {
@@ -438,6 +442,14 @@
 
   .daily-rate {
     @apply flex items-center gap-3 rounded-lg bg-primary-light px-4 py-3 text-primary-dark;
+  }
+
+  .warning-status {
+    @apply bg-warning-bg text-warning;
+  }
+
+  .status-label {
+    @apply items-center gap-1;
   }
 
   .daily-rate-form {
@@ -550,6 +562,37 @@
 
   .report-tabs {
     @apply overflow-x-auto;
+  }
+
+  .language-selector {
+    @apply min-w-32;
+  }
+
+  .auth-language {
+    @apply mb-4 flex justify-end;
+  }
+
+  .mobile-tab-bar {
+    @apply fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface px-2 pt-2 shadow-md lg:hidden;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .mobile-tab {
+    @apply flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 py-1 text-xs font-semibold text-ink-muted no-underline;
+  }
+
+  .mobile-tab.is-active {
+    @apply text-primary-dark;
+  }
+
+  .money-figure,
+  .report-money {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  .app-main {
+    @apply pb-24 lg:pb-9;
   }
 }
 

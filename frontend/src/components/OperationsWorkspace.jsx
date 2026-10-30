@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   apiDownloadReport,
   apiGetCustomers,
@@ -12,27 +13,28 @@ const money = (value) => `Rs. ${Number(value || 0).toLocaleString()}`;
 const date = (value) => value ? new Date(value).toLocaleDateString() : '';
 
 const reports = [
-  { id: 'customers', label: 'Customers', filters: ['status'] },
-  { id: 'active-vehicles', label: 'Active vehicles' },
-  { id: 'pending-dues', label: 'Pending dues' },
-  { id: 'outstanding-balances', label: 'Outstanding balances' },
-  { id: 'payment-history', label: 'Payment history', filters: ['startDate', 'endDate', 'method'] },
-  { id: 'daily-parking-history', label: 'Daily parking history', filters: ['startDate', 'endDate'] },
-  { id: 'customer-statement', label: 'Customer statement', filters: ['customerId'] },
+  { id: 'customers', labelKey: 'reports.customers', filters: ['status'] },
+  { id: 'active-vehicles', labelKey: 'reports.activeVehicles' },
+  { id: 'pending-dues', labelKey: 'reports.pendingDues' },
+  { id: 'outstanding-balances', labelKey: 'reports.outstandingBalances' },
+  { id: 'payment-history', labelKey: 'reports.paymentHistory', filters: ['startDate', 'endDate', 'method'] },
+  { id: 'daily-parking-history', labelKey: 'reports.dailyHistory', filters: ['startDate', 'endDate'] },
+  { id: 'customer-statement', labelKey: 'reports.customerStatement', filters: ['customerId'] },
 ];
 
 const actionLinks = [
-  ['Add customer', '/app/customers'],
-  ['Add vehicle', '/app/customers'],
-  ['Receive payment', '/app/payments'],
-  ['Search customer', '/app/customers'],
-  ['Search vehicle', '/app/vehicles'],
-  ['View pending payments', '/app/dues'],
-  ['View payment history', '/app/payments'],
-  ['Daily parking entry', '/app/daily-parking'],
+  ['dashboard.addCustomer', '/app/customers'],
+  ['dashboard.addVehicle', '/app/customers'],
+  ['nav.receivePayment', '/app/payments'],
+  ['dashboard.searchCustomer', '/app/customers'],
+  ['dashboard.searchVehicle', '/app/vehicles'],
+  ['dashboard.pendingPayments', '/app/dues'],
+  ['dashboard.paymentHistory', '/app/payments'],
+  ['nav.dailyParking', '/app/daily-parking'],
 ];
 
 function DashboardWorkspace({ parkingId }) {
+  const { t } = useTranslation();
   const [summary, setSummary] = useState(null);
   const [reminders, setReminders] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -46,50 +48,50 @@ function DashboardWorkspace({ parkingId }) {
         setReminders(nextReminders);
       })
       .catch((error) => {
-        if (active) setErrorMessage(error.message || 'Could not load dashboard');
+        if (active) setErrorMessage(error.message || t('errors.couldNotLoad'));
       });
     return () => { active = false; };
-  }, [parkingId]);
+  }, [parkingId, t]);
 
   const cards = summary ? [
-    ['Active vehicles', summary.totalActiveVehicles],
-    ['Active customers', summary.totalActiveCustomers],
-    ['Customers with dues', summary.customersWithPendingDues],
-    ['Over 7 days due', summary.customersWithOverdueDues],
-    ['Outstanding amount', money(summary.totalOutstandingAmount)],
-    ['Payments this month', money(summary.paymentsReceivedThisPeriod)],
-    ['Currently parked', summary.dailyVehiclesCurrentlyParked],
+    [t('dashboard.activeVehicles'), summary.totalActiveVehicles],
+    [t('dashboard.activeCustomers'), summary.totalActiveCustomers],
+    [t('dashboard.customersWithDues'), summary.customersWithPendingDues],
+    [t('dashboard.overSevenDays'), summary.customersWithOverdueDues],
+    [t('dashboard.outstanding'), money(summary.totalOutstandingAmount)],
+    [t('dashboard.paymentsThisMonth'), money(summary.paymentsReceivedThisPeriod)],
+    [t('dashboard.currentlyParked'), summary.dailyVehiclesCurrentlyParked],
   ] : [];
 
   return (
     <div className="operations-workspace">
-      <header className="workspace-heading"><div><p className="eyebrow">Overview</p><h2>Dashboard</h2></div></header>
+      <header className="workspace-heading"><div><p className="eyebrow">{t('dashboard.overview')}</p><h2>{t('nav.dashboard')}</h2></div></header>
       {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
-      {!summary ? <p className="muted-text">Loading dashboard...</p> : (
+      {!summary ? <p className="muted-text">{t('dashboard.loading')}</p> : (
         <>
-          <section className="stats-grid" aria-label="Parking overview">
+          <section className="stats-grid" aria-label={t('dashboard.overview')}>
             {cards.map(([label, value]) => (
               <article className="stat-card" key={label}><span>{label}</span><strong>{value}</strong></article>
             ))}
           </section>
           <section className="panel">
-            <div className="panel-header"><h3>Quick actions</h3></div>
+            <div className="panel-header"><h3>{t('dashboard.quickActions')}</h3></div>
             <div className="quick-actions">
-              {actionLinks.map(([label, to]) => <Link className="quick-action" to={to} key={label}>{label}</Link>)}
-              <Link className="quick-action" to="/app/reports">Reports</Link>
+              {actionLinks.map(([key, to]) => <Link className="quick-action" to={to} key={key}>{t(key)}</Link>)}
+              <Link className="quick-action" to="/app/reports">{t('nav.reports')}</Link>
             </div>
           </section>
           {reminders && (
             <section className="reminder-grid">
               {[
-                ['Pending dues', reminders.pendingDues, (item) => item.customerId],
-                ['Over 7 days due', reminders.overdueDues, (item) => item.customerId],
-                ['Partial payments', reminders.partialPayments, (item) => item.customerId],
-                ['Upcoming billing periods', reminders.upcomingBillingPeriods, (item) => item.customerId],
+                [t('dashboard.pendingDues'), reminders.pendingDues, (item) => item.customerId],
+                [t('dashboard.overdueDues'), reminders.overdueDues, (item) => item.customerId],
+                [t('dashboard.partialPayments'), reminders.partialPayments, (item) => item.customerId],
+                [t('dashboard.upcomingBilling'), reminders.upcomingBillingPeriods, (item) => item.customerId],
               ].map(([title, items, getCustomer]) => (
                 <article className="panel reminder-panel" key={title}>
                   <div className="panel-header"><h3>{title}</h3></div>
-                  {items.length === 0 ? <p className="muted-text">Nothing to show.</p> : (
+                  {items.length === 0 ? <p className="muted-text">{t('dashboard.nothing')}</p> : (
                     <div className="list-stack">
                       {items.slice(0, 8).map((item) => {
                         const customer = getCustomer(item);
@@ -97,7 +99,7 @@ function DashboardWorkspace({ parkingId }) {
                         const displayName = typeof customer === 'object' ? customer?.fullName : '';
                         return (
                           <Link className="reminder-item" to={customerId ? `/app/customers/${customerId}` : '/app/customers'} key={item._id}>
-                            <strong>{displayName || item.vehicleId?.registrationNumber || 'Customer'}</strong>
+                            <strong>{displayName || item.vehicleId?.registrationNumber || t('reports.customer')}</strong>
                             <span>{item.currentPeriod ? `Period ends ${date(item.currentPeriod.end)}` : money(item.outstandingAmount)}</span>
                           </Link>
                         );
@@ -114,14 +116,30 @@ function DashboardWorkspace({ parkingId }) {
   );
 }
 
-const renderValue = (value) => {
+const renderValue = (value, key, t) => {
   if (value === null || value === undefined) return '';
   if (typeof value === 'object') return JSON.stringify(value);
-  if (typeof value === 'string' && /^\d{4}-\d\d-\d\dT/.test(value)) return date(value);
+  if (key === 'status') {
+    if (['pending', 'partially_paid'].includes(value)) return t('customer.due');
+    if (value === 'paid') return t('customer.received');
+    if (value === 'active' || value === 'inactive') return t(`app.${value}`);
+    if (value === 'reversed') return t('customer.paymentStatus.reversed');
+  }
+  if (key === 'paymentStatus') return t(`daily.${value}`);
+  if (key === 'method' || key === 'paymentMethod') return t(`daily.${value}`);
+  if (key === 'eventType') {
+    if (value === 'due') return t('customer.due');
+    if (value === 'payment') return t('customer.paymentStatus.active');
+    if (value === 'payment_reversed') return t('customer.paymentStatus.reversed');
+  }
+  if (typeof value === 'string' && /^\d{4}-\d\d-\d\dT/.test(value)) {
+    return key.toLowerCase().includes('time') ? new Date(value).toLocaleString() : date(value);
+  }
   return String(value);
 };
 
 function ReportsWorkspace({ parkingId }) {
+  const { t } = useTranslation();
   const [activeReport, setActiveReport] = useState(reports[0]);
   const [filters, setFilters] = useState({ status: 'all', startDate: '', endDate: '', method: '', customerId: '' });
   const [customers, setCustomers] = useState([]);
@@ -133,8 +151,8 @@ function ReportsWorkspace({ parkingId }) {
   useEffect(() => {
     apiGetCustomers(parkingId, { status: 'active', page: 1, limit: 100 })
       .then((response) => setCustomers(response.customers))
-      .catch((error) => setErrorMessage(error.message || 'Could not load customers'));
-  }, [parkingId]);
+      .catch((error) => setErrorMessage(error.message || t('errors.couldNotLoad')));
+  }, [parkingId, t]);
 
   const reportFilters = useMemo(() => Object.fromEntries(
     (activeReport.filters || []).map((filter) => [filter, filters[filter] || '']),
@@ -160,11 +178,11 @@ function ReportsWorkspace({ parkingId }) {
         if (active) {
           setRows([]);
           setLoadedReportKey(requestKey);
-          setErrorMessage(error.message || 'Could not load report');
+          setErrorMessage(error.message || t('errors.couldNotLoad'));
         }
       });
     return () => { active = false; };
-  }, [activeReport, filters.customerId, parkingId, reportFilters, requestKey]);
+  }, [activeReport, filters.customerId, parkingId, reportFilters, requestKey, t]);
 
   const visibleRows = activeReport.id === 'customer-statement' && !filters.customerId ? [] : rows;
   const isLoading = !(activeReport.id === 'customer-statement' && !filters.customerId)
@@ -179,7 +197,7 @@ function ReportsWorkspace({ parkingId }) {
         : activeReport.id;
       await apiDownloadReport(parkingId, reportName, reportFilters);
     } catch (error) {
-      setErrorMessage(error.message || 'Could not export report');
+      setErrorMessage(error.message || t('errors.couldNotLoad'));
     } finally {
       setIsExporting(false);
     }
@@ -192,42 +210,42 @@ function ReportsWorkspace({ parkingId }) {
 
   return (
     <div className="operations-workspace">
-      <header className="workspace-heading"><div><p className="eyebrow">Parking records</p><h2>Reports</h2></div></header>
+      <header className="workspace-heading"><div><p className="eyebrow">{t('reports.eyebrow')}</p><h2>{t('reports.title')}</h2></div></header>
       {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
-      <nav className="workspace-tabs report-tabs" aria-label="Available reports">
+      <nav className="workspace-tabs report-tabs" aria-label={t('reports.title')}>
         {reports.map((report) => (
-          <button key={report.id} type="button" className={report.id === activeReport.id ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => selectReport(report)}>{report.label}</button>
+          <button key={report.id} type="button" className={report.id === activeReport.id ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => selectReport(report)}>{t(report.labelKey)}</button>
         ))}
       </nav>
       <section className="panel">
         <div className="report-toolbar">
-          <h3>{activeReport.label}</h3>
+          <h3>{t(activeReport.labelKey)}</h3>
           <div className="filter-row report-filters">
             {activeReport.filters?.includes('status') && (
-              <label className="field"><span>Status</span><select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}><option value="all">All</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+              <label className="field"><span>{t('reports.status')}</span><select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}><option value="all">{t('reports.all')}</option><option value="active">{t('reports.active')}</option><option value="inactive">{t('reports.inactive')}</option></select></label>
             )}
             {activeReport.filters?.includes('startDate') && (
-              <label className="field"><span>From</span><input type="date" value={filters.startDate} onChange={(event) => setFilters({ ...filters, startDate: event.target.value })} /></label>
+              <label className="field"><span>{t('daily.from')}</span><input type="date" value={filters.startDate} onChange={(event) => setFilters({ ...filters, startDate: event.target.value })} /></label>
             )}
             {activeReport.filters?.includes('endDate') && (
-              <label className="field"><span>To</span><input type="date" value={filters.endDate} onChange={(event) => setFilters({ ...filters, endDate: event.target.value })} /></label>
+              <label className="field"><span>{t('daily.to')}</span><input type="date" value={filters.endDate} onChange={(event) => setFilters({ ...filters, endDate: event.target.value })} /></label>
             )}
             {activeReport.filters?.includes('method') && (
-              <label className="field"><span>Method</span><select value={filters.method} onChange={(event) => setFilters({ ...filters, method: event.target.value })}><option value="">All methods</option><option value="cash">Cash</option><option value="easypaisa">Easypaisa</option><option value="jazzcash">JazzCash</option></select></label>
+              <label className="field"><span>{t('reports.method')}</span><select value={filters.method} onChange={(event) => setFilters({ ...filters, method: event.target.value })}><option value="">{t('reports.allMethods')}</option><option value="cash">{t('daily.cash')}</option><option value="easypaisa">{t('daily.easypaisa')}</option><option value="jazzcash">{t('daily.jazzcash')}</option></select></label>
             )}
             {activeReport.filters?.includes('customerId') && (
-              <label className="field"><span>Customer</span><select value={filters.customerId} onChange={(event) => setFilters({ ...filters, customerId: event.target.value })}><option value="">Select a customer</option>{customers.map((customer) => <option key={customer._id} value={customer._id}>{customer.fullName} · {customer.primaryPhone}</option>)}</select></label>
+              <label className="field"><span>{t('reports.customer')}</span><select value={filters.customerId} onChange={(event) => setFilters({ ...filters, customerId: event.target.value })}><option value="">{t('reports.selectCustomer')}</option>{customers.map((customer) => <option key={customer._id} value={customer._id}>{customer.fullName} · {customer.primaryPhone}</option>)}</select></label>
             )}
-            <button type="button" className="secondary-button" disabled={isExporting || (activeReport.id === 'customer-statement' && !filters.customerId)} onClick={exportCsv}>{isExporting ? 'Exporting...' : 'Export CSV'}</button>
+            <button type="button" className="secondary-button" disabled={isExporting || (activeReport.id === 'customer-statement' && !filters.customerId)} onClick={exportCsv}>{isExporting ? t('reports.exporting') : t('reports.export')}</button>
           </div>
         </div>
-        {isLoading ? <p className="muted-text">Loading report...</p> : visibleRows.length === 0 ? <div className="empty-state"><p>No report records found.</p></div> : (
+        {isLoading ? <p className="muted-text">{t('reports.loading')}</p> : visibleRows.length === 0 ? <div className="empty-state"><p>{t('reports.empty')}</p></div> : (
           <div className="report-table-wrap">
             <table className="report-table">
-              <thead><tr>{Object.keys(visibleRows[0]).filter((key) => key !== '_id').map((key) => <th key={key}>{key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)}</th>)}</tr></thead>
+              <thead><tr>{Object.keys(visibleRows[0]).filter((key) => key !== '_id').map((key) => <th key={key}>{t(`reports.columns.${key}`, { defaultValue: key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`) })}</th>)}</tr></thead>
               <tbody>{visibleRows.map((row, index) => (
                 <tr key={row._id || row.customerId || row.dueId || row.paymentId || row.recordId || index}>
-                  {Object.entries(row).filter(([key]) => key !== '_id').map(([key, value]) => <td className={/amount|fee|rate/i.test(key) ? 'report-money' : ''} key={key}>{renderValue(value)}</td>)}
+                  {Object.entries(row).filter(([key]) => key !== '_id').map(([key, value]) => <td className={/amount|fee|rate/i.test(key) ? 'report-money' : ''} dir={/amount|fee|rate|date|number/i.test(key) ? 'ltr' : undefined} key={key}>{renderValue(value, key, t)}</td>)}
                 </tr>
               ))}</tbody>
             </table>

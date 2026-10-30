@@ -18,10 +18,25 @@ import {
   apiGetPendingInvitations,
   apiLogin,
   apiSignup,
+  apiUpdatePreferredLanguage,
 } from './api';
 import CustomersWorkspace from './components/CustomersWorkspace';
 import DailyParkingWorkspace from './components/DailyParkingWorkspace';
 import { DashboardWorkspace, ReportsWorkspace } from './components/OperationsWorkspace';
+import LanguageSelector from './components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
+import {
+  BarChart3,
+  Car,
+  CreditCard,
+  FileText,
+  LayoutDashboard,
+  MoreHorizontal,
+  ParkingCircle,
+  Users,
+  UserRound,
+} from 'lucide-react';
 
 const defaultAuthForm = {
   fullName: '',
@@ -42,7 +57,27 @@ const defaultInviteForm = {
   role: 'manager',
 };
 
+const desktopNavigation = [
+  { to: '/app/dashboard', key: 'nav.dashboard', Icon: LayoutDashboard },
+  { to: '/app/customers', key: 'nav.customers', Icon: Users, end: true },
+  { to: '/app/vehicles', key: 'nav.vehicles', Icon: Car },
+  { to: '/app/dues', key: 'nav.dues', Icon: FileText },
+  { to: '/app/payments', key: 'nav.payments', Icon: CreditCard },
+  { to: '/app/daily-parking', key: 'nav.dailyParking', Icon: ParkingCircle },
+  { to: '/app/reports', key: 'nav.reports', Icon: BarChart3 },
+  { to: '/app/team', key: 'nav.team', Icon: UserRound },
+];
+
+const mobileNavigation = [
+  desktopNavigation[0],
+  desktopNavigation[1],
+  desktopNavigation[4],
+  desktopNavigation[5],
+  { to: '/app/reports', key: 'nav.more', Icon: MoreHorizontal },
+];
+
 function App() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [token, setToken] = useState(localStorage.getItem('easyparking_token') || '');
@@ -64,6 +99,28 @@ function App() {
     () => parkings.find((parking) => parking._id === selectedParkingId) || null,
     [parkings, selectedParkingId],
   );
+  const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
+
+  useEffect(() => {
+    const language = i18n.resolvedLanguage || i18n.language || 'en';
+    document.documentElement.lang = language;
+    document.documentElement.dir = ['fa-IR', 'ur'].includes(language) ? 'rtl' : 'ltr';
+  }, [currentLanguage]);
+
+  const changeLanguage = async (language) => {
+    const previousLanguage = currentLanguage;
+    localStorage.setItem('easyparking_language', language);
+    await i18n.changeLanguage(language);
+    if (!user) return;
+    try {
+      const response = await apiUpdatePreferredLanguage(language);
+      setUser(response.user);
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+      localStorage.setItem('easyparking_language', previousLanguage);
+      await i18n.changeLanguage(previousLanguage);
+    }
+  };
 
   useEffect(() => {
     if (selectedParkingId) {
@@ -130,6 +187,9 @@ function App() {
       }
 
       setUser(userResult.value.user);
+      if (userResult.value.user.preferredLanguage) {
+        await i18n.changeLanguage(userResult.value.user.preferredLanguage);
+      }
 
       if (parkingResult.status === 'fulfilled') {
         const nextParkings = parkingResult.value.parkings || [];
@@ -174,22 +234,23 @@ function App() {
         email: authForm.email || undefined,
         phone: authForm.phone || undefined,
         password: authForm.password,
+        preferredLanguage: currentLanguage,
       };
 
       if (location.pathname === '/signup') {
         if (!payload.fullName || (!payload.email && !payload.phone)) {
-          throw new Error('Full name and email or phone are required');
+          throw new Error(t('auth.credentialsRequired'));
         }
 
         if (payload.password !== authForm.confirmPassword) {
-          throw new Error('Passwords do not match');
+          throw new Error(t('auth.passwordMismatch'));
         }
 
         const response = await apiSignup(payload);
         localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
         setToken(response.token);
-        setStatusMessage('Account created successfully');
+        setStatusMessage(t('auth.accountCreated'));
         navigate('/app', { replace: true });
       } else {
         const response = await apiLogin({
@@ -201,11 +262,11 @@ function App() {
         localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
         setToken(response.token);
-        setStatusMessage('Logged in successfully');
+        setStatusMessage(t('auth.loggedIn'));
         navigate('/app', { replace: true });
       }
     } catch (error) {
-      setErrorMessage(error.message || 'Authentication failed');
+      setErrorMessage(error.message || t('errors.couldNotLoad'));
     } finally {
       setIsLoading(false);
     }
@@ -221,11 +282,11 @@ function App() {
       const response = await apiCreateParking(parkingForm);
       setSelectedParkingId(response.parking._id);
       setParkingForm(defaultParkingForm);
-      setStatusMessage('Parking created successfully');
+      setStatusMessage(t('setup.created'));
       await loadParkings();
       navigate('/app/customers');
     } catch (error) {
-      setErrorMessage(error.message || 'Could not create parking');
+      setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
       setIsLoading(false);
     }
@@ -239,7 +300,7 @@ function App() {
 
     try {
       if (!selectedParkingId) {
-        throw new Error('Please select or create a parking first');
+        throw new Error(t('setup.selectOrCreate'));
       }
 
       await apiCreateInvitation({
@@ -249,10 +310,10 @@ function App() {
       });
 
       setInviteForm(defaultInviteForm);
-      setStatusMessage('Invitation created successfully');
+      setStatusMessage(t('team.invitationCreated'));
       await loadPendingInvitations();
     } catch (error) {
-      setErrorMessage(error.message || 'Could not create invitation');
+      setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
       setIsLoading(false);
     }
@@ -265,11 +326,11 @@ function App() {
 
     try {
       await apiAcceptInvitation(invitationId);
-      setStatusMessage('Invitation accepted');
+      setStatusMessage(t('team.invitationAccepted'));
       await loadParkings();
       await loadPendingInvitations();
     } catch (error) {
-      setErrorMessage(error.message || 'Could not accept invitation');
+      setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
       setIsLoading(false);
     }
@@ -278,33 +339,34 @@ function App() {
   const renderAuthForm = (mode) => (
     <div className="auth-shell">
       <div className="auth-card">
-        <p className="eyebrow">easyParking</p>
-        <h1>{mode === 'login' ? 'Welcome back' : 'Create account'}</h1>
+        <div className="auth-language"><LanguageSelector value={currentLanguage} onChange={changeLanguage} /></div>
+        <p className="eyebrow">{t('app.name')}</p>
+        <h1>{t(mode === 'login' ? 'auth.welcomeBack' : 'auth.createAccount')}</h1>
 
-        <div className="toggle-row" role="tablist" aria-label="Authentication mode">
+        <div className="toggle-row" role="tablist" aria-label={t('auth.login')}>
           <Link to="/login" className={mode === 'login' ? 'pill-button is-active' : 'pill-button'}>
-            Login
+            {t('auth.login')}
           </Link>
           <Link to="/signup" className={mode === 'signup' ? 'pill-button is-active' : 'pill-button'}>
-            Sign up
+            {t('auth.signup')}
           </Link>
         </div>
 
         <form className="form-grid" onSubmit={handleAuthSubmit}>
           {mode === 'signup' && (
             <label className="field">
-              <span>Full name</span>
+              <span>{t('auth.fullName')}</span>
               <input
                 type="text"
                 value={authForm.fullName}
                 onChange={(event) => handleAuthInput('fullName', event.target.value)}
-                placeholder="Ali Khan"
+                placeholder={t('auth.fullNamePlaceholder')}
               />
             </label>
           )}
 
           <label className="field">
-            <span>{mode === 'signup' ? 'Email or phone' : 'Email / phone'}</span>
+            <span>{t('auth.emailOrPhone')}</span>
             <input
               type="text"
               value={authForm.email || authForm.phone}
@@ -318,28 +380,28 @@ function App() {
                   handleAuthInput('email', '');
                 }
               }}
-              placeholder="name@example.com or 0300..."
+              placeholder={t('auth.identifierPlaceholder')}
             />
           </label>
 
           <label className="field">
-            <span>Password</span>
+            <span>{t('auth.password')}</span>
             <input
               type="password"
               value={authForm.password}
               onChange={(event) => handleAuthInput('password', event.target.value)}
-              placeholder="Password"
+              placeholder={t('auth.passwordPlaceholder')}
             />
           </label>
 
           {mode === 'signup' && (
             <label className="field">
-              <span>Confirm password</span>
+              <span>{t('auth.confirmPassword')}</span>
               <input
                 type="password"
                 value={authForm.confirmPassword}
                 onChange={(event) => handleAuthInput('confirmPassword', event.target.value)}
-                placeholder="Confirm password"
+                placeholder={t('auth.confirmPasswordPlaceholder')}
               />
             </label>
           )}
@@ -348,7 +410,7 @@ function App() {
           {statusMessage && <p className="success-text">{statusMessage}</p>}
 
           <button type="submit" className="primary-button" disabled={isLoading}>
-            {isLoading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Create account'}
+            {isLoading ? t('auth.pleaseWait') : t(mode === 'login' ? 'auth.login' : 'auth.createAccount')}
           </button>
         </form>
       </div>
@@ -359,40 +421,41 @@ function App() {
     <div className="dashboard-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Parking account</p>
-          <h2>Create your parking</h2>
+          <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
+          <p className="eyebrow">{t('setup.account')}</p>
+          <h2>{t('setup.heading')}</h2>
         </div>
-        <button type="button" className="secondary-button" onClick={logout}>Logout</button>
+        <button type="button" className="secondary-button" onClick={logout}>{t('app.logout')}</button>
       </header>
 
       <form className="form-grid panel" onSubmit={handleParkingSubmit}>
         <label className="field">
-          <span>Parking name</span>
+          <span>{t('setup.name')}</span>
           <input
             type="text"
             value={parkingForm.name}
             onChange={(event) => setParkingForm((current) => ({ ...current, name: event.target.value }))}
-            placeholder="City Parking"
+            placeholder={t('setup.namePlaceholder')}
           />
         </label>
 
         <label className="field">
-          <span>Address</span>
+          <span>{t('setup.address')}</span>
           <input
             type="text"
             value={parkingForm.address}
             onChange={(event) => setParkingForm((current) => ({ ...current, address: event.target.value }))}
-            placeholder="Naseerabad, Quetta"
+            placeholder={t('setup.addressPlaceholder')}
           />
         </label>
 
         <label className="field">
-          <span>Contact info</span>
+          <span>{t('setup.contact')}</span>
           <input
             type="text"
             value={parkingForm.contactInfo}
             onChange={(event) => setParkingForm((current) => ({ ...current, contactInfo: event.target.value }))}
-            placeholder="0300-0000000"
+            placeholder={t('setup.contactPlaceholder')}
           />
         </label>
 
@@ -400,7 +463,7 @@ function App() {
         {statusMessage && <p className="success-text">{statusMessage}</p>}
 
         <button type="submit" className="primary-button" disabled={isLoading}>
-          {isLoading ? 'Creating...' : 'Create Parking'}
+          {isLoading ? t('setup.creating') : t('setup.create')}
         </button>
       </form>
     </div>
@@ -410,10 +473,10 @@ function App() {
     <>
       {activeParking.role === 'owner' && (
         <section className="panel">
-          <div className="panel-header"><h3>Invite teammate</h3></div>
+          <div className="panel-header"><h3>{t('team.invite')}</h3></div>
           <form className="form-grid team-invite-form" onSubmit={handleInviteSubmit}>
             <label className="field">
-              <span>Email or phone</span>
+              <span>{t('team.emailOrPhone')}</span>
               <input
                 type="text"
                 value={inviteForm.emailOrPhone}
@@ -422,24 +485,24 @@ function App() {
               />
             </label>
             <label className="field">
-              <span>Role</span>
+              <span>{t('team.role')}</span>
               <select value={inviteForm.role} onChange={(event) => setInviteForm((current) => ({ ...current, role: event.target.value }))}>
-                <option value="manager">Manager</option>
-                <option value="owner">Owner</option>
+                <option value="manager">{t('team.manager')}</option>
+                <option value="owner">{t('team.owner')}</option>
               </select>
             </label>
-            <button type="submit" className="primary-button" disabled={isLoading}>Send invite</button>
+            <button type="submit" className="primary-button" disabled={isLoading}>{t('team.sendInvite')}</button>
           </form>
         </section>
       )}
       <section className="panel">
-        <div className="panel-header"><h3>Pending invitations</h3></div>
-        {pendingInvitations.length === 0 ? <p className="muted-text">No pending invitations found.</p> : (
+        <div className="panel-header"><h3>{t('team.pending')}</h3></div>
+        {pendingInvitations.length === 0 ? <p className="muted-text">{t('team.none')}</p> : (
           <div className="list-stack">
             {pendingInvitations.map((invitation) => (
               <div key={invitation._id} className="list-item">
-                <div><strong>{invitation.emailOrPhone}</strong><p>{invitation.role} · {invitation.parkingId?.name || 'Parking'}</p></div>
-                <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>Accept</button>
+                <div><strong>{invitation.emailOrPhone}</strong><p>{t(`team.${invitation.role}`)} · {invitation.parkingId?.name || t('setup.account')}</p></div>
+                <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>{t('team.accept')}</button>
               </div>
             ))}
           </div>
@@ -453,8 +516,8 @@ function App() {
       return (
         <main className="auth-shell">
           <div className="auth-card">
-            <p className="eyebrow">easyParking</p>
-            <h1>Loading your account...</h1>
+            <p className="eyebrow">{t('app.name')}</p>
+            <h1>{t('app.loading')}</h1>
           </div>
         </main>
       );
@@ -473,8 +536,8 @@ function App() {
     return (
       <main className="auth-shell">
         <div className="auth-card">
-          <p className="eyebrow">easyParking</p>
-          <h1>Loading your account...</h1>
+          <p className="eyebrow">{t('app.name')}</p>
+          <h1>{t('app.loading')}</h1>
         </div>
       </main>
     );
@@ -491,40 +554,47 @@ function App() {
           <aside className="app-sidebar">
             <Link to="/app/customers" className="brand-lockup">
               <span className="brand-mark">eP</span>
-              <span><strong>easyParking</strong><small>Parking management</small></span>
+              <span><strong>{t('app.name')}</strong><small>{t('app.parkingManagement')}</small></span>
             </Link>
             <div className="sidebar-parking">
               <label className="field">
-                <span>Selected parking</span>
+                <span>{t('app.selectedParking')}</span>
                 <select value={selectedParkingId} onChange={(event) => setSelectedParkingId(event.target.value)}>
                   {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
                 </select>
               </label>
             </div>
-            <nav className="sidebar-nav" aria-label="Main navigation">
-              <NavLink to="/app/dashboard" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Dashboard</NavLink>
-              <NavLink to="/app/customers" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`} end>Customers</NavLink>
-              <NavLink to="/app/vehicles" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Vehicles</NavLink>
-              <NavLink to="/app/dues" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Dues</NavLink>
-              <NavLink to="/app/payments" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Payments</NavLink>
-              <NavLink to="/app/daily-parking" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Daily parking</NavLink>
-              <NavLink to="/app/reports" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Reports</NavLink>
-              <NavLink to="/app/team" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Team</NavLink>
+            <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
+              {desktopNavigation.map(({ to, key, Icon, end }) => (
+                <NavLink key={to} to={to} end={end} className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
+                  <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
+                  <span>{t(key)}</span>
+                </NavLink>
+              ))}
             </nav>
             <div className="sidebar-user">
-              <div><strong>{user?.fullName}</strong><span>{activeParking?.role || 'member'}</span></div>
-              <button type="button" className="secondary-button" onClick={logout}>Logout</button>
+              <div><strong>{user?.fullName}</strong><span>{activeParking?.role ? t(`team.${activeParking.role}`) : ''}</span></div>
+              <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
+              <button type="button" className="secondary-button" onClick={logout}>{t('app.logout')}</button>
             </div>
           </aside>
           <main className="app-main">
             <header className="app-topbar">
-              <div><p className="eyebrow">{activeParking?.name || 'Parking workspace'}</p><h1>{user?.fullName}</h1></div>
-              <Link to="/app/payments" className="primary-button">Receive payment</Link>
+              <div><p className="eyebrow">{activeParking?.name || t('setup.account')}</p><h1>{user?.fullName}</h1></div>
+              <Link to="/app/payments" className="primary-button">{t('nav.receivePayment')}</Link>
             </header>
             <Outlet />
             {errorMessage && <p className="error-text">{errorMessage}</p>}
             {statusMessage && <p className="success-text">{statusMessage}</p>}
           </main>
+          <nav className="mobile-tab-bar" aria-label={t('nav.main')}>
+            {mobileNavigation.map(({ to, key, Icon }) => (
+              <NavLink key={key} to={to} className={({ isActive }) => `mobile-tab${isActive ? ' is-active' : ''}`}>
+                <Icon aria-hidden="true" size={19} strokeWidth={1.8} />
+                <span>{t(key)}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
       )}>
         <Route index element={<Navigate to="dashboard" replace />} />

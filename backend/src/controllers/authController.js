@@ -24,7 +24,11 @@ const createToken = (user) => jwt.sign(
 );
 
 const signup = async (req, res) => {
-  const { fullName, email, phone, password } = req.body;
+  const { fullName, email, phone, password, preferredLanguage } = req.body;
+  const supportedLanguages = ['en', 'fa-IR', 'ur', 'ur-Latn'];
+  if (preferredLanguage !== undefined && !supportedLanguages.includes(preferredLanguage)) {
+    return res.status(400).json({ message: 'Unsupported preferred language' });
+  }
 
   if (typeof fullName !== 'string' || !fullName.trim() || typeof password !== 'string' || !password) {
     return res.status(400).json({ message: 'Full name and password are required' });
@@ -63,6 +67,7 @@ const signup = async (req, res) => {
       passwordHash,
     };
 
+    if (preferredLanguage) userDetails.preferredLanguage = preferredLanguage;
     if (normalizedEmail) userDetails.email = normalizedEmail;
     if (normalizedPhone) userDetails.phone = normalizedPhone;
 
@@ -151,9 +156,29 @@ const getMe = async (req, res) => {
   }
 };
 
+const updateMe = async (req, res) => {
+  const { preferredLanguage } = req.body;
+  if (!['en', 'fa-IR', 'ur', 'ur-Latn'].includes(preferredLanguage)) {
+    return res.status(400).json({ message: 'Unsupported preferred language' });
+  }
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { preferredLanguage } },
+      { returnDocument: 'after', runValidators: true },
+    ).lean();
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    return res.json({ user: sanitizeUser(user) });
+  } catch (error) {
+    console.error('Profile language update failed:', error);
+    return res.status(500).json({ message: 'Could not update user profile' });
+  }
+};
+
 module.exports = {
   signup,
   login,
   logout,
   getMe,
+  updateMe,
 };
