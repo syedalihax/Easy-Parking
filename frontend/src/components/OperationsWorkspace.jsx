@@ -33,7 +33,7 @@ const actionLinks = [
   ['nav.dailyParking', '/app/daily-parking'],
 ];
 
-function DashboardWorkspace({ parkingId }) {
+function DashboardWorkspace({ parkingId, parkings, selectedParkingId, onParkingChange }) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState(null);
   const [reminders, setReminders] = useState(null);
@@ -65,7 +65,17 @@ function DashboardWorkspace({ parkingId }) {
 
   return (
     <div className="operations-workspace">
-      <header className="workspace-heading"><div><p className="eyebrow">{t('dashboard.overview')}</p><h2>{t('nav.dashboard')}</h2></div></header>
+      <header className="workspace-heading">
+        <div><p className="eyebrow">{t('dashboard.overview')}</p><h2>{t('nav.dashboard')}</h2></div>
+        {parkings.length > 1 && (
+          <label className="field dashboard-parking-select">
+            <span>{t('app.selectedParking')}</span>
+            <select value={selectedParkingId} onChange={(event) => onParkingChange(event.target.value)}>
+              {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
+            </select>
+          </label>
+        )}
+      </header>
       {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
       {!summary ? <p className="muted-text">{t('dashboard.loading')}</p> : (
         <>

@@ -334,24 +334,16 @@
     @apply flex items-center gap-3 text-ink no-underline;
   }
 
-  .brand-lockup > span:last-child {
-    @apply grid;
-  }
-
   .brand-lockup strong {
     @apply text-lg font-extrabold;
   }
 
-  .brand-lockup small {
-    @apply text-xs text-ink-muted;
+  .brand-logo {
+    @apply size-11 rounded-xl object-contain;
   }
 
-  .brand-mark {
-    @apply grid size-11 place-items-center rounded-xl bg-primary font-extrabold text-white;
-  }
-
-  .sidebar-parking {
-    @apply rounded-xl bg-background p-3;
+  .dashboard-parking-select {
+    @apply mt-0 w-full sm:max-w-64;
   }
 
   .sidebar-nav {
@@ -388,14 +380,6 @@
 
   .app-main {
     @apply mx-auto grid w-full min-w-0 content-start gap-6 p-4 sm:p-6 lg:max-w-[1680px] lg:gap-8 lg:px-10 lg:py-9;
-  }
-
-  .app-topbar {
-    @apply flex flex-col items-stretch justify-between gap-4 border-b border-border pb-5 sm:flex-row sm:items-center;
-  }
-
-  .app-topbar h1 {
-    @apply m-0 text-2xl font-bold text-ink lg:text-3xl;
   }
 
   .customer-grid,
@@ -617,15 +601,7 @@
     @apply gap-4;
   }
 
-  .sidebar-parking {
-    @apply max-w-full;
-  }
-
   .sidebar-user .secondary-button {
     @apply min-h-10 px-3 py-2;
-  }
-
-  .app-topbar > a {
-    @apply w-full text-center;
   }
 }

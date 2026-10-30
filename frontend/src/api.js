@@ -1,7 +1,27 @@
 import i18n from './i18n';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const resolveApiBaseUrl = () => {
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL;
+  if (configuredUrl) {
+    const url = new URL(configuredUrl, window.location.origin);
+    const isLoopbackAddress = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    const pageIsLoopback = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+    if (import.meta.env.DEV && isLoopbackAddress && !pageIsLoopback) {
+      url.hostname = window.location.hostname;
+    }
+    return url.toString().replace(/\/$/, '');
+  }
+  if (!import.meta.env.DEV) return '/api';
+
+  const url = new URL(window.location.origin);
+  url.port = '5000';
+  url.pathname = '/api';
+  return url.toString().replace(/\/$/, '');
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 const offlineMessage = () => i18n.t('errors.offline');
+const apiUnavailableMessage = () => i18n.t('errors.apiUnavailable');
 
 const ensureOnline = () => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -36,6 +56,7 @@ const jsonRequest = async (endpoint, options = {}) => {
     });
   } catch (error) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error(offlineMessage());
+    if (error instanceof TypeError) throw new Error(apiUnavailableMessage());
     throw error;
   }
 
@@ -101,6 +122,7 @@ export const apiDownloadReport = async (parkingId, reportName, filters = {}) => 
     );
   } catch (error) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error(offlineMessage());
+    if (error instanceof TypeError) throw new Error(apiUnavailableMessage());
     throw error;
   }
   if (!response.ok) {

@@ -19,7 +19,7 @@ The frontend is a React single-page application with URL-based pages, built with
 | `/app/reports` | Filter and export parking reports |
 | `/app/team` | Invitations and team access |
 
-Authenticated routes require a valid session and parking membership. The dashboard has responsive navigation, a parking switcher, and a payment shortcut.
+Authenticated routes require a valid session and parking membership. The dashboard has responsive navigation and the parking switcher (shown when the account has more than one parking).
 
 ## Requirements
 
@@ -33,15 +33,15 @@ npm install
 npm run dev -- --host
 ```
 
-Vite prints the local development URL after startup. The `--host` option makes the development server available on the local network.
+Vite prints a `Network` URL after startup. To test on a phone, connect the phone and computer to the same Wi-Fi and open that `Network` URL on the phone. The backend listens on all network interfaces at port `5000`; its development CORS middleware accepts browser origins. The frontend automatically targets port `5000` on the same computer hostname used to open Vite.
 
-By default, the API helper calls `http://localhost:5000/api`. To use another API URL, create `.env.local` in the `frontend` folder:
+Do not use `localhost` on the phone: it points back to the phone itself, not the computer running the API. The frontend rewrites a configured loopback API address to the computer hostname during local development, but remove an old `.env.local` override if it points to the wrong server. If the computer's firewall prompts, allow the backend and Vite on the private network. To use a different API host, create `.env.local` in the `frontend` folder:
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_BASE_URL=http://192.168.1.23:5000/api
 ```
 
-Restart Vite after changing environment variables. Only expose API servers that you trust on your network.
+Replace the example address with the computer's current LAN IP. Restart Vite after changing environment variables. Only expose development servers on a trusted network.
 
 ## Scripts
 

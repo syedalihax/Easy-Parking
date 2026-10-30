@@ -58,7 +58,7 @@ Set `JWT_SECRET` in `backend/.env` to a long random secret, then start both deve
 npm run dev
 ```
 
-The root `dev` script starts the backend and Vite frontend together; Vite uses `--host` to listen on local network interfaces. The Vite development server prints its URL. The API listens on `http://localhost:5000` by default; health check: `http://localhost:5000/api/health`. Stop either process with `Ctrl+C`; the other is stopped with it.
+The root `dev` script starts the backend and Vite frontend together; both listen on local network interfaces for trusted-Wi-Fi mobile testing. Open Vite's printed `Network` URL on the phone, not `localhost`; the API helper uses the same computer hostname on port `5000`. Check `http://<computer-LAN-IP>:5000/api/health` from the phone if requests fail. Allow both development servers through Windows Firewall for private networks when prompted. Stop either process with `Ctrl+C`; the other is stopped with it.
 
 For frontend/API environment variables and backend MongoDB configuration, follow the respective folder guides. Never commit `.env` files or real credentials.
 

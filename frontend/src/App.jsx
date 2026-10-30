@@ -250,7 +250,6 @@ function App() {
         localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
         setToken(response.token);
-        setStatusMessage(t('auth.accountCreated'));
         navigate('/app', { replace: true });
       } else {
         const response = await apiLogin({
@@ -262,7 +261,6 @@ function App() {
         localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
         setToken(response.token);
-        setStatusMessage(t('auth.loggedIn'));
         navigate('/app', { replace: true });
       }
     } catch (error) {
@@ -553,17 +551,9 @@ function App() {
         <div className="app-shell">
           <aside className="app-sidebar">
             <Link to="/app/customers" className="brand-lockup">
-              <span className="brand-mark">eP</span>
-              <span><strong>{t('app.name')}</strong><small>{t('app.parkingManagement')}</small></span>
+              <img src="/favicon.svg" alt="" className="brand-logo" />
+              <strong>{t('app.name')}</strong>
             </Link>
-            <div className="sidebar-parking">
-              <label className="field">
-                <span>{t('app.selectedParking')}</span>
-                <select value={selectedParkingId} onChange={(event) => setSelectedParkingId(event.target.value)}>
-                  {parkings.map((parking) => <option key={parking._id} value={parking._id}>{parking.name}</option>)}
-                </select>
-              </label>
-            </div>
             <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
               {desktopNavigation.map(({ to, key, Icon, end }) => (
                 <NavLink key={to} to={to} end={end} className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
@@ -579,10 +569,6 @@ function App() {
             </div>
           </aside>
           <main className="app-main">
-            <header className="app-topbar">
-              <div><p className="eyebrow">{activeParking?.name || t('setup.account')}</p><h1>{user?.fullName}</h1></div>
-              <Link to="/app/payments" className="primary-button">{t('nav.receivePayment')}</Link>
-            </header>
             <Outlet />
             {errorMessage && <p className="error-text">{errorMessage}</p>}
             {statusMessage && <p className="success-text">{statusMessage}</p>}
@@ -598,7 +584,15 @@ function App() {
         </div>
       )}>
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardWorkspace key={`${activeParking?._id}-dashboard`} parkingId={activeParking._id} />} />
+        <Route path="dashboard" element={(
+          <DashboardWorkspace
+            key={`${activeParking?._id}-dashboard`}
+            parkingId={activeParking._id}
+            parkings={parkings}
+            selectedParkingId={selectedParkingId}
+            onParkingChange={setSelectedParkingId}
+          />
+        )} />
         <Route path="reports" element={<ReportsWorkspace key={`${activeParking?._id}-reports`} parkingId={activeParking._id} />} />
         <Route path="customers" element={<CustomersWorkspace key={`${activeParking?._id}-customers`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
         <Route path="customers/:customerId" element={<CustomersWorkspace key={`${activeParking?._id}-customer-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
