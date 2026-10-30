@@ -1,6 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const jwt = require('jsonwebtoken');
+const requireAuth = require('../src/middleware/auth');
 const { updateMe } = require('../src/controllers/authController');
+
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 
 const createResponse = () => ({
   statusCode: 200,
@@ -22,4 +26,20 @@ test("profile updates reject attempts to change a user's role", async () => {
 
   assert.equal(response.statusCode, 400);
   assert.match(response.body.message, /only profile details/i);
+});
+
+test("cookie-based JWT authentication populates the user context", () => {
+  const payload = { id: 'user-id', email: 'user@example.com', phone: '+923001234567' };
+  const token = jwt.sign(payload, 'test-secret');
+  const req = { cookies: { jwt: token }, headers: {} };
+  const res = createResponse();
+  let nextCalled = false;
+
+  requireAuth(req, res, () => {
+    nextCalled = true;
+  });
+
+  assert.equal(nextCalled, true);
+  assert.deepEqual(req.user, payload);
+  assert.equal(res.statusCode, 200);
 });
