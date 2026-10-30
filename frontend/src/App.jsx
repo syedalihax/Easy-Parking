@@ -105,6 +105,7 @@ function App() {
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
   const showProfileSetup = location.pathname === '/app/profile'
     && new URLSearchParams(location.search).get('setup') === '1';
+  const [showProfileSuccess, setShowProfileSuccess] = useState(false);
   const isMoreSectionActive = [
     '/app/vehicles',
     '/app/dues',
@@ -171,6 +172,12 @@ function App() {
       localStorage.removeItem('easyparking_selected_parking');
     }
   }, [selectedParkingId]);
+
+  useEffect(() => {
+    if (showProfileSetup) {
+      setShowProfileSuccess(true);
+    }
+  }, [showProfileSetup]);
 
   const logout = useCallback(() => {
     localStorage.removeItem('easyparking_token');
@@ -293,6 +300,7 @@ function App() {
         localStorage.setItem('easyparking_token', response.token);
         setIsSessionLoading(true);
         setToken(response.token);
+        setShowProfileSuccess(true);
         navigate('/app/profile?setup=1', { replace: true });
       } else {
         const response = await apiLogin({
@@ -398,6 +406,7 @@ function App() {
       });
       setUser(response.user);
       setProfileForm(profileFormFromUser(response.user));
+      setShowProfileSuccess(false);
       setStatusMessage(t('profile.saved'));
       if (showProfileSetup) navigate('/app/profile', { replace: true });
     } catch (error) {
@@ -608,13 +617,13 @@ function App() {
           {isLoading ? t('app.saving') : t('app.save')}
         </button>
       </form>
-      {showProfileSetup && (
+      {(showProfileSetup || showProfileSuccess) && (
         <div className="profile-setup-backdrop">
           <section className="profile-setup-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-setup-title">
             <div className="profile-setup-mark"><GoogleIcon name="person" size={22} /></div>
             <p className="eyebrow">{t('profile.eyebrow')}</p>
-            <h2 id="profile-setup-title">{t('profile.completeTitle')}</h2>
-            <p>{t('profile.completeMessage')}</p>
+            <h2 id="profile-setup-title">{showProfileSuccess ? 'Registration successful' : t('profile.completeTitle')}</h2>
+            <p>{showProfileSuccess ? 'You are registered successfully. Now complete your profile.' : t('profile.completeMessage')}</p>
             <form className="form-grid" onSubmit={handleProfileSubmit}>
               <label className="field">
                 <span>{t('profile.name')}</span>
@@ -630,10 +639,13 @@ function App() {
               </label>
               {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
               <button type="submit" className="primary-button" disabled={isLoading}>
-                {isLoading ? t('app.saving') : t('profile.completeButton')}
+                {isLoading ? t('app.saving') : (showProfileSuccess ? 'Save & continue' : t('profile.completeButton'))}
               </button>
-              <button type="button" className="text-button profile-later" onClick={() => navigate('/app/profile', { replace: true })}>
-                {t('profile.doLater')}
+              <button type="button" className="secondary-button profile-later" onClick={() => {
+                setShowProfileSuccess(false);
+                navigate('/app/profile', { replace: true });
+              }}>
+                {showProfileSuccess ? 'Skip for now' : t('profile.doLater')}
               </button>
             </form>
           </section>
@@ -686,7 +698,8 @@ function App() {
           <Route path="/terms" element={<LandingLegalPage page="terms" />} />
           <Route path="/login" element={renderAuthForm('login')} />
           <Route path="/signup" element={renderAuthForm('signup')} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     );
@@ -706,6 +719,7 @@ function App() {
         <Route path="/" element={<LandingPage onChangeLanguage={changeLanguage} />} />
         <Route path="/privacy-policy" element={<LandingLegalPage page="privacy" />} />
         <Route path="/terms" element={<LandingLegalPage page="terms" />} />
+        <Route path="/404" element={<NotFoundPage />} />
         <Route path="/app" element={(
         <div className="app-shell">
           <a className="skip-link" href="#app-content">{t('nav.skipToContent')}</a>
@@ -826,11 +840,38 @@ function App() {
         <Route path="payments" element={<CustomersWorkspace key={`${activeParking?._id}-payments`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="payments" />} />
         <Route path="daily-parking" element={<DailyParkingWorkspace key={`${activeParking?._id}-daily`} parkingId={activeParking._id} />} />
         <Route path="team" element={renderTeam()} />
-        <Route path="*" element={<Navigate to="/app/customers" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
         </Route>
-        <Route path="*" element={<Navigate to="/app/customers" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
+  );
+}
+
+function NotFoundPage() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = `404 — ${t('app.name')}`;
+  }, [t]);
+
+  return (
+    <main className="auth-shell">
+      <div className="auth-card" style={{ textAlign: 'center' }}>
+        <p className="eyebrow">404</p>
+        <h1>Page not found</h1>
+        <p className="auth-intro">The page you are looking for does not exist or has moved.</p>
+        <div className="form-grid" style={{ marginTop: '1rem' }}>
+          <button type="button" className="primary-button" onClick={() => navigate(-1)}>
+            Go back
+          </button>
+          <Link to="/" className="secondary-button" style={{ textAlign: 'center', textDecoration: 'none' }}>
+            Go home
+          </Link>
+        </div>
+      </div>
+    </main>
   );
 }
 

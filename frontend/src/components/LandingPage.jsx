@@ -1,42 +1,21 @@
 import { useEffect, useState } from 'react';
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUpRight,
-  BadgeCheck,
-  Banknote,
-  CalendarDays,
-  CarFront,
-  Check,
-  CheckCircle2,
-  CircleHelp,
-  Clock3,
-  FileText,
-  Languages,
-  Menu,
-  ParkingCircle,
-  ShieldCheck,
-  Users,
-  Wallet,
-  X,
-  XCircle,
-} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import GoogleIcon from './GoogleIcon';
 import LanguageSelector from './LanguageSelector';
 import './LandingPage.css';
 
 const featureIcons = [
-  Users,
-  CarFront,
-  CalendarDays,
-  Banknote,
-  Clock3,
-  ParkingCircle,
-  FileText,
-  ArrowUpRight,
-  ShieldCheck,
-  Languages,
+  'groups',
+  'directions_car',
+  'calendar_month',
+  'payments',
+  'schedule',
+  'local_parking',
+  'description',
+  'north_east',
+  'shield',
+  'language',
 ];
 
 const siteUrl = import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/, '');
@@ -55,28 +34,28 @@ function ProductPreview({ t }) {
             <p className="preview-kicker">{t('landing.hero.previewLabel')}</p>
             <h2>{t('landing.hero.previewTitle')}</h2>
           </div>
-          <span className="preview-brand-mark" aria-hidden="true"><ParkingCircle size={19} /></span>
+          <span className="preview-brand-mark" aria-hidden="true"><GoogleIcon name="local_parking" size={19} /></span>
         </div>
         <div className="preview-metrics">
           <div className="preview-metric preview-metric-highlight">
             <span>{t('landing.hero.collection')}</span>
             <strong dir="ltr">Rs. 186,000</strong>
-            <small><CheckCircle2 size={13} />{t('landing.hero.period')}</small>
+            <small><GoogleIcon name="check_circle" size={13} />{t('landing.hero.period')}</small>
           </div>
           <div className="preview-metric">
             <span>{t('landing.hero.members')}</span>
             <strong dir="ltr">128</strong>
-            <small><Users size={13} />{t('landing.showcase.previewLabel')}</small>
+            <small><GoogleIcon name="groups" size={13} />{t('landing.showcase.previewLabel')}</small>
           </div>
           <div className="preview-metric">
             <span>{t('landing.hero.vehicles')}</span>
             <strong dir="ltr">164</strong>
-            <small><CarFront size={13} />{t('landing.showcase.previewLabel')}</small>
+            <small><GoogleIcon name="directions_car" size={13} />{t('landing.showcase.previewLabel')}</small>
           </div>
           <div className="preview-metric preview-metric-due">
             <span>{t('landing.hero.due')}</span>
             <strong dir="ltr">12</strong>
-            <small><Clock3 size={13} />{t('landing.showcase.pending')}</small>
+            <small><GoogleIcon name="schedule" size={13} />{t('landing.showcase.pending')}</small>
           </div>
         </div>
         <div className="preview-activity">
@@ -85,18 +64,18 @@ function ProductPreview({ t }) {
             <span>{t('landing.showcase.previewLabel')}</span>
           </div>
           <div className="preview-activity-row">
-            <span className="preview-activity-icon"><Banknote size={16} /></span>
+            <span className="preview-activity-icon"><GoogleIcon name="payments" size={16} /></span>
             <span className="preview-activity-copy"><strong>{t('landing.hero.activityOne')}</strong><small>Rs. 2,000 · {t('landing.hero.period')}</small></span>
             <span className="preview-activity-status">{t('landing.hero.received')}</span>
           </div>
           <div className="preview-activity-row">
-            <span className="preview-activity-icon preview-activity-icon-lime"><CarFront size={16} /></span>
+            <span className="preview-activity-icon preview-activity-icon-lime"><GoogleIcon name="directions_car" size={16} /></span>
             <span className="preview-activity-copy"><strong>{t('landing.hero.activityTwo')}</strong><small>{t('landing.showcase.vehicleNumber')}</small></span>
             <span className="preview-activity-status preview-activity-status-muted">{t('landing.hero.updated')}</span>
           </div>
         </div>
       </div>
-      <span className="preview-footnote"><BadgeCheck size={14} />{t('landing.hero.previewLabel')}</span>
+      <span className="preview-footnote"><GoogleIcon name="verified" size={14} />{t('landing.hero.previewLabel')}</span>
     </div>
   );
 }
@@ -178,7 +157,7 @@ function LandingPage({ onChangeLanguage }) {
           <div className="landing-nav-actions">
             <LanguageSelector value={language} onChange={onChangeLanguage} />
             <Link className="landing-login-link" to="/login">{t('landing.nav.login')}</Link>
-            <Link className="landing-nav-cta" to="/signup">{t('landing.nav.getStarted')}<ArrowUpRight size={16} /></Link>
+            <Link className="landing-nav-cta" to="/signup">{t('landing.nav.getStarted')}<GoogleIcon name="north_east" size={16} /></Link>
           </div>
           <button
             type="button"
@@ -188,7 +167,7 @@ function LandingPage({ onChangeLanguage }) {
             aria-controls="landing-navigation"
             onClick={() => setIsMenuOpen((open) => !open)}
           >
-            {isMenuOpen ? <X size={21} /> : <Menu size={21} />}
+            {isMenuOpen ? <GoogleIcon name="close" size={21} /> : <GoogleIcon name="menu" size={21} />}
           </button>
         </div>
       </header>
@@ -200,10 +179,10 @@ function LandingPage({ onChangeLanguage }) {
             <h1>{t('landing.hero.title')}</h1>
             <p className="hero-description">{t('landing.hero.description')}</p>
             <div className="hero-actions">
-              <Link className="button-primary" to="/signup">{t('landing.hero.primary')}<ArrowRight size={18} /></Link>
-              <a className="button-text" href="#features">{t('landing.hero.secondary')}<ArrowDown size={16} /></a>
+              <Link className="button-primary" to="/signup">{t('landing.hero.primary')}<GoogleIcon name="arrow_right_alt" size={18} /></Link>
+              <a className="button-text" href="#features">{t('landing.hero.secondary')}<GoogleIcon name="keyboard_arrow_down" size={16} /></a>
             </div>
-            <div className="hero-proof"><ShieldCheck size={17} /><span>{t('landing.value.eyebrow')}</span></div>
+            <div className="hero-proof"><GoogleIcon name="shield" size={17} /><span>{t('landing.value.eyebrow')}</span></div>
           </div>
           <div className="hero-visual">
             <div className="hero-visual-orbit" aria-hidden="true" />
@@ -211,7 +190,7 @@ function LandingPage({ onChangeLanguage }) {
             <span className="hero-side-note" aria-hidden="true">EP · 01</span>
           </div>
         </div>
-        <a className="hero-scroll-cue" href="#value" aria-label={t('landing.nav.features')}><span /><ArrowDown size={15} /></a>
+        <a className="hero-scroll-cue" href="#value" aria-label={t('landing.nav.features')}><span /><GoogleIcon name="keyboard_arrow_down" size={15} /></a>
       </section>
 
       <section className="value-band" id="value">
@@ -233,16 +212,16 @@ function LandingPage({ onChangeLanguage }) {
         </div>
         <div className="comparison-layout">
           <article className="comparison-column comparison-before">
-            <div className="comparison-heading"><span className="comparison-icon"><XCircle size={20} /></span><h3>{t('landing.comparison.before')}</h3></div>
+            <div className="comparison-heading"><span className="comparison-icon"><GoogleIcon name="cancel" size={20} /></span><h3>{t('landing.comparison.before')}</h3></div>
             <ul>
-              {beforeItems.map((item) => <li key={item}><X size={16} />{item}</li>)}
+              {beforeItems.map((item) => <li key={item}><GoogleIcon name="close" size={16} />{item}</li>)}
             </ul>
           </article>
-          <div className="comparison-connector" aria-hidden="true"><ArrowRight size={19} /></div>
+          <div className="comparison-connector" aria-hidden="true"><GoogleIcon name="arrow_right_alt" size={19} /></div>
           <article className="comparison-column comparison-after">
-            <div className="comparison-heading"><span className="comparison-icon"><CheckCircle2 size={20} /></span><h3>{t('landing.comparison.after')}</h3></div>
+            <div className="comparison-heading"><span className="comparison-icon"><GoogleIcon name="check_circle" size={20} /></span><h3>{t('landing.comparison.after')}</h3></div>
             <ul>
-              {afterItems.map((item) => <li key={item}><Check size={16} />{item}</li>)}
+              {afterItems.map((item) => <li key={item}><GoogleIcon name="check" size={16} />{item}</li>)}
             </ul>
           </article>
         </div>
@@ -258,7 +237,7 @@ function LandingPage({ onChangeLanguage }) {
             const Icon = featureIcons[index];
             return (
               <article className="feature-item" key={feature.title}>
-                <div className="feature-item-top"><span className="feature-number">0{index + 1}</span><Icon size={20} strokeWidth={1.8} /></div>
+                <div className="feature-item-top"><span className="feature-number">0{index + 1}</span><GoogleIcon name={Icon} size={20} /></div>
                 <h3>{feature.title}</h3>
                 <p>{feature.description}</p>
               </article>
@@ -275,37 +254,37 @@ function LandingPage({ onChangeLanguage }) {
         </div>
         <div className="showcase-grid">
           <article className="showcase-card showcase-member">
-            <div className="showcase-card-heading"><span className="showcase-icon"><Users size={18} /></span><span>{t('landing.showcase.member')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
+            <div className="showcase-card-heading"><span className="showcase-icon"><GoogleIcon name="groups" size={18} /></span><span>{t('landing.showcase.member')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
             <div className="member-mockup">
               <span className="member-avatar">024</span>
               <div><strong>{t('landing.showcase.memberName')}</strong><small>{t('landing.hero.members')}</small></div>
-              <span className="member-active"><CheckCircle2 size={14} />{t('app.active')}</span>
+              <span className="member-active"><GoogleIcon name="check_circle" size={14} />{t('app.active')}</span>
             </div>
-            <div className="vehicle-mockup"><CarFront size={17} /><span>{t('landing.showcase.vehicleNumber')}</span><small>{t('landing.showcase.vehicle')}</small></div>
+            <div className="vehicle-mockup"><GoogleIcon name="directions_car" size={17} /><span>{t('landing.showcase.vehicleNumber')}</span><small>{t('landing.showcase.vehicle')}</small></div>
             <div className="showcase-caption"><strong>{t('landing.showcase.member')}</strong><p>{features[0].description}</p></div>
           </article>
           <article className="showcase-card showcase-dues">
-            <div className="showcase-card-heading"><span className="showcase-icon showcase-icon-amber"><Wallet size={18} /></span><span>{t('landing.showcase.dues')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
+            <div className="showcase-card-heading"><span className="showcase-icon showcase-icon-amber"><GoogleIcon name="wallet" size={18} /></span><span>{t('landing.showcase.dues')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
             <div className="due-mockup">
               <div><span>{t('landing.showcase.periodLabel')}</span><strong dir="ltr">01 Oct — 31 Oct</strong></div>
               <strong className="due-mockup-amount" dir="ltr">Rs. 1,500</strong>
-              <span className="mock-status mock-status-due"><Clock3 size={13} />{t('landing.showcase.pending')}</span>
+              <span className="mock-status mock-status-due"><GoogleIcon name="schedule" size={13} />{t('landing.showcase.pending')}</span>
             </div>
             <div className="due-mockup due-mockup-paid">
               <div><span>{t('landing.showcase.periodLabel')}</span><strong dir="ltr">01 Sep — 30 Sep</strong></div>
               <strong className="due-mockup-amount" dir="ltr">Rs. 1,500</strong>
-              <span className="mock-status"><CheckCircle2 size={13} />{t('landing.showcase.paid')}</span>
+              <span className="mock-status"><GoogleIcon name="check_circle" size={13} />{t('landing.showcase.paid')}</span>
             </div>
             <div className="showcase-caption"><strong>{t('landing.showcase.dues')}</strong><p>{features[4].description}</p></div>
           </article>
           <article className="showcase-card showcase-payment">
-            <div className="showcase-card-heading"><span className="showcase-icon"><Banknote size={18} /></span><span>{t('landing.showcase.payment')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
+            <div className="showcase-card-heading"><span className="showcase-icon"><GoogleIcon name="payments" size={18} /></span><span>{t('landing.showcase.payment')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
             <div className="payment-mockup">
               <span>{t('landing.showcase.paymentLabel')}</span>
               <strong dir="ltr">Rs. 1,000</strong>
               <div className="payment-meter"><span /></div>
               <div className="payment-mockup-footer"><span>{t('landing.showcase.periodLabel')}</span><span dir="ltr">Rs. 1,500</span></div>
-              <span className="mock-status"><CheckCircle2 size={13} />{t('landing.showcase.paid')}</span>
+              <span className="mock-status"><GoogleIcon name="check_circle" size={13} />{t('landing.showcase.paid')}</span>
             </div>
             <div className="showcase-caption"><strong>{t('landing.showcase.payment')}</strong><p>{features[3].description}</p></div>
           </article>
@@ -331,7 +310,7 @@ function LandingPage({ onChangeLanguage }) {
         <div className="benefits-panel">
           <div className="benefits-heading"><p className="landing-eyebrow">{t('landing.benefits.eyebrow')}</p><h2>{t('landing.benefits.title')}</h2></div>
           <ul className="benefits-list">
-            {benefits.map((benefit) => <li key={benefit}><CheckCircle2 size={17} />{benefit}</li>)}
+            {benefits.map((benefit) => <li key={benefit}><GoogleIcon name="check_circle" size={17} />{benefit}</li>)}
           </ul>
           <div className="benefits-mark" aria-hidden="true"><img src="/favicon.svg" alt="" /></div>
         </div>
@@ -339,7 +318,7 @@ function LandingPage({ onChangeLanguage }) {
 
       <section className="faq-section landing-section" id="faq">
         <div className="faq-intro">
-          <p className="landing-eyebrow"><CircleHelp size={15} />{t('landing.faq.eyebrow')}</p>
+          <p className="landing-eyebrow"><GoogleIcon name="help" size={15} />{t('landing.faq.eyebrow')}</p>
           <h2>{t('landing.faq.title')}</h2>
         </div>
         <div className="faq-list">
@@ -354,7 +333,7 @@ function LandingPage({ onChangeLanguage }) {
 
       <section className="landing-cta">
         <div className="landing-cta-copy"><p className="landing-eyebrow">{t('app.name')}</p><h2>{t('landing.cta.title')}</h2><p>{t('landing.cta.description')}</p></div>
-        <Link className="button-primary button-primary-light" to="/signup">{t('landing.cta.button')}<ArrowRight size={18} /></Link>
+        <Link className="button-primary button-primary-light" to="/signup">{t('landing.cta.button')}<GoogleIcon name="arrow_right_alt" size={18} /></Link>
       </section>
 
       <footer className="landing-footer">
@@ -408,11 +387,11 @@ function LandingLegalPage({ page }) {
             <img src="/favicon.svg" alt="" width="42" height="42" />
             <span>{t('app.name')}</span>
           </Link>
-          <Link className="landing-nav-cta" to="/login">{t('landing.nav.login')}<ArrowUpRight size={16} /></Link>
+          <Link className="landing-nav-cta" to="/login">{t('landing.nav.login')}<GoogleIcon name="north_east" size={16} /></Link>
         </div>
       </header>
       <article className="legal-content">
-        <Link to="/" className="legal-back"><ArrowRight size={16} />{t('app.name')}</Link>
+        <Link to="/" className="legal-back"><GoogleIcon name="arrow_right_alt" size={16} />{t('app.name')}</Link>
         <p className="landing-eyebrow">{t('app.parkingManagement')}</p>
         <h1>{t(`landing.legal.${titleKey}`)}</h1>
         <p className="legal-intro">{t(`landing.legal.${isPrivacy ? 'privacyIntro' : 'termsIntro'}`)}</p>
@@ -422,7 +401,7 @@ function LandingLegalPage({ page }) {
             <p>{t(`landing.legal.${section}`)}</p>
           </section>
         ))}
-        <Link className="button-primary legal-home-link" to="/">{t('landing.nav.getStarted')}<ArrowRight size={18} /></Link>
+        <Link className="button-primary legal-home-link" to="/">{t('landing.nav.getStarted')}<GoogleIcon name="arrow_right_alt" size={18} /></Link>
       </article>
       <footer className="legal-footer"><span>{t('landing.footer.copyright')}</span><Link to="/">{t('app.name')}</Link></footer>
     </main>
