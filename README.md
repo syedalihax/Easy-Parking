@@ -42,38 +42,31 @@ MongoDB transactions are required for atomic vehicle/subscription and payment op
 
 ## Run locally
 
-Install each application's dependencies:
+Install the root tooling, then install the frontend and backend dependencies:
 
 ```powershell
-cd backend
-npm install
-Copy-Item .env.example .env
+npm run i
+npm run start
+Copy-Item backend\.env.example backend\.env
 ```
 
-Set `JWT_SECRET` in `backend/.env` to a long random secret, then open a second terminal:
+Set `JWT_SECRET` in `backend/.env` to a long random secret, then start both development servers:
 
 ```powershell
-cd frontend
-npm install
-```
-
-Start the backend:
-
-```powershell
-cd backend
 npm run dev
 ```
 
-Start the frontend in a second terminal:
-
-```powershell
-cd frontend
-npm run dev -- --host
-```
-
-The Vite development server prints the local URL. The API listens on `http://localhost:5000` by default; health check: `http://localhost:5000/api/health`.
+The root `dev` script starts the backend and Vite frontend together; Vite uses `--host` to listen on local network interfaces. The Vite development server prints its URL. The API listens on `http://localhost:5000` by default; health check: `http://localhost:5000/api/health`. Stop either process with `Ctrl+C`; the other is stopped with it.
 
 For frontend/API environment variables and backend MongoDB configuration, follow the respective folder guides. Never commit `.env` files or real credentials.
+
+## Root scripts
+
+| Command | Description |
+|---|---|
+| `npm run i` | Install root development tooling |
+| `npm run start` | Install backend dependencies, then frontend dependencies |
+| `npm run dev` | Run backend and frontend concurrently |
 
 ## Validation
 

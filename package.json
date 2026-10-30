@@ -1,0 +1,14 @@
+{
+  "name": "easyparking",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A parking management PWA with a React frontend and Express/MongoDB API.",
+  "scripts": {
+    "i": "npm install",
+    "start": "npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently --kill-others --names backend,frontend \"npm --prefix backend run dev\" \"npm --prefix frontend run dev -- --host\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}

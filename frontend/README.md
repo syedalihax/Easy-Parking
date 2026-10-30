@@ -32,7 +32,7 @@ npm run dev -- --host
 
 Vite prints the local development URL after startup. The `--host` option makes the development server available on the local network.
 
-By default, the API helper calls `http://localhost:5000/api`. To use another API URL, create `frontend/.env.local`:
+By default, the API helper calls `http://localhost:5000/api`. To use another API URL, create `.env.local` in the `frontend` folder:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000/api
