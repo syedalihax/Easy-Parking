@@ -1,16 +1,71 @@
-# React + Vite
+# easyParking frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The frontend is a React single-page application with URL-based pages, built with Vite and styled using Tailwind CSS. It is also configured as an installable Progressive Web App (PWA).
 
-Currently, two official plugins are available:
+## Pages
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Route | Screen |
+|---|---|
+| `/login` | Sign in |
+| `/signup` | Create an account |
+| `/app/customers` | Customer list |
+| `/app/customers/:customerId` | Customer profile, vehicles, subscriptions, dues, and payments |
+| `/app/vehicles` | Search vehicles by registration number |
+| `/app/vehicles/:vehicleId` | Vehicle details and related customer link |
+| `/app/dues` | Select a customer and view monthly dues |
+| `/app/payments` | Select a customer and view or receive payments |
+| `/app/team` | Invitations and team access |
 
-## React Compiler
+Authenticated routes require a valid session and parking membership. The dashboard has responsive navigation, a parking switcher, and a payment shortcut.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Requirements
 
-## Expanding the Oxlint configuration
+- Node.js 20.19+ (or 22.12+) and npm
+- Backend API running locally, unless configured to use another API
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Install and run
+
+```powershell
+npm install
+npm run dev -- --host
+```
+
+Vite prints the local development URL after startup. The `--host` option makes the development server available on the local network.
+
+By default, the API helper calls `http://localhost:5000/api`. To use another API URL, create `frontend/.env.local`:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+Restart Vite after changing environment variables. Only expose API servers that you trust on your network.
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev -- --host` | Start the Vite development server |
+| `npm run lint` | Run Oxlint |
+| `npm run build` | Create the production/PWA build in `dist/` |
+| `npm run preview` | Preview the production build |
+
+## Frontend structure
+
+```text
+src/
+  App.jsx                    Application routes and shared workspace layout
+  api.js                     Authenticated REST API helper
+  components/
+    CustomersWorkspace.jsx   Customer, vehicle, dues, and payment screens
+  index.css                  Tailwind import, theme tokens, component utilities
+  main.jsx                   React and BrowserRouter entry point
+public/                      PWA icons and static assets
+vite.config.js               Vite, Tailwind, and PWA configuration
+```
+
+## Notes
+
+- Authentication currently stores the access token in browser local storage.
+- Billing amounts and payment allocation decisions come from the backend API.
+- PWA settings and the brand palette are configured in `vite.config.js` and `src/index.css`.
+- Backend setup, MongoDB configuration, and API routes are documented in [../backend/README.md](../backend/README.md).
