@@ -50,6 +50,44 @@ export const apiGetDailyRate = (parkingId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/daily-rate`,
 );
 
+export const apiGetDashboard = (parkingId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/dashboard`,
+);
+
+export const apiGetDashboardReminders = (parkingId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/dashboard/reminders`,
+);
+
+export const apiGetReport = (parkingId, reportName, filters = {}) => {
+  const params = new URLSearchParams(Object.fromEntries(
+    Object.entries(filters).filter(([, value]) => value !== '' && value !== undefined),
+  ));
+  const query = params.toString();
+  return jsonRequest(
+    `/parkings/${encodeURIComponent(parkingId)}/reports/${reportName}${query ? `?${query}` : ''}`,
+  );
+};
+
+export const apiDownloadReport = async (parkingId, reportName, filters = {}) => {
+  const params = new URLSearchParams({ ...filters, format: 'csv' });
+  const response = await fetch(
+    `${API_BASE_URL}/parkings/${encodeURIComponent(parkingId)}/reports/${reportName}?${params}`,
+    { headers: authHeaders() },
+  );
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || 'Could not export report');
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${reportName.replaceAll('/', '-')}.csv`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
 export const apiUpdateDailyRate = (parkingId, dailyParkingRate) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/daily-rate`,
   { method: 'PATCH', body: JSON.stringify({ dailyParkingRate }) },

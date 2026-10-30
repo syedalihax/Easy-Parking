@@ -38,12 +38,6 @@ function DailyParkingWorkspace({ parkingId }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
 
-  const loadRate = useCallback(async () => {
-    const response = await apiGetDailyRate(parkingId);
-    setRate(response.dailyParkingRate);
-    setRateInput(String(response.dailyParkingRate));
-  }, [parkingId]);
-
   const loadActive = useCallback(async () => {
     const response = await apiGetActiveDailyParking(parkingId);
     setActiveRecords(response.records);
@@ -56,12 +50,23 @@ function DailyParkingWorkspace({ parkingId }) {
 
   useEffect(() => {
     let active = true;
-    Promise.all([loadRate(), loadActive(), loadHistory()])
+    Promise.all([
+      apiGetDailyRate(parkingId),
+      apiGetActiveDailyParking(parkingId),
+      apiGetDailyParkingHistory(parkingId, dateFilter),
+    ])
+      .then(([rateResponse, activeResponse, historyResponse]) => {
+        if (!active) return;
+        setRate(rateResponse.dailyParkingRate);
+        setRateInput(String(rateResponse.dailyParkingRate));
+        setActiveRecords(activeResponse.records);
+        setHistory(historyResponse.records);
+      })
       .catch((error) => {
         if (active) setErrorMessage(error.message || 'Could not load daily parking data');
       });
     return () => { active = false; };
-  }, [loadActive, loadHistory, loadRate]);
+  }, [dateFilter, parkingId]);
 
   const submitEntry = async (event) => {
     event.preventDefault();

@@ -467,6 +467,90 @@
   .money-figure {
     @apply text-xl tabular-nums;
   }
+
+  .operations-workspace {
+    @apply grid w-full gap-6;
+  }
+
+  .stats-grid {
+    @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .stat-card {
+    @apply grid min-h-32 content-between gap-4 rounded-xl border border-border bg-surface p-5 shadow-sm;
+  }
+
+  .stat-card span {
+    @apply text-sm font-semibold text-ink-muted;
+  }
+
+  .stat-card strong {
+    @apply text-3xl font-extrabold tabular-nums text-ink;
+  }
+
+  .quick-actions {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  .quick-action {
+    @apply flex min-h-14 items-center rounded-lg border border-border bg-background px-4 font-bold text-primary-dark no-underline hover:bg-primary-light;
+  }
+
+  .reminder-grid {
+    @apply grid gap-4 lg:grid-cols-2;
+  }
+
+  .reminder-panel {
+    @apply min-w-0;
+  }
+
+  .reminder-item {
+    @apply grid gap-1 rounded-lg border border-border bg-background p-3 text-ink no-underline hover:border-primary;
+  }
+
+  .reminder-item span {
+    @apply text-sm text-ink-muted;
+  }
+
+  .report-toolbar {
+    @apply grid gap-4;
+  }
+
+  .report-toolbar h3 {
+    @apply m-0 text-lg font-bold;
+  }
+
+  .report-filters {
+    @apply flex-wrap items-end;
+  }
+
+  .report-filters .field {
+    @apply min-w-36;
+  }
+
+  .report-table-wrap {
+    @apply max-w-full overflow-x-auto;
+  }
+
+  .report-table {
+    @apply w-full border-collapse text-start text-sm;
+  }
+
+  .report-table th {
+    @apply whitespace-nowrap border-b border-border bg-background px-3 py-3 font-bold capitalize text-ink-muted;
+  }
+
+  .report-table td {
+    @apply whitespace-nowrap border-b border-border px-3 py-3;
+  }
+
+  .report-money {
+    @apply text-end font-semibold tabular-nums;
+  }
+
+  .report-tabs {
+    @apply overflow-x-auto;
+  }
 }
 
 @media (min-width: 1024px) {

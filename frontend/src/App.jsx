@@ -21,6 +21,7 @@ import {
 } from './api';
 import CustomersWorkspace from './components/CustomersWorkspace';
 import DailyParkingWorkspace from './components/DailyParkingWorkspace';
+import { DashboardWorkspace, ReportsWorkspace } from './components/OperationsWorkspace';
 
 const defaultAuthForm = {
   fullName: '',
@@ -501,11 +502,13 @@ function App() {
               </label>
             </div>
             <nav className="sidebar-nav" aria-label="Main navigation">
+              <NavLink to="/app/dashboard" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Dashboard</NavLink>
               <NavLink to="/app/customers" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`} end>Customers</NavLink>
               <NavLink to="/app/vehicles" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Vehicles</NavLink>
               <NavLink to="/app/dues" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Dues</NavLink>
               <NavLink to="/app/payments" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Payments</NavLink>
               <NavLink to="/app/daily-parking" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Daily parking</NavLink>
+              <NavLink to="/app/reports" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Reports</NavLink>
               <NavLink to="/app/team" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Team</NavLink>
             </nav>
             <div className="sidebar-user">
@@ -524,7 +527,9 @@ function App() {
           </main>
         </div>
       )}>
-        <Route index element={<Navigate to="customers" replace />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardWorkspace key={`${activeParking?._id}-dashboard`} parkingId={activeParking._id} />} />
+        <Route path="reports" element={<ReportsWorkspace key={`${activeParking?._id}-reports`} parkingId={activeParking._id} />} />
         <Route path="customers" element={<CustomersWorkspace key={`${activeParking?._id}-customers`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
         <Route path="customers/:customerId" element={<CustomersWorkspace key={`${activeParking?._id}-customer-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="customers" />} />
         <Route path="vehicles" element={<CustomersWorkspace key={`${activeParking?._id}-vehicles`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="vehicle-search" />} />
