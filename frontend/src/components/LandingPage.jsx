@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import GoogleIcon from './GoogleIcon';
@@ -137,6 +138,14 @@ function LandingPage({ onChangeLanguage }) {
   const steps = t('landing.steps.items', { returnObjects: true });
   const benefits = t('landing.benefits.items', { returnObjects: true });
   const faqs = t('landing.faq.items', { returnObjects: true });
+  const revealUp = {
+    hidden: { opacity: 0, y: 26 },
+    visible: (index = 0) => ({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: 'easeOut', delay: index * 0.08 },
+    }),
+  };
 
   return (
     <main className="landing-page" id="landing-content">
@@ -174,7 +183,13 @@ function LandingPage({ onChangeLanguage }) {
 
       <section className="landing-hero">
         <div className="landing-hero-inner">
-          <div className="hero-copy">
+          <motion.div
+            className="hero-copy"
+            initial="hidden"
+            animate="visible"
+            variants={revealUp}
+            custom={0}
+          >
             <p className="landing-eyebrow"><span className="eyebrow-mark" />{t('landing.hero.eyebrow')}</p>
             <h1>{t('landing.hero.title')}</h1>
             <p className="hero-description">{t('landing.hero.description')}</p>
@@ -183,12 +198,17 @@ function LandingPage({ onChangeLanguage }) {
               <a className="button-text" href="#features">{t('landing.hero.secondary')}<GoogleIcon name="keyboard_arrow_down" size={16} /></a>
             </div>
             <div className="hero-proof"><GoogleIcon name="shield" size={17} /><span>{t('landing.value.eyebrow')}</span></div>
-          </div>
-          <div className="hero-visual">
+          </motion.div>
+          <motion.div
+            className="hero-visual"
+            initial={{ opacity: 0, x: 30, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.12 }}
+          >
             <div className="hero-visual-orbit" aria-hidden="true" />
             <ProductPreview t={t} />
             <span className="hero-side-note" aria-hidden="true">EP · 01</span>
-          </div>
+          </motion.div>
         </div>
         <a className="hero-scroll-cue" href="#value" aria-label={t('landing.nav.features')}><span /><GoogleIcon name="keyboard_arrow_down" size={15} /></a>
       </section>
@@ -236,17 +256,26 @@ function LandingPage({ onChangeLanguage }) {
           {features.map((feature, index) => {
             const Icon = featureIcons[index];
             return (
-              <article className="feature-item" key={feature.title}>
+              <motion.article
+                className="feature-item"
+                key={feature.title}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={revealUp}
+                custom={index}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              >
                 <div className="feature-item-top"><span className="feature-number">0{index + 1}</span><GoogleIcon name={Icon} size={20} /></div>
                 <h3>{feature.title}</h3>
                 <p>{feature.description}</p>
-              </article>
+              </motion.article>
             );
           })}
         </div>
       </section>
 
-      <section className="showcase-section landing-section select-none">
+      <section className="showcase-section landing-section">
         <div className="section-heading">
           <p className="landing-eyebrow">{t('landing.showcase.eyebrow')}</p>
           <h2>{t('landing.showcase.title')}</h2>
