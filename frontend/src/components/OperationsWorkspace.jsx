@@ -1,22 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  ArrowUpRight,
-  Banknote,
-  BarChart3,
-  Car,
-  CarFront,
-  CircleAlert,
-  Clock3,
-  FileText,
-  ParkingCircle,
-  Settings,
-  UserRound,
-  UserRoundPlus,
-  Users,
-  Wallet,
-} from 'lucide-react';
+import GoogleIcon from './GoogleIcon';
 import {
   apiDownloadReport,
   apiGetCustomers,
@@ -39,19 +24,19 @@ const reports = [
 ];
 
 const actionLinks = [
-  { key: 'dashboard.addCustomer', to: '/app/customers', Icon: UserRoundPlus },
-  { key: 'nav.receivePayment', to: '/app/payments', Icon: Banknote },
-  { key: 'dashboard.pendingPayments', to: '/app/dues', Icon: Wallet },
-  { key: 'nav.dailyParking', to: '/app/daily-parking', Icon: ParkingCircle },
+  { key: 'dashboard.addCustomer', to: '/app/customers', Icon: 'person_add' },
+  { key: 'nav.receivePayment', to: '/app/payments', Icon: 'payments' },
+  { key: 'dashboard.pendingPayments', to: '/app/dues', Icon: 'wallet' },
+  { key: 'nav.dailyParking', to: '/app/daily-parking', Icon: 'local_parking' },
 ];
 
 const moreLinks = [
-  { to: '/app/vehicles', label: 'nav.vehicles', detail: 'more.vehiclesDetail', Icon: Car },
-  { to: '/app/dues', label: 'nav.dues', detail: 'more.duesDetail', Icon: FileText },
-  { to: '/app/reports', label: 'nav.reports', detail: 'more.reportsDetail', Icon: BarChart3 },
-  { to: '/app/team', label: 'menu.parkingAccess', detail: 'more.accessDetail', Icon: Users },
-  { to: '/app/settings', label: 'menu.parkingSettings', detail: 'more.settingsDetail', Icon: Settings },
-  { to: '/app/profile', label: 'menu.profile', detail: 'more.profileDetail', Icon: UserRound },
+  { to: '/app/vehicles', label: 'nav.vehicles', detail: 'more.vehiclesDetail', Icon: 'directions_car' },
+  { to: '/app/dues', label: 'nav.dues', detail: 'more.duesDetail', Icon: 'description' },
+  { to: '/app/reports', label: 'nav.reports', detail: 'more.reportsDetail', Icon: 'bar_chart' },
+  { to: '/app/team', label: 'menu.parkingAccess', detail: 'more.accessDetail', Icon: 'groups' },
+  { to: '/app/settings', label: 'menu.parkingSettings', detail: 'more.settingsDetail', Icon: 'settings' },
+  { to: '/app/profile', label: 'menu.profile', detail: 'more.profileDetail', Icon: 'person' },
 ];
 
 function MoreWorkspace() {
@@ -65,9 +50,9 @@ function MoreWorkspace() {
       <nav className="more-links" aria-label={t('nav.more')}>
         {moreLinks.map(({ to, label, detail, Icon }) => (
           <Link className="more-link" to={to} key={to}>
-            <span className="more-link-icon"><Icon aria-hidden="true" size={19} /></span>
+            <span className="more-link-icon"><GoogleIcon name={Icon} size={19} /></span>
             <span className="more-link-copy"><strong>{t(label)}</strong><small>{t(detail)}</small></span>
-            <ArrowUpRight aria-hidden="true" className="more-link-arrow" size={17} />
+            <GoogleIcon name="north_east" className="more-link-arrow" size={17} />
           </Link>
         ))}
       </nav>
@@ -111,13 +96,13 @@ function DashboardWorkspace({ parkingId }) {
   }, [parkingId, reloadKey, t]);
 
   const cards = summary ? [
-    { label: t('dashboard.outstanding'), detail: t('dashboard.outstandingHelp'), value: money(summary.totalOutstandingAmount), Icon: Wallet, kind: 'financial' },
-    { label: t('dashboard.paymentsThisMonth'), detail: t('dashboard.paymentsThisMonthHelp'), value: money(summary.paymentsReceivedThisPeriod), Icon: Banknote, kind: 'financial' },
-    { label: t('dashboard.activeCustomers'), detail: t('dashboard.activePeopleHelp'), value: summary.totalActiveCustomers, Icon: Users, tone: 'green' },
-    { label: t('dashboard.activeVehicles'), detail: t('dashboard.activeVehiclesHelp'), value: summary.totalActiveVehicles, Icon: CarFront, tone: 'green' },
-    { label: t('dashboard.customersWithDues'), detail: t('dashboard.peopleWithDuesHelp'), value: summary.customersWithPendingDues, Icon: CircleAlert, tone: 'amber' },
-    { label: t('dashboard.overSevenDays'), detail: t('dashboard.overSevenDaysHelp'), value: summary.customersWithOverdueDues, Icon: Clock3, tone: 'rose' },
-    { label: t('dashboard.currentlyParked'), detail: t('dashboard.currentlyParkedHelp'), value: summary.dailyVehiclesCurrentlyParked, Icon: ParkingCircle, tone: 'green' },
+    { label: t('dashboard.outstanding'), detail: t('dashboard.outstandingHelp'), value: money(summary.totalOutstandingAmount), Icon: 'wallet', kind: 'financial' },
+    { label: t('dashboard.paymentsThisMonth'), detail: t('dashboard.paymentsThisMonthHelp'), value: money(summary.paymentsReceivedThisPeriod), Icon: 'payments', kind: 'financial' },
+    { label: t('dashboard.activeCustomers'), detail: t('dashboard.activePeopleHelp'), value: summary.totalActiveCustomers, Icon: 'groups', tone: 'green' },
+    { label: t('dashboard.activeVehicles'), detail: t('dashboard.activeVehiclesHelp'), value: summary.totalActiveVehicles, Icon: 'directions_car', tone: 'green' },
+    { label: t('dashboard.customersWithDues'), detail: t('dashboard.peopleWithDuesHelp'), value: summary.customersWithPendingDues, Icon: 'error', tone: 'amber' },
+    { label: t('dashboard.overSevenDays'), detail: t('dashboard.overSevenDaysHelp'), value: summary.customersWithOverdueDues, Icon: 'schedule', tone: 'rose' },
+    { label: t('dashboard.currentlyParked'), detail: t('dashboard.currentlyParkedHelp'), value: summary.dailyVehiclesCurrentlyParked, Icon: 'local_parking', tone: 'green' },
   ] : [];
 
   return (
@@ -136,7 +121,7 @@ function DashboardWorkspace({ parkingId }) {
         </section>
       ) : !summary ? (
         <div className="dashboard-error-state" role="alert">
-          <CircleAlert aria-hidden="true" size={22} />
+          <GoogleIcon name="error" size={22} />
           <p>{errorMessage || t('errors.couldNotLoad')}</p>
           <button
             type="button"
@@ -157,7 +142,7 @@ function DashboardWorkspace({ parkingId }) {
               <article className="stat-card stat-card-financial" key={label}>
                 <div className="stat-card-top">
                   <span>{label}</span>
-                  <span className="stat-card-icon"><Icon aria-hidden="true" size={19} strokeWidth={1.9} /></span>
+                  <span className="stat-card-icon"><GoogleIcon name={Icon} size={19} /></span>
                 </div>
                 <strong>{value}</strong>
                 <small>{detail}</small>
@@ -169,7 +154,7 @@ function DashboardWorkspace({ parkingId }) {
               <article className={`stat-card stat-card-operations stat-card-${tone}`} key={label}>
                 <div className="stat-card-top">
                   <span>{label}</span>
-                  <span className="stat-card-icon"><Icon aria-hidden="true" size={19} strokeWidth={1.9} /></span>
+                  <span className="stat-card-icon"><GoogleIcon name={Icon} size={19} /></span>
                 </div>
                 <strong>{value}</strong>
                 <small>{detail}</small>
@@ -181,9 +166,9 @@ function DashboardWorkspace({ parkingId }) {
             <div className="quick-actions">
               {actionLinks.map(({ key, to, Icon }) => (
                 <Link className="quick-action" to={to} key={key}>
-                  <span className="quick-action-icon"><Icon aria-hidden="true" size={18} /></span>
+                  <span className="quick-action-icon"><GoogleIcon name={Icon} size={18} /></span>
                   <span>{t(key)}</span>
-                  <ArrowUpRight aria-hidden="true" className="quick-action-arrow" size={15} />
+                  <GoogleIcon name="north_east" className="quick-action-arrow" size={15} />
                 </Link>
               ))}
             </div>

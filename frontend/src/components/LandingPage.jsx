@@ -267,7 +267,7 @@ function LandingPage({ onChangeLanguage }) {
         </div>
       </section>
 
-      <section className="showcase-section landing-section">
+      <section className="showcase-section landing-section select-none">
         <div className="section-heading">
           <p className="landing-eyebrow">{t('landing.showcase.eyebrow')}</p>
           <h2>{t('landing.showcase.title')}</h2>
@@ -355,7 +355,6 @@ function LandingPage({ onChangeLanguage }) {
       <section className="landing-cta">
         <div className="landing-cta-copy"><p className="landing-eyebrow">{t('app.name')}</p><h2>{t('landing.cta.title')}</h2><p>{t('landing.cta.description')}</p></div>
         <Link className="button-primary button-primary-light" to="/signup">{t('landing.cta.button')}<ArrowRight size={18} /></Link>
-        <span className="cta-decoration" aria-hidden="true">EP</span>
       </section>
 
       <footer className="landing-footer">

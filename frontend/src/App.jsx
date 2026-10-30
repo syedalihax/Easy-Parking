@@ -40,20 +40,7 @@ const MoreWorkspace = lazy(() => import('./components/OperationsWorkspace').then
 const ReportsWorkspace = lazy(() => import('./components/OperationsWorkspace').then((module) => ({
   default: module.ReportsWorkspace,
 })));
-import {
-  ChevronRight,
-  CreditCard,
-  CheckCircle2,
-  LayoutDashboard,
-  Menu,
-  MoreHorizontal,
-  ParkingCircle,
-  Settings,
-  Shield,
-  Users,
-  UserRound,
-  X,
-} from 'lucide-react';
+import GoogleIcon from './components/GoogleIcon';
 
 const defaultAuthForm = {
   fullName: '',
@@ -81,11 +68,11 @@ const profileFormFromUser = (profile) => ({
 });
 
 const desktopNavigation = [
-  { to: '/app/dashboard', key: 'nav.dashboard', Icon: LayoutDashboard },
-  { to: '/app/customers', key: 'nav.customers', Icon: Users, end: true },
-  { to: '/app/payments', key: 'nav.payments', Icon: CreditCard },
-  { to: '/app/daily-parking', key: 'nav.dailyParking', Icon: ParkingCircle },
-  { to: '/app/more', key: 'nav.more', Icon: MoreHorizontal },
+  { to: '/app/dashboard', key: 'nav.dashboard', Icon: 'dashboard' },
+  { to: '/app/customers', key: 'nav.customers', Icon: 'groups', end: true },
+  { to: '/app/payments', key: 'nav.payments', Icon: 'credit_card' },
+  { to: '/app/daily-parking', key: 'nav.dailyParking', Icon: 'local_parking' },
+  { to: '/app/more', key: 'nav.more', Icon: 'more_horiz' },
 ];
 
 const mobileNavigation = desktopNavigation;
@@ -423,7 +410,6 @@ function App() {
   const renderAuthForm = (mode) => (
     <div className="auth-shell">
       <div className="auth-card">
-        <div className="auth-language"><LanguageSelector value={currentLanguage} onChange={changeLanguage} /></div>
         <p className="eyebrow">{t('app.name')}</p>
         <h1>{t(mode === 'login' ? 'auth.welcomeBack' : 'auth.createAccount')}</h1>
         <p className="auth-intro">{t(mode === 'login' ? 'auth.loginHint' : 'auth.signupHint')}</p>
@@ -625,7 +611,7 @@ function App() {
       {showProfileSetup && (
         <div className="profile-setup-backdrop">
           <section className="profile-setup-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-setup-title">
-            <div className="profile-setup-mark"><UserRound aria-hidden="true" size={22} /></div>
+            <div className="profile-setup-mark"><GoogleIcon name="person" size={22} /></div>
             <p className="eyebrow">{t('profile.eyebrow')}</p>
             <h2 id="profile-setup-title">{t('profile.completeTitle')}</h2>
             <p>{t('profile.completeMessage')}</p>
@@ -739,7 +725,7 @@ function App() {
               aria-controls="mobile-menu-drawer"
               onClick={() => setIsMobileMenuOpen((open) => !open)}
             >
-              {isMobileMenuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
+              {isMobileMenuOpen ? <GoogleIcon name="close" size={22} /> : <GoogleIcon name="menu" size={22} />}
             </button>
             <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
               {desktopNavigation.map(({ to, key, Icon, end }) => (
@@ -749,7 +735,7 @@ function App() {
                   end={end}
                   className={({ isActive }) => `nav-link${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
                 >
-                  <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
+                  <GoogleIcon name={Icon} size={18} />
                   <span>{t(key)}</span>
                 </NavLink>
               ))}
@@ -766,7 +752,7 @@ function App() {
                 <strong>{user.fullName}</strong>
                 <small>{t('menu.profile')}</small>
               </span>
-              <ChevronRight aria-hidden="true" size={17} />
+              <GoogleIcon name="chevron_right" size={17} />
             </NavLink>
           </aside>
           {isMobileMenuOpen && (
@@ -784,13 +770,13 @@ function App() {
                 </div>
                 <nav className="mobile-menu-links">
                   <NavLink to="/app/settings" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                    <Settings aria-hidden="true" size={19} /><span>{t('menu.parkingSettings')}</span>
+                    <GoogleIcon name="settings" size={19} /><span>{t('menu.parkingSettings')}</span>
                   </NavLink>
                   <NavLink to="/app/team" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                    <Shield aria-hidden="true" size={19} /><span>{t('menu.parkingAccess')}</span>
+                    <GoogleIcon name="shield" size={19} /><span>{t('menu.parkingAccess')}</span>
                   </NavLink>
                   <NavLink to="/app/profile" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                    <UserRound aria-hidden="true" size={19} /><span>{t('menu.profile')}</span>
+                    <GoogleIcon name="person" size={19} /><span>{t('menu.profile')}</span>
                   </NavLink>
                 </nav>
                 <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
@@ -802,7 +788,7 @@ function App() {
           )}
           {statusMessage && (
             <div className="toast-notification" role="status" aria-live="polite">
-              <CheckCircle2 aria-hidden="true" size={18} />
+              <GoogleIcon name="check_circle" size={18} />
               <span>{statusMessage}</span>
             </div>
           )}
@@ -819,7 +805,7 @@ function App() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={({ isActive }) => `mobile-tab${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
               >
-                <Icon aria-hidden="true" size={17} strokeWidth={1.8} />
+                <GoogleIcon name={Icon} size={17} />
                 <span>{t(key)}</span>
               </NavLink>
             ))}
