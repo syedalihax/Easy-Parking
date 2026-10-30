@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import GoogleIcon from './GoogleIcon';
 import LanguageSelector from './LanguageSelector';
 import './LandingPage.css';
+
+const ProductPreview = lazy(() => import('./ProductPreview'));
 
 const featureIcons = [
   'groups',
@@ -21,70 +23,51 @@ const featureIcons = [
 
 const siteUrl = import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/, '');
 
-function ProductPreview({ t }) {
-  return (
-    <div className="product-preview" aria-label={t('landing.hero.previewLabel')}>
-      <div className="preview-window-bar">
-        <div className="preview-window-dots" aria-hidden="true"><i /><i /><i /></div>
-        <span>{t('landing.hero.previewTitle')}</span>
-        <span className="preview-window-status"><span />{t('landing.hero.period')}</span>
-      </div>
-      <div className="preview-content">
-        <div className="preview-title-row">
-          <div>
-            <p className="preview-kicker">{t('landing.hero.previewLabel')}</p>
-            <h2>{t('landing.hero.previewTitle')}</h2>
-          </div>
-          <span className="preview-brand-mark" aria-hidden="true"><GoogleIcon name="local_parking" size={19} /></span>
-        </div>
-        <div className="preview-metrics">
-          <div className="preview-metric preview-metric-highlight">
-            <span>{t('landing.hero.collection')}</span>
-            <strong dir="ltr">Rs. 186,000</strong>
-            <small><GoogleIcon name="check_circle" size={13} />{t('landing.hero.period')}</small>
-          </div>
-          <div className="preview-metric">
-            <span>{t('landing.hero.members')}</span>
-            <strong dir="ltr">128</strong>
-            <small><GoogleIcon name="groups" size={13} />{t('landing.showcase.previewLabel')}</small>
-          </div>
-          <div className="preview-metric">
-            <span>{t('landing.hero.vehicles')}</span>
-            <strong dir="ltr">164</strong>
-            <small><GoogleIcon name="directions_car" size={13} />{t('landing.showcase.previewLabel')}</small>
-          </div>
-          <div className="preview-metric preview-metric-due">
-            <span>{t('landing.hero.due')}</span>
-            <strong dir="ltr">12</strong>
-            <small><GoogleIcon name="schedule" size={13} />{t('landing.showcase.pending')}</small>
-          </div>
-        </div>
-        <div className="preview-activity">
-          <div className="preview-activity-heading">
-            <strong>{t('landing.hero.activity')}</strong>
-            <span>{t('landing.showcase.previewLabel')}</span>
-          </div>
-          <div className="preview-activity-row">
-            <span className="preview-activity-icon"><GoogleIcon name="payments" size={16} /></span>
-            <span className="preview-activity-copy"><strong>{t('landing.hero.activityOne')}</strong><small>Rs. 2,000 · {t('landing.hero.period')}</small></span>
-            <span className="preview-activity-status">{t('landing.hero.received')}</span>
-          </div>
-          <div className="preview-activity-row">
-            <span className="preview-activity-icon preview-activity-icon-lime"><GoogleIcon name="directions_car" size={16} /></span>
-            <span className="preview-activity-copy"><strong>{t('landing.hero.activityTwo')}</strong><small>{t('landing.showcase.vehicleNumber')}</small></span>
-            <span className="preview-activity-status preview-activity-status-muted">{t('landing.hero.updated')}</span>
-          </div>
-        </div>
-      </div>
-      <span className="preview-footnote"><GoogleIcon name="verified" size={14} />{t('landing.hero.previewLabel')}</span>
-    </div>
-  );
-}
-
 function LandingPage({ onChangeLanguage }) {
   const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const language = i18n.resolvedLanguage || i18n.language || 'en';
+
+  useEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    if (!isMobile || isStandalone) {
+      setShowInstallPrompt(false);
+      return undefined;
+    }
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+      setShowInstallPrompt(true);
+    };
+
+    const handleAppInstalled = () => {
+      setInstallPrompt(null);
+      setShowInstallPrompt(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === 'accepted') {
+      setShowInstallPrompt(false);
+    }
+    setInstallPrompt(null);
+  };
 
   useEffect(() => {
     const description = t('landing.seoDescription');
@@ -206,7 +189,9 @@ function LandingPage({ onChangeLanguage }) {
             transition={{ duration: 0.7, ease: 'easeOut', delay: 0.12 }}
           >
             <div className="hero-visual-orbit" aria-hidden="true" />
-            <ProductPreview t={t} />
+            <Suspense fallback={<div className="product-preview product-preview-loading" aria-live="polite"><div className="preview-window-bar"><div className="preview-window-dots" aria-hidden="true"><i /><i /><i /></div><span>{t('landing.hero.previewTitle')}</span></div><div className="preview-content"><div className="preview-placeholder" /></div></div>}>
+              <ProductPreview t={t} />
+            </Suspense>
             <span className="hero-side-note" aria-hidden="true">EP · 01</span>
           </motion.div>
         </div>
@@ -390,6 +375,25 @@ function LandingPage({ onChangeLanguage }) {
         </div>
         <div className="footer-bottom"><span>{t('landing.footer.copyright')}</span><span>{t('app.parkingManagement')}</span></div>
       </footer>
+
+      {showInstallPrompt && (
+        <div className="pwa-install-banner" role="dialog" aria-live="polite" aria-label={t('landing.nav.getStarted')}>
+          <div className="pwa-install-banner-card">
+            <div>
+              <p className="pwa-install-kicker">{t('app.name')}</p>
+              <strong>{t('landing.nav.getStarted')}</strong>
+            </div>
+            <div className="pwa-install-actions">
+              <button type="button" className="pwa-install-button" onClick={handleInstallClick}>
+                Install
+              </button>
+              <button type="button" className="pwa-install-dismiss" onClick={() => setShowInstallPrompt(false)} aria-label="Dismiss install prompt">
+                Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
