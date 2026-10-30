@@ -431,6 +431,42 @@
   .team-invite-form {
     @apply lg:grid-cols-[minmax(0,1fr)_220px_auto] lg:items-end;
   }
+
+  .daily-workspace {
+    @apply grid w-full gap-5;
+  }
+
+  .daily-rate {
+    @apply flex items-center gap-3 rounded-lg bg-primary-light px-4 py-3 text-primary-dark;
+  }
+
+  .daily-rate-form {
+    @apply sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end;
+  }
+
+  .daily-entry-form {
+    @apply max-w-3xl;
+  }
+
+  .daily-primary-field input {
+    @apply min-h-16 text-2xl font-bold uppercase;
+  }
+
+  .daily-filters {
+    @apply mb-5 items-end;
+  }
+
+  .daily-filters .field {
+    @apply min-w-40;
+  }
+
+  .daily-record > div:last-child {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .money-figure {
+    @apply text-xl tabular-nums;
+  }
 }
 
 @media (min-width: 1024px) {

@@ -20,6 +20,7 @@ import {
   apiSignup,
 } from './api';
 import CustomersWorkspace from './components/CustomersWorkspace';
+import DailyParkingWorkspace from './components/DailyParkingWorkspace';
 
 const defaultAuthForm = {
   fullName: '',
@@ -504,6 +505,7 @@ function App() {
               <NavLink to="/app/vehicles" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Vehicles</NavLink>
               <NavLink to="/app/dues" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Dues</NavLink>
               <NavLink to="/app/payments" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Payments</NavLink>
+              <NavLink to="/app/daily-parking" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Daily parking</NavLink>
               <NavLink to="/app/team" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>Team</NavLink>
             </nav>
             <div className="sidebar-user">
@@ -529,6 +531,7 @@ function App() {
         <Route path="vehicles/:vehicleId" element={<CustomersWorkspace key={`${activeParking?._id}-vehicle-detail`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="vehicle-detail" />} />
         <Route path="dues" element={<CustomersWorkspace key={`${activeParking?._id}-dues`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="dues" />} />
         <Route path="payments" element={<CustomersWorkspace key={`${activeParking?._id}-payments`} parkingId={activeParking._id} parkingRole={activeParking.role} initialScreen="payments" />} />
+        <Route path="daily-parking" element={<DailyParkingWorkspace key={`${activeParking?._id}-daily`} parkingId={activeParking._id} />} />
         <Route path="team" element={renderTeam()} />
         <Route path="*" element={<Navigate to="/app/customers" replace />} />
       </Route>

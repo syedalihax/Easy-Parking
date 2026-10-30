@@ -46,6 +46,41 @@ export const apiGetMe = () => jsonRequest('/auth/me');
 
 export const apiGetMyParkings = () => jsonRequest('/parkings/my');
 
+export const apiGetDailyRate = (parkingId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-rate`,
+);
+
+export const apiUpdateDailyRate = (parkingId, dailyParkingRate) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-rate`,
+  { method: 'PATCH', body: JSON.stringify({ dailyParkingRate }) },
+);
+
+export const apiCreateDailyParkingEntry = (parkingId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-parking/entry`,
+  { method: 'POST', body: JSON.stringify(payload) },
+);
+
+export const apiGetActiveDailyParking = (parkingId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-parking/active`,
+);
+
+export const apiGetDailyParkingHistory = (parkingId, filters = {}) => {
+  const params = new URLSearchParams(
+    Object.fromEntries(Object.entries(filters).filter(([, value]) => value)),
+  );
+  return jsonRequest(`/parkings/${encodeURIComponent(parkingId)}/daily-parking?${params}`);
+};
+
+export const apiRecordDailyParkingExit = (parkingId, recordId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-parking/${encodeURIComponent(recordId)}/exit`,
+  { method: 'PATCH' },
+);
+
+export const apiRecordDailyParkingPayment = (parkingId, recordId, method) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-parking/${encodeURIComponent(recordId)}/payment`,
+  { method: 'PATCH', body: JSON.stringify({ method }) },
+);
+
 export const apiCreateParking = (payload) => jsonRequest('/parkings', {
   method: 'POST',
   body: JSON.stringify(payload),
