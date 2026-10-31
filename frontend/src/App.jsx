@@ -148,6 +148,16 @@ function App() {
     staleKeys.forEach((key) => localStorage.removeItem(key));
     sessionStorage.clear();
 
+    const logoutTarget = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
+    try {
+      await fetch(`${logoutTarget}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      // Ignore logout failures so the UI can still clear stale session data locally.
+    }
+
     if ('caches' in window) {
       const cacheNames = await caches.keys().catch(() => []);
       await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
@@ -161,8 +171,13 @@ function App() {
 
   useEffect(() => {
     if (location.pathname === '/login' || location.pathname === '/signup') {
-      clearStaleAuthArtifacts();
+      setToken('');
+      setUser(null);
+      setParkings([]);
+      setSelectedParkingId('');
+      setPendingInvitations([]);
       setErrorMessage('');
+      void clearStaleAuthArtifacts();
     }
   }, [clearStaleAuthArtifacts, location.pathname]);
 
