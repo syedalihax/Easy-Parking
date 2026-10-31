@@ -75,7 +75,10 @@ const desktopNavigation = [
   { to: '/app/more', key: 'nav.more', Icon: 'more_horiz' },
 ];
 
-const mobileNavigation = desktopNavigation;
+const noParkingMobileNavigation = [
+  { to: '/app/create-parking', key: 'setup.create', Icon: 'add_circle' },
+  { to: '/app/inbox', key: 'team.inbox', Icon: 'inbox' },
+];
 
 function App() {
   const { t } = useTranslation();
@@ -111,6 +114,7 @@ function App() {
   const showProfileSetup = location.pathname === '/app/profile'
     && new URLSearchParams(location.search).get('setup') === '1';
   const hasParkingMembership = parkings.length > 0;
+  const mobileNavigation = hasParkingMembership ? desktopNavigation : noParkingMobileNavigation;
   const [showProfileSuccess, setShowProfileSuccess] = useState(false);
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
   const isMoreSectionActive = [
@@ -793,87 +797,6 @@ function App() {
         </button>
       </form>
 
-      {!hasParkingMembership && (
-        <section className="panel profile-onboarding-panel">
-          <div className="panel-header">
-            <h3>{t('setup.account')}</h3>
-          </div>
-          <div className="profile-onboarding-actions">
-            <button type="button" className="primary-button" onClick={() => {
-              setShowParkingCreator(true);
-              setShowInboxView(false);
-            }}>
-              {t('setup.create')}
-            </button>
-            <button type="button" className="secondary-button" onClick={() => {
-              setShowInboxView(true);
-              setShowParkingCreator(false);
-              if (pendingInvitations.length === 0) {
-                void loadPendingInvitations();
-              }
-            }}>
-              {t('team.inbox')}
-            </button>
-          </div>
-
-          {showParkingCreator && (
-            <form className="form-grid" onSubmit={handleParkingSubmit}>
-              <label className="field">
-                <span>{t('setup.name')}</span>
-                <input
-                  type="text"
-                  value={parkingForm.name}
-                  onChange={(event) => setParkingForm((current) => ({ ...current, name: event.target.value }))}
-                  placeholder={t('setup.namePlaceholder')}
-                />
-              </label>
-              <label className="field">
-                <span>{t('setup.address')}</span>
-                <input
-                  type="text"
-                  value={parkingForm.address}
-                  onChange={(event) => setParkingForm((current) => ({ ...current, address: event.target.value }))}
-                  placeholder={t('setup.addressPlaceholder')}
-                />
-              </label>
-              <label className="field">
-                <span>{t('setup.contact')}</span>
-                <input
-                  type="text"
-                  value={parkingForm.contactInfo}
-                  onChange={(event) => setParkingForm((current) => ({ ...current, contactInfo: event.target.value }))}
-                  placeholder={t('setup.contactPlaceholder')}
-                />
-              </label>
-              {errorMessage && <p className="error-text">{errorMessage}</p>}
-              <button type="submit" className="primary-button" disabled={isLoading}>
-                {isLoading ? t('setup.creating') : t('setup.create')}
-              </button>
-            </form>
-          )}
-
-          {showInboxView && (
-            <div className="list-stack">
-              {pendingInvitations.length === 0 ? (
-                <p className="muted-text">{t('team.none')}</p>
-              ) : (
-                pendingInvitations.map((invitation) => (
-                  <div key={invitation._id} className="list-item">
-                    <div>
-                      <strong>{invitation.emailOrPhone}</strong>
-                      <p>{t(`team.${invitation.role}`)} · {invitation.parkingId?.name || t('setup.account')}</p>
-                    </div>
-                    <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>
-                      {t('team.accept')}
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </section>
-      )}
-
       {(showProfileSetup || showProfileSuccess) && (
         <div className="profile-setup-backdrop">
           <section className="profile-setup-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-setup-title">
@@ -908,6 +831,79 @@ function App() {
           </section>
         </div>
       )}
+    </div>
+  );
+
+  const renderCreateParkingPage = () => (
+    <div className="operations-workspace">
+      <header className="workspace-heading">
+        <div><p className="eyebrow">{t('setup.account')}</p><h2>{t('setup.heading')}</h2></div>
+      </header>
+
+      <form className="panel form-grid" onSubmit={handleParkingSubmit}>
+        <label className="field">
+          <span>{t('setup.name')}</span>
+          <input
+            type="text"
+            value={parkingForm.name}
+            onChange={(event) => setParkingForm((current) => ({ ...current, name: event.target.value }))}
+            placeholder={t('setup.namePlaceholder')}
+          />
+        </label>
+
+        <label className="field">
+          <span>{t('setup.address')}</span>
+          <input
+            type="text"
+            value={parkingForm.address}
+            onChange={(event) => setParkingForm((current) => ({ ...current, address: event.target.value }))}
+            placeholder={t('setup.addressPlaceholder')}
+          />
+        </label>
+
+        <label className="field">
+          <span>{t('setup.contact')}</span>
+          <input
+            type="text"
+            value={parkingForm.contactInfo}
+            onChange={(event) => setParkingForm((current) => ({ ...current, contactInfo: event.target.value }))}
+            placeholder={t('setup.contactPlaceholder')}
+          />
+        </label>
+
+        {errorMessage && <p className="error-text">{errorMessage}</p>}
+        <button type="submit" className="primary-button" disabled={isLoading}>
+          {isLoading ? t('setup.creating') : t('setup.create')}
+        </button>
+      </form>
+    </div>
+  );
+
+  const renderInboxPage = () => (
+    <div className="operations-workspace">
+      <header className="workspace-heading">
+        <div><p className="eyebrow">{t('team.role')}</p><h2>{t('team.pending')}</h2></div>
+      </header>
+
+      <section className="panel">
+        {pendingInvitations.length === 0 ? (
+          <p className="muted-text">{t('team.none')}</p>
+        ) : (
+          <div className="list-stack">
+            {pendingInvitations.map((invitation) => (
+              <div key={invitation._id} className="list-item">
+                <div>
+                  <strong>{invitation.emailOrPhone}</strong>
+                  <p>{t(`team.${invitation.role}`)} · {invitation.parkingId?.name || t('setup.account')}</p>
+                </div>
+                <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>
+                  {t('team.accept')}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 
@@ -975,7 +971,11 @@ function App() {
     return renderLoadingScreen();
   }
 
-  if ((!activeParking || !activeParking._id) && location.pathname.startsWith('/app') && location.pathname !== '/app/profile') {
+  if (
+    (!activeParking || !activeParking._id)
+    && location.pathname.startsWith('/app')
+    && !['/app/profile', '/app/inbox', '/app/create-parking'].includes(location.pathname)
+  ) {
     return <Navigate to="/app/profile?setup=1" replace />;
   }
 
@@ -990,7 +990,7 @@ function App() {
         <div className="app-shell">
           <a className="skip-link" href="#app-content">{t('nav.skipToContent')}</a>
           <aside className="app-sidebar">
-            <Link to="/app/customers" className="brand-lockup" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link to={hasParkingMembership ? '/app/customers' : '/app/inbox'} className="brand-lockup" onClick={() => setIsMobileMenuOpen(false)}>
               <img src="/favicon.svg" alt="" className="brand-logo" />
               <span className="brand-copy">
                 <strong>{t('app.name')}</strong>
@@ -1007,19 +1007,21 @@ function App() {
             >
               {isMobileMenuOpen ? <GoogleIcon name="close" size={22} /> : <GoogleIcon name="menu" size={22} />}
             </button>
-            <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
-              {desktopNavigation.map(({ to, key, Icon, end }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={end}
-                  className={({ isActive }) => `nav-link${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
-                >
-                  <GoogleIcon name={Icon} size={18} />
-                  <span>{t(key)}</span>
-                </NavLink>
-              ))}
-            </nav>
+            {hasParkingMembership && (
+              <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
+                {desktopNavigation.map(({ to, key, Icon, end }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    end={end}
+                    className={({ isActive }) => `nav-link${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
+                  >
+                    <GoogleIcon name={Icon} size={18} />
+                    <span>{t(key)}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            )}
             <NavLink
               to="/app/profile"
               aria-label={`${t('menu.profile')}: ${userDisplayName}`}
@@ -1048,17 +1050,28 @@ function App() {
                   <strong>{userDisplayName}</strong>
                   <span>{activeParking?.role ? t(`team.${activeParking.role}`) : t('profile.notAssigned')}</span>
                 </div>
-                <nav className="mobile-menu-links">
-                  <NavLink to="/app/settings" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                    <GoogleIcon name="settings" size={19} /><span>{t('menu.parkingSettings')}</span>
-                  </NavLink>
-                  <NavLink to="/app/team" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                    <GoogleIcon name="shield" size={19} /><span>{t('menu.parkingAccess')}</span>
-                  </NavLink>
-                  <NavLink to="/app/profile" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                    <GoogleIcon name="person" size={19} /><span>{t('menu.profile')}</span>
-                  </NavLink>
-                </nav>
+                {hasParkingMembership ? (
+                  <nav className="mobile-menu-links">
+                    <NavLink to="/app/settings" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                      <GoogleIcon name="settings" size={19} /><span>{t('menu.parkingSettings')}</span>
+                    </NavLink>
+                    <NavLink to="/app/team" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                      <GoogleIcon name="shield" size={19} /><span>{t('menu.parkingAccess')}</span>
+                    </NavLink>
+                    <NavLink to="/app/profile" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                      <GoogleIcon name="person" size={19} /><span>{t('menu.profile')}</span>
+                    </NavLink>
+                  </nav>
+                ) : (
+                  <nav className="mobile-menu-links">
+                    <NavLink to="/app/create-parking" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                      <GoogleIcon name="add_circle" size={19} /><span>{t('setup.create')}</span>
+                    </NavLink>
+                    <NavLink to="/app/inbox" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
+                      <GoogleIcon name="inbox" size={19} /><span>{t('team.inbox')}</span>
+                    </NavLink>
+                  </nav>
+                )}
                 <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
                 <button type="button" className="mobile-menu-logout" onClick={logout}>
                   <span>{t('app.logout')}</span>
@@ -1092,12 +1105,14 @@ function App() {
           </nav>
         </div>
       )}>
-        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route index element={<Navigate to={hasParkingMembership ? 'dashboard' : 'inbox'} replace />} />
         <Route path="dashboard" element={<DashboardWorkspace key={`${activeParking?._id || 'no-parking'}-dashboard`} parkingId={activeParking?._id || ''} />} />
         <Route path="reports" element={<ReportsWorkspace key={`${activeParking?._id || 'no-parking'}-reports`} parkingId={activeParking?._id || ''} />} />
         <Route path="more" element={<MoreWorkspace />} />
         <Route path="settings" element={renderParkingSettings()} />
         <Route path="profile" element={renderProfile()} />
+        <Route path="inbox" element={renderInboxPage()} />
+        <Route path="create-parking" element={renderCreateParkingPage()} />
         <Route path="customers" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-customers`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="customers" />} />
         <Route path="customers/:customerId" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-customer-detail`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="customers" />} />
         <Route path="vehicles" element={<CustomersWorkspace key={`${activeParking?._id || 'no-parking'}-vehicles`} parkingId={activeParking?._id || ''} parkingRole={activeParking?.role || 'manager'} initialScreen="vehicle-search" />} />
