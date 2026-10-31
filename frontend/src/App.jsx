@@ -113,9 +113,8 @@ function App() {
   );
   const userDisplayName = user?.fullName?.trim() || t('profile.notAssigned');
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
-  const shouldShowProfileCompletionModal = Boolean(user?.profileCompletionPending) && location.pathname === '/app/profile';
   const showProfileSetup = location.pathname === '/app/profile'
-    && (new URLSearchParams(location.search).get('setup') === '1' || shouldShowProfileCompletionModal);
+    && new URLSearchParams(location.search).get('setup') === '1';
   const hasParkingMembership = Array.isArray(parkings) && parkings.some((parking) => parking && parking._id);
   const sidebarNavigation = hasParkingMembership ? desktopNavigation : noParkingNavigation;
   const mobileNavigation = hasParkingMembership ? desktopNavigation : noParkingMobileNavigation;
@@ -442,7 +441,7 @@ function App() {
         if (nextParkings.length > 0) {
           navigate('/app/dashboard', { replace: true });
         } else {
-          navigate('/app/profile?setup=1', { replace: true });
+          navigate('/app/profile', { replace: true });
         }
       }
     } catch (error) {
