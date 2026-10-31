@@ -116,7 +116,8 @@ function App() {
   const shouldShowProfileCompletionModal = Boolean(user?.profileCompletionPending) && location.pathname === '/app/profile';
   const showProfileSetup = location.pathname === '/app/profile'
     && (new URLSearchParams(location.search).get('setup') === '1' || shouldShowProfileCompletionModal);
-  const hasParkingMembership = parkings.length > 0;
+  const hasParkingMembership = Array.isArray(parkings) && parkings.some((parking) => parking && parking._id);
+  const sidebarNavigation = hasParkingMembership ? desktopNavigation : noParkingNavigation;
   const mobileNavigation = hasParkingMembership ? desktopNavigation : noParkingMobileNavigation;
   const [showProfileSuccess, setShowProfileSuccess] = useState(false);
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
@@ -1027,34 +1028,22 @@ function App() {
             >
               {isMobileMenuOpen ? <GoogleIcon name="close" size={22} /> : <GoogleIcon name="menu" size={22} />}
             </button>
-            {hasParkingMembership ? (
-              <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
-                {desktopNavigation.map(({ to, key, Icon, end }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    end={end}
-                    className={({ isActive }) => `nav-link${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
-                  >
-                    <GoogleIcon name={Icon} size={18} />
-                    <span>{t(key)}</span>
-                  </NavLink>
-                ))}
-              </nav>
-            ) : (
-              <nav className="sidebar-nav desktop-sidebar-nav no-parking-sidebar-nav" aria-label={t('nav.main')}>
-                {noParkingNavigation.map(({ to, key, Icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    className={({ isActive }) => `nav-link no-parking-nav-link${isActive ? ' is-active' : ''}`}
-                  >
-                    <GoogleIcon name={Icon} size={18} />
-                    <span>{t(key)}</span>
-                  </NavLink>
-                ))}
-              </nav>
-            )}
+            <nav
+              className={`sidebar-nav desktop-sidebar-nav${!hasParkingMembership ? ' no-parking-sidebar-nav' : ''}`}
+              aria-label={t('nav.main')}
+            >
+              {sidebarNavigation.map(({ to, key, Icon, end }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className={({ isActive }) => `nav-link${!hasParkingMembership ? ' no-parking-nav-link' : ''}${isActive || (!hasParkingMembership ? false : key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
+                >
+                  <GoogleIcon name={Icon} size={18} />
+                  <span>{t(key)}</span>
+                </NavLink>
+              ))}
+            </nav>
             <NavLink
               to="/app/profile"
               aria-label={`${t('menu.profile')}: ${userDisplayName}`}
