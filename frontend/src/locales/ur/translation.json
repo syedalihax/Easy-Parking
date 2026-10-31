@@ -42,7 +42,8 @@
     "accountCreated": "اکاؤنٹ کامیابی سے بن گیا",
     "loggedIn": "لاگ اِن کامیاب",
     "passwordMismatch": "پاس ورڈ ایک جیسے نہیں ہیں",
-    "credentialsRequired": "پورا نام اور ای میل یا فون ضروری ہے"
+    "credentialsRequired": "پورا نام اور ای میل یا فون ضروری ہے",
+    "registrationSuccess": "آپ کامیابی سے رجسٹر ہو گئے ہیں۔ اب اپنے اکاؤنٹ میں لاگ ان کریں۔"
   },
   "setup": {
     "heading": "اپنی پارکنگ بنائیں",

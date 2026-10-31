@@ -109,6 +109,7 @@ function App() {
   const showProfileSetup = location.pathname === '/app/profile'
     && new URLSearchParams(location.search).get('setup') === '1';
   const [showProfileSuccess, setShowProfileSuccess] = useState(false);
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
   const isMoreSectionActive = [
     '/app/vehicles',
     '/app/dues',
@@ -158,8 +159,15 @@ function App() {
   useEffect(() => {
     if (location.pathname === '/login' || location.pathname === '/signup') {
       clearStaleAuthArtifacts();
+      setErrorMessage('');
     }
   }, [clearStaleAuthArtifacts, location.pathname]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const isRegistered = params.get('registered') === '1';
+    setShowRegistrationSuccess(isRegistered && location.pathname === '/login');
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     let robots = document.querySelector('meta[name="robots"]');
@@ -377,11 +385,10 @@ function App() {
           throw new Error(t('auth.passwordMismatch'));
         }
 
-        const response = await apiSignup(payload);
-        setIsSessionLoading(true);
-        setToken('session');
-        setShowProfileSuccess(true);
-        navigate('/app/profile?setup=1', { replace: true });
+        await apiSignup(payload);
+        setShowRegistrationSuccess(true);
+        setErrorMessage('');
+        navigate('/login?registered=1', { replace: true });
       } else {
         const response = await apiLogin({
           email: authForm.email || undefined,
@@ -389,6 +396,7 @@ function App() {
           password: authForm.password,
         });
 
+        setShowRegistrationSuccess(false);
         setIsSessionLoading(true);
         setToken('session');
         navigate('/app', { replace: true });
@@ -515,6 +523,23 @@ function App() {
             {t('auth.signup')}
           </Link>
         </div>
+
+        {mode === 'login' && showRegistrationSuccess && (
+          <div
+            className="toast-notification"
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'relative',
+              width: '100%',
+              marginBottom: '1rem',
+              justifyContent: 'flex-start',
+            }}
+          >
+            <GoogleIcon name="check_circle" size={18} />
+            <span>{t('auth.registrationSuccess')}</span>
+          </div>
+        )}
 
         <form className="form-grid" onSubmit={handleAuthSubmit}>
           {mode === 'signup' && (

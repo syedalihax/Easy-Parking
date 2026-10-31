@@ -42,7 +42,8 @@
     "accountCreated": "Account kamyabi se ban gaya",
     "loggedIn": "Login kamyab",
     "passwordMismatch": "Passwords aik jaisay nahin hain",
-    "credentialsRequired": "Poora naam aur email ya phone zaroori hai"
+    "credentialsRequired": "Poora naam aur email ya phone zaroori hai",
+    "registrationSuccess": "Aap kamyabi se register ho gaye hain. Ab apne account me login karein."
   },
   "setup": {
     "heading": "Apni parking banayein",

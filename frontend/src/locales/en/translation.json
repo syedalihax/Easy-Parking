@@ -42,7 +42,8 @@
     "accountCreated": "Account created successfully",
     "loggedIn": "Logged in successfully",
     "passwordMismatch": "Passwords do not match",
-    "credentialsRequired": "Full name and email or phone are required"
+    "credentialsRequired": "Full name and email or phone are required",
+    "registrationSuccess": "You are registered successfully. Now log in to your account."
   },
   "setup": {
     "heading": "Create your parking",

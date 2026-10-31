@@ -42,7 +42,8 @@
     "accountCreated": "حساب کاربری با موفقیت ساخته شد",
     "loggedIn": "با موفقیت وارد شدید",
     "passwordMismatch": "گذرواژه‌ها یکسان نیستند",
-    "credentialsRequired": "نام کامل و ایمیل یا تلفن الزامی است"
+    "credentialsRequired": "نام کامل و ایمیل یا تلفن الزامی است",
+    "registrationSuccess": "ثبت‌نام شما با موفقیت انجام شد. اکنون وارد حساب خود شوید."
   },
   "setup": {
     "heading": "پارکینگ خود را بسازید",
