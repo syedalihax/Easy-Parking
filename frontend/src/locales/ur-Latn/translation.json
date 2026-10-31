@@ -574,8 +574,8 @@
     "couldNotLoad": "Maloomat load nahin ho sakin. Dobara koshish karein.",
     "retry": "Dobara koshish karein",
     "couldNotSave": "Tabdeeliyan save nahin ho sakin. Dobara koshish karein.",
-    "offline": "Aap offline hain — jari rakhne ke liye internet se dobara rabta karein.",
+    "offline": "Aap offline hain — internet se dobara connect hoke dobara koshish karein.",
     "tooManyRequests": "Koshishen bohat zyada ho gayi hain. Chand minute intezar karein, phir dobara koshish karein.",
-    "apiUnavailable": "Server se rabta nahin ho saka. Phone aur computer ko aik hi Wi-Fi se jorein, phir Vite mein dikhaya gaya computer ka Network address kholein."
+    "apiUnavailable": "Service abhi temporarily unavailable hai. Please thori der baad dobara koshish karein."
   }
 }

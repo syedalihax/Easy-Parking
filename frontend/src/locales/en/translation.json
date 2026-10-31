@@ -574,8 +574,8 @@
     "couldNotLoad": "Could not load data. Please try again.",
     "retry": "Try again",
     "couldNotSave": "Could not save changes. Please try again.",
-    "offline": "You're offline — please reconnect to continue.",
+    "offline": "You're offline. Please reconnect to the internet and try again.",
     "tooManyRequests": "Too many attempts. Please wait a few minutes and try again.",
-    "apiUnavailable": "Could not reach the server. Keep your phone and computer on the same Wi-Fi, then open the computer's Network address shown by Vite."
+    "apiUnavailable": "The service is temporarily unavailable. Please try again in a moment."
   }
 }
