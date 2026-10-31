@@ -113,8 +113,9 @@ function App() {
   );
   const userDisplayName = user?.fullName?.trim() || t('profile.notAssigned');
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
+  const shouldShowProfileCompletionModal = Boolean(user?.profileCompletionPending) && location.pathname === '/app/profile';
   const showProfileSetup = location.pathname === '/app/profile'
-    && new URLSearchParams(location.search).get('setup') === '1';
+    && (new URLSearchParams(location.search).get('setup') === '1' || shouldShowProfileCompletionModal);
   const hasParkingMembership = parkings.length > 0;
   const mobileNavigation = hasParkingMembership ? desktopNavigation : noParkingMobileNavigation;
   const [showProfileSuccess, setShowProfileSuccess] = useState(false);
@@ -400,7 +401,7 @@ function App() {
         preferredLanguage: currentLanguage,
       };
 
-      if (location.pathname === '/signup') {
+      if (location.pathname === '/signup' || location.pathname === '/register') {
         if (!payload.fullName || (!payload.email && !payload.phone)) {
           throw new Error(t('auth.credentialsRequired'));
         }
@@ -409,10 +410,14 @@ function App() {
           throw new Error(t('auth.passwordMismatch'));
         }
 
-        await apiSignup(payload);
-        setShowRegistrationSuccess(true);
+        const response = await apiSignup(payload);
+        setUser(response.user);
+        setProfileForm(profileFormFromUser(response.user));
+        setShowRegistrationSuccess(false);
+        setShowProfileSuccess(true);
+        setToken('session');
         setErrorMessage('');
-        navigate('/login?registered=1', { replace: true });
+        navigate('/app/profile?setup=1', { replace: true });
       } else {
         const response = await apiLogin({
           email: authForm.email || undefined,
@@ -539,7 +544,11 @@ function App() {
         email: profileForm.email,
         phone: profileForm.phone,
       });
-      setUser(response.user);
+      setUser((currentUser) => ({
+        ...currentUser,
+        ...response.user,
+        profileCompletionPending: false,
+      }));
       setProfileForm(profileFormFromUser(response.user));
       setShowProfileSuccess(false);
       setStatusMessage(t('profile.saved'));
@@ -962,6 +971,7 @@ function App() {
           <Route path="/terms" element={<LandingLegalPage page="terms" />} />
           <Route path="/login" element={renderAuthForm('login')} />
           <Route path="/signup" element={renderAuthForm('signup')} />
+          <Route path="/register" element={renderAuthForm('signup')} />
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -971,6 +981,13 @@ function App() {
 
   if (isSessionLoading) {
     return renderLoadingScreen();
+  }
+
+  if (location.pathname === '/' && !isSessionLoading) {
+    if (hasParkingMembership) {
+      return <Navigate to="/app/dashboard" replace />;
+    }
+    return <Navigate to="/app/profile" replace />;
   }
 
   if (
@@ -988,6 +1005,7 @@ function App() {
         <Route path="/privacy-policy" element={<LandingLegalPage page="privacy" />} />
         <Route path="/terms" element={<LandingLegalPage page="terms" />} />
         <Route path="/404" element={<NotFoundPage />} />
+        <Route path="/register" element={renderAuthForm('signup')} />
         <Route path="/app" element={(
         <div className="app-shell">
           <a className="skip-link" href="#app-content">{t('nav.skipToContent')}</a>
@@ -1147,6 +1165,8 @@ function App() {
 function NotFoundPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const requestedPath = location.pathname || '/';
 
   useEffect(() => {
     document.title = `404 — ${t('app.name')}`;
@@ -1156,7 +1176,7 @@ function NotFoundPage() {
     <main className="auth-shell">
       <div className="auth-card" style={{ textAlign: 'center' }}>
         <p className="eyebrow">404</p>
-        <h1>Page not found</h1>
+        <h1>Page Not Found: {requestedPath}</h1>
         <p className="auth-intro">The page you are looking for does not exist or has moved.</p>
         <div className="form-grid" style={{ marginTop: '1rem' }}>
           <button type="button" className="primary-button" onClick={() => navigate(-1)}>

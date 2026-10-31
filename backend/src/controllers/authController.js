@@ -8,6 +8,7 @@ const sanitizeUser = (user) => ({
   email: user.email || null,
   phone: user.phone || null,
   preferredLanguage: user.preferredLanguage,
+  profileCompletionPending: Boolean(user.profileCompletionPending),
   status: user.status,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
@@ -106,6 +107,7 @@ const signup = async (req, res) => {
     const userDetails = {
       fullName: fullName.trim(),
       passwordHash,
+      profileCompletionPending: true,
     };
 
     if (preferredLanguage) userDetails.preferredLanguage = preferredLanguage;
@@ -259,6 +261,9 @@ const updateMe = async (req, res) => {
     if (!user.email && !user.phone) {
       return res.status(400).json({ message: 'At least one email address or phone number is required' });
     }
+
+    const hasRequiredProfileDetails = user.fullName && (user.email || user.phone);
+    user.profileCompletionPending = !hasRequiredProfileDetails;
 
     await user.save();
     return res.json({ user: sanitizeUser(user) });

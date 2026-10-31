@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema(
       enum: ['en', 'fa-IR', 'ur', 'ur-Latn'],
       default: 'en',
     },
+    profileCompletionPending: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: ['active', 'disabled'],
