@@ -199,9 +199,12 @@
     @apply text-sm;
   }
 
-  .field input,
-  .field select {
+  .field input {
     @apply min-h-11 w-full rounded-lg border border-border bg-surface px-4 py-3 text-ink;
+  }
+
+  .field select {
+    @apply min-h-11 w-full rounded-lg border border-border bg-surface px-4 py-3 pr-10 text-ink;
     appearance: none;
     -webkit-appearance: none;
     background-image: linear-gradient(45deg, transparent 50%, #0a7658 50%), linear-gradient(135deg, #0a7658 50%, transparent 50%);
@@ -209,7 +212,6 @@
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
     background-color: #fff;
-    padding-right: 38px;
   }
 
   .field input:focus,
