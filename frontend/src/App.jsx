@@ -75,10 +75,12 @@ const desktopNavigation = [
   { to: '/app/more', key: 'nav.more', Icon: 'more_horiz' },
 ];
 
-const noParkingMobileNavigation = [
+const noParkingNavigation = [
   { to: '/app/create-parking', key: 'setup.create', Icon: 'add_circle' },
   { to: '/app/inbox', key: 'team.inbox', Icon: 'inbox' },
 ];
+
+const noParkingMobileNavigation = noParkingNavigation;
 
 function App() {
   const { t } = useTranslation();
@@ -1007,7 +1009,7 @@ function App() {
             >
               {isMobileMenuOpen ? <GoogleIcon name="close" size={22} /> : <GoogleIcon name="menu" size={22} />}
             </button>
-            {hasParkingMembership && (
+            {hasParkingMembership ? (
               <nav className="sidebar-nav desktop-sidebar-nav" aria-label={t('nav.main')}>
                 {desktopNavigation.map(({ to, key, Icon, end }) => (
                   <NavLink
@@ -1015,6 +1017,19 @@ function App() {
                     to={to}
                     end={end}
                     className={({ isActive }) => `nav-link${isActive || (key === 'nav.more' && isMoreSectionActive) ? ' is-active' : ''}`}
+                  >
+                    <GoogleIcon name={Icon} size={18} />
+                    <span>{t(key)}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            ) : (
+              <nav className="sidebar-nav desktop-sidebar-nav no-parking-sidebar-nav" aria-label={t('nav.main')}>
+                {noParkingNavigation.map(({ to, key, Icon }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) => `nav-link no-parking-nav-link${isActive ? ' is-active' : ''}`}
                   >
                     <GoogleIcon name={Icon} size={18} />
                     <span>{t(key)}</span>
@@ -1089,7 +1104,7 @@ function App() {
             <Outlet />
             {errorMessage && <p className="error-text">{errorMessage}</p>}
           </main>
-          <nav className="mobile-tab-bar" aria-label={t('nav.main')}>
+          <nav className="mobile-tab-bar" data-mode={hasParkingMembership ? 'parking' : 'no-parking'} aria-label={t('nav.main')}>
             {mobileNavigation.map(({ to, key, Icon, end }) => (
               <NavLink
                 key={key}

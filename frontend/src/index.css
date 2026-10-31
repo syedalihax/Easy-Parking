@@ -448,6 +448,14 @@
     @apply hidden lg:flex;
   }
 
+  .no-parking-sidebar-nav {
+    @apply mt-2 flex-col gap-2;
+  }
+
+  .no-parking-nav-link {
+    @apply justify-center text-center;
+  }
+
   .nav-link {
     @apply flex min-h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-sm font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
   }
@@ -724,6 +732,10 @@
   .mobile-tab-bar {
     @apply fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface px-2 pt-2 shadow-md lg:hidden;
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .mobile-tab-bar[data-mode='no-parking'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mobile-tab {
