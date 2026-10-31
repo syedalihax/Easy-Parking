@@ -43,10 +43,13 @@ const createAuthTokens = (user) => ({
   refreshToken: createRefreshToken(user),
 });
 
+const cookieSameSite = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+const cookieSecure = process.env.NODE_ENV === 'production';
+
 const cookieOptions = (maxAgeMs) => ({
   httpOnly: true,
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  sameSite: cookieSameSite,
+  secure: cookieSecure,
   path: '/',
   maxAge: maxAgeMs,
 });
@@ -57,8 +60,8 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie('access_token', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
-  res.clearCookie('refresh_token', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
+  res.clearCookie('access_token', { httpOnly: true, sameSite: cookieSameSite, secure: cookieSecure, path: '/' });
+  res.clearCookie('refresh_token', { httpOnly: true, sameSite: cookieSameSite, secure: cookieSecure, path: '/' });
 };
 
 const signup = async (req, res) => {
