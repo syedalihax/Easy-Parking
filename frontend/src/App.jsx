@@ -106,6 +106,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSessionLoading, setIsSessionLoading] = useState(Boolean(token));
+  const [isAuthHydrated, setIsAuthHydrated] = useState(false);
 
   const activeParking = useMemo(
     () => parkings.find((parking) => parking._id === selectedParkingId) || null,
@@ -296,6 +297,7 @@ function App() {
           setUser(null);
           setToken('');
           setIsSessionLoading(false);
+          setIsAuthHydrated(true);
         }
         return;
       }
@@ -319,6 +321,7 @@ function App() {
       } finally {
         if (isCurrent) {
           setIsSessionLoading(false);
+          setIsAuthHydrated(true);
         }
       }
     };
@@ -957,6 +960,10 @@ function App() {
       </div>
     </main>
   );
+
+  if (!isAuthHydrated) {
+    return renderLoadingScreen();
+  }
 
   if (!token || !user) {
     if (token && isSessionLoading) {
