@@ -363,7 +363,7 @@ function LandingPage({ onChangeLanguage }) {
         </div>
       </section>
 
-      {isMobileView && !isStandaloneApp && (
+      {(isMobileView && !isStandaloneApp) || installPrompt ? (
         <section className="mobile-install-section">
           <div className="mobile-install-card">
             <div className="mobile-install-copy">
@@ -386,7 +386,7 @@ function LandingPage({ onChangeLanguage }) {
             </button>
           </div>
         </section>
-      )}
+      ) : null}
 
       <section className="landing-cta">
         <div className="landing-cta-copy"><p className="landing-eyebrow">{t('app.name')}</p><h2>{t('landing.cta.title')}</h2><p>{t('landing.cta.description')}</p></div>

@@ -133,10 +133,19 @@ html {
 
 .landing-nav-actions .field select {
   min-height: 40px;
-  padding: 7px 28px 7px 9px;
-  border-color: transparent;
-  background-color: transparent;
+  padding: 7px 30px 7px 10px;
+  border: 1px solid rgb(24 53 45 / 12%);
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.72);
+  background-image: linear-gradient(45deg, transparent 50%, #0c715d 50%), linear-gradient(135deg, #0c715d 50%, transparent 50%);
+  background-position: calc(100% - 15px) calc(50% - 2px), calc(100% - 10px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  color: #18352d;
   font-size: 0.83rem;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: 0 1px 2px rgb(24 53 45 / 6%);
 }
 
 .landing-nav-cta,
@@ -241,11 +250,17 @@ html {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 820px) {
   .pwa-install-banner {
     display: block;
   }
 
+  .mobile-install-section {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
   .mobile-install-section {
     display: block;
   }
