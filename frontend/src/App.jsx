@@ -95,6 +95,8 @@ function App() {
   const [inviteForm, setInviteForm] = useState(defaultInviteForm);
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showParkingCreator, setShowParkingCreator] = useState(false);
+  const [showInboxView, setShowInboxView] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +110,7 @@ function App() {
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
   const showProfileSetup = location.pathname === '/app/profile'
     && new URLSearchParams(location.search).get('setup') === '1';
+  const hasParkingMembership = parkings.length > 0;
   const [showProfileSuccess, setShowProfileSuccess] = useState(false);
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
   const isMoreSectionActive = [
@@ -396,10 +399,24 @@ function App() {
           password: authForm.password,
         });
 
+        const parkingResponse = await apiGetMyParkings();
+        const nextParkings = parkingResponse.parkings || [];
+        setParkings(nextParkings);
+        setSelectedParkingId((currentId) => (
+          nextParkings.some((parking) => parking._id === currentId)
+            ? currentId
+            : nextParkings[0]?._id || ''
+        ));
+        setUser(response.user);
+        setProfileForm(profileFormFromUser(response.user));
         setShowRegistrationSuccess(false);
         setIsSessionLoading(true);
         setToken('session');
-        navigate('/app', { replace: true });
+        if (nextParkings.length > 0) {
+          navigate('/app/dashboard', { replace: true });
+        } else {
+          navigate('/app/profile?setup=1', { replace: true });
+        }
       }
     } catch (error) {
       setErrorMessage(error.message || t('errors.couldNotLoad'));
@@ -462,9 +479,19 @@ function App() {
 
     try {
       await apiAcceptInvitation(invitationId);
-      setStatusMessage(t('team.invitationAccepted'));
-      await loadParkings();
+      const nextParkingsResponse = await apiGetMyParkings();
+      const nextParkings = nextParkingsResponse.parkings || [];
+      setParkings(nextParkings);
+      setSelectedParkingId((currentId) => (
+        nextParkings.some((parking) => parking._id === currentId)
+          ? currentId
+          : nextParkings[0]?._id || ''
+      ));
       await loadPendingInvitations();
+      setStatusMessage(t('team.invitationAccepted'));
+      if (nextParkings.length > 0) {
+        navigate('/app/dashboard', { replace: true });
+      }
     } catch (error) {
       setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
@@ -496,6 +523,10 @@ function App() {
       setShowProfileSuccess(false);
       setStatusMessage(t('profile.saved'));
       if (showProfileSetup) navigate('/app/profile', { replace: true });
+      if (!parkings.length) {
+        setShowParkingCreator(false);
+        setShowInboxView(false);
+      }
     } catch (error) {
       setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
@@ -746,13 +777,95 @@ function App() {
           {isLoading ? t('app.saving') : t('app.save')}
         </button>
       </form>
+
+      {!hasParkingMembership && (
+        <section className="panel profile-onboarding-panel">
+          <div className="panel-header">
+            <h3>{t('setup.account')}</h3>
+          </div>
+          <div className="profile-onboarding-actions">
+            <button type="button" className="primary-button" onClick={() => {
+              setShowParkingCreator(true);
+              setShowInboxView(false);
+            }}>
+              {t('setup.create')}
+            </button>
+            <button type="button" className="secondary-button" onClick={() => {
+              setShowInboxView(true);
+              setShowParkingCreator(false);
+              if (pendingInvitations.length === 0) {
+                void loadPendingInvitations();
+              }
+            }}>
+              {t('team.inbox')}
+            </button>
+          </div>
+
+          {showParkingCreator && (
+            <form className="form-grid" onSubmit={handleParkingSubmit}>
+              <label className="field">
+                <span>{t('setup.name')}</span>
+                <input
+                  type="text"
+                  value={parkingForm.name}
+                  onChange={(event) => setParkingForm((current) => ({ ...current, name: event.target.value }))}
+                  placeholder={t('setup.namePlaceholder')}
+                />
+              </label>
+              <label className="field">
+                <span>{t('setup.address')}</span>
+                <input
+                  type="text"
+                  value={parkingForm.address}
+                  onChange={(event) => setParkingForm((current) => ({ ...current, address: event.target.value }))}
+                  placeholder={t('setup.addressPlaceholder')}
+                />
+              </label>
+              <label className="field">
+                <span>{t('setup.contact')}</span>
+                <input
+                  type="text"
+                  value={parkingForm.contactInfo}
+                  onChange={(event) => setParkingForm((current) => ({ ...current, contactInfo: event.target.value }))}
+                  placeholder={t('setup.contactPlaceholder')}
+                />
+              </label>
+              {errorMessage && <p className="error-text">{errorMessage}</p>}
+              <button type="submit" className="primary-button" disabled={isLoading}>
+                {isLoading ? t('setup.creating') : t('setup.create')}
+              </button>
+            </form>
+          )}
+
+          {showInboxView && (
+            <div className="list-stack">
+              {pendingInvitations.length === 0 ? (
+                <p className="muted-text">{t('team.none')}</p>
+              ) : (
+                pendingInvitations.map((invitation) => (
+                  <div key={invitation._id} className="list-item">
+                    <div>
+                      <strong>{invitation.emailOrPhone}</strong>
+                      <p>{t(`team.${invitation.role}`)} · {invitation.parkingId?.name || t('setup.account')}</p>
+                    </div>
+                    <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>
+                      {t('team.accept')}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
       {(showProfileSetup || showProfileSuccess) && (
         <div className="profile-setup-backdrop">
           <section className="profile-setup-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-setup-title">
             <div className="profile-setup-mark"><GoogleIcon name="person" size={22} /></div>
             <p className="eyebrow">{t('profile.eyebrow')}</p>
-            <h2 id="profile-setup-title">{showProfileSuccess ? 'Registration successful' : t('profile.completeTitle')}</h2>
-            <p>{showProfileSuccess ? 'You are registered successfully. Now complete your profile.' : t('profile.completeMessage')}</p>
+            <h2 id="profile-setup-title">{showProfileSuccess ? t('profile.completeTitle') : t('profile.completeTitle')}</h2>
+            <p>{showProfileSuccess ? t('profile.completeMessage') : t('profile.completeMessage')}</p>
             <form className="form-grid" onSubmit={handleProfileSubmit}>
               <label className="field">
                 <span>{t('profile.name')}</span>
@@ -768,13 +881,13 @@ function App() {
               </label>
               {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
               <button type="submit" className="primary-button" disabled={isLoading}>
-                {isLoading ? t('app.saving') : (showProfileSuccess ? 'Save & continue' : t('profile.completeButton'))}
+                {isLoading ? t('app.saving') : t('profile.completeButton')}
               </button>
               <button type="button" className="secondary-button profile-later" onClick={() => {
                 setShowProfileSuccess(false);
                 navigate('/app/profile', { replace: true });
               }}>
-                {showProfileSuccess ? 'Skip for now' : t('profile.doLater')}
+                {t('profile.doLater')}
               </button>
             </form>
           </section>
@@ -848,7 +961,7 @@ function App() {
   }
 
   if ((!activeParking || !activeParking._id) && location.pathname.startsWith('/app') && location.pathname !== '/app/profile') {
-    return renderParkingSetup();
+    return <Navigate to="/app/profile?setup=1" replace />;
   }
 
   return (
