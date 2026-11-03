@@ -1,55 +1,55 @@
 const stats = [
-  { value: "4.2k+", label: "Drivers onboarded" },
-  { value: "96%", label: "On-time entries" },
-  { value: "12 min", label: "Average billing cycle" },
-  { value: "24/7", label: "Monitoring and alerts" },
+  { value: "4.2k+", label: "active members" },
+  { value: "96%", label: "entry accuracy" },
+  { value: "12 min", label: "billing cycle" },
+  { value: "24/7", label: "site visibility" },
 ];
 
 const features = [
   {
-    title: "Smart member management",
+    title: "Member access control",
     description:
-      "Track vehicles, residents, and guest access in one place with automatic status updates and role-based permissions.",
+      "Keep residents, vehicles, and site access records in one structured view without chasing updates in separate tools.",
   },
   {
-    title: "Live parking control",
+    title: "Live lot intelligence",
     description:
-      "Monitor occupancy, spot availability, and peak demand with insights your team can act on right away.",
+      "Monitor occupancy patterns, turnaround times, and peak periods with reliable daily operational data.",
   },
   {
-    title: "Automated billing",
+    title: "Recurring dues automation",
     description:
-      "Generate due notices, collect payments, and reconcile balances without spreadsheet chasing or delayed follow-ups.",
+      "Generate payment schedules, flag pending balances, and keep collections moving without spreadsheet overhead.",
   },
   {
     title: "Cashflow visibility",
     description:
-      "See revenue trends, unpaid dues, and monthly collections at a glance with a clean dashboard built for operations.",
+      "Track revenue, received payments, and overdue accounts in a format built for decisions, not just reports.",
   },
   {
-    title: "Daily parking operations",
+    title: "Daily operational records",
     description:
-      "Capture entry and exit activity, update records in real time, and keep staff aligned on daily park availability.",
+      "Capture entries, exits, adjustments, and exceptions so staff can act quickly and keep site flow consistent.",
   },
   {
-    title: "Trust-first reporting",
+    title: "Owner-ready reporting",
     description:
-      "Export clear reports for owners, accountants, and management teams with transparent audit trails and status history.",
+      "Present clear summaries to managers and stakeholders with audit-friendly records and cleaner reporting cycles.",
   },
 ];
 
 const steps = [
   {
-    title: "Create your parking profile",
-    description: "Set up your site, owners, vehicles, and policy settings in a few guided steps.",
+    title: "Configure the site",
+    description: "Add your parking profile, member records, rules, and vehicle details in a guided setup flow.",
   },
   {
-    title: "Automate member and payment workflows",
-    description: "Sync billing rules, membership plans, and daily records so staff spend less time on admin.",
+    title: "Automate the routine",
+    description: "Sync daily activity, dues, and access status so the team spends less time on admin and more on service.",
   },
   {
-    title: "Track performance and grow",
-    description: "Monitor occupancy, cashflow, and compliance signals to scale each lot with confidence.",
+    title: "Operate with clarity",
+    description: "Review occupancy, collections, and reporting in one place to guide smarter decisions every day.",
   },
 ];
 
@@ -57,22 +57,22 @@ const faqs = [
   {
     question: "Who is EasyParking built for?",
     answer:
-      "EasyParking is designed for parking operators, residential communities, building managers, and commercial lots that need a cleaner way to run daily operations and collections.",
+      "It is designed for residential parking operators, property managers, and site teams who need a cleaner system for daily operations and billing.",
   },
   {
-    question: "Can I manage multiple parking locations?",
+    question: "Can multiple parking sites be managed together?",
     answer:
-      "Yes. The platform is structured to support a central operations view across multiple sites, with role-based access and consolidated reporting.",
+      "Yes. The platform is structured to support a central operating view across multiple sites with consistent reporting and access control.",
   },
   {
-    question: "Is billing fully automated?",
+    question: "Does it handle recurring dues automatically?",
     answer:
-      "The platform supports recurring dues, payment allocation, and status monitoring so your team can reduce missed collections and monthly reconciliation work.",
+      "Yes. Due generation and payment tracking are built to reduce manual follow-up and improve collection visibility.",
   },
   {
-    question: "Does it work on mobile devices?",
+    question: "Is it practical for day-to-day staff use?",
     answer:
-      "Yes. The system is optimized for on-the-go staff and managers with responsive workflows for daily checks, member updates, and operations reporting.",
+      "Yes. The interface is responsive, straightforward, and built for quick checks on the move or at the desk.",
   },
 ];
 
@@ -88,18 +88,14 @@ export default function Home() {
 
           <nav className="nav-links" aria-label="Main navigation">
             <a href="#features">Features</a>
-            <a href="#ops">Operations</a>
+            <a href="#operations">Operations</a>
             <a href="#benefits">Benefits</a>
             <a href="#faq">FAQ</a>
           </nav>
 
           <div className="nav-actions">
-            <a href="#contact" className="text-link">
-              Book a demo
-            </a>
-            <a href="#contact" className="primary-button small-button">
-              Get started
-            </a>
+            <a href="#contact" className="text-link">Book demo</a>
+            <a href="#contact" className="primary-button small-button">Get started</a>
           </div>
         </div>
       </header>
@@ -107,68 +103,60 @@ export default function Home() {
       <section className="hero-section" id="top">
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">
-              <span className="eyebrow-dot" />
-              Smarter parking operations for growing lots
-            </p>
-            <h1>Run your parking business with less friction and more clarity.</h1>
+            <p className="eyebrow">Parking operations, simplified</p>
+            <h1>Control the daily flow of your parking business.</h1>
             <p className="hero-description">
-              EasyParking brings member management, daily parking tracking, automated billing,
-              and cashflow visibility into a single workflow built for operations teams.
+              EasyParking brings member records, lot activity, billing, and reporting into one disciplined workflow designed for busy operators.
             </p>
 
             <div className="hero-actions">
-              <a href="#contact" className="primary-button">
-                Book a free demo
-              </a>
-              <a href="#features" className="secondary-button">
-                Explore platform
-              </a>
+              <a href="#contact" className="primary-button">Book a free demo</a>
+              <a href="#features" className="secondary-button">See the platform</a>
             </div>
 
             <div className="trust-row">
-              <span className="shield-badge">✓</span>
-              Trusted by 4,200+ drivers and site operators worldwide
+              <span className="trust-mark">✓</span>
+              Trusted by operators managing more than 4,200 active accounts
             </div>
           </div>
 
           <div className="hero-visual" aria-label="EasyParking dashboard preview">
             <div className="dashboard-shell">
-              <div className="dashboard-topbar">
+              <div className="dashboard-head">
                 <div className="window-dots">
                   <span />
                   <span />
                   <span />
                 </div>
-                <span>Operations dashboard</span>
+                <span>Operations overview</span>
               </div>
 
               <div className="dashboard-body">
-                <div className="metric-row">
-                  <div className="metric-card highlight">
-                    <span>Monthly revenue</span>
+                <div className="dashboard-main">
+                  <div className="summary-box accent-box">
+                    <span className="label">Monthly revenue</span>
                     <strong>PKR 1.42M</strong>
                     <small>+18.4% vs last month</small>
                   </div>
-                  <div className="metric-card">
-                    <span>Occupied slots</span>
+                  <div className="summary-box">
+                    <span className="label">Lot occupancy</span>
                     <strong>76%</strong>
-                    <small>+42 today</small>
+                    <small>42 vehicles added today</small>
                   </div>
                 </div>
 
-                <div className="mini-grid">
+                <div className="dashboard-subgrid">
                   <div className="mini-panel">
-                    <label>Active members</label>
+                    <span className="label">Active members</span>
                     <strong>1,284</strong>
-                    <div className="sparkline">
+                    <div className="chart-bars" aria-hidden="true">
                       <span />
                     </div>
                   </div>
-                  <div className="mini-panel accent">
-                    <label>Due collections</label>
+                  <div className="mini-panel soft-panel">
+                    <span className="label">Due collections</span>
                     <strong>PKR 84.6k</strong>
-                    <small>12 pending</small>
+                    <small>12 pending approvals</small>
                   </div>
                 </div>
 
@@ -189,7 +177,7 @@ export default function Home() {
                     <li>
                       <div>
                         <strong>Monthly dues</strong>
-                        <small>3 payments received</small>
+                        <small>3 collections received</small>
                       </div>
                       <time>08:30</time>
                     </li>
@@ -208,7 +196,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="stats-band" aria-label="Platform highlight stats">
+      <section className="stats-band" aria-label="Platform metrics">
         {stats.map((stat) => (
           <div className="stat-item" key={stat.label}>
             <strong>{stat.value}</strong>
@@ -217,43 +205,32 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="comparison-section section-block" id="ops">
+      <section className="comparison-section section-block" id="operations">
         <div className="section-heading">
-          <p className="eyebrow dark-eyebrow">
-            <span className="eyebrow-dot" />
-            Why teams switch
-          </p>
-          <h2>From scattered admin to a system that stays in sync.</h2>
+          <p className="eyebrow">Why teams switch</p>
+          <h2>From scattered admin work to a single operating rhythm.</h2>
         </div>
 
         <div className="comparison-grid">
-          <article className="comparison-card before-card">
-            <div className="card-label">
-              <span className="mini-icon red">✕</span>
-              Traditional workflow
-            </div>
+          <article className="comparison-card">
+            <div className="card-label"><span className="mini-icon muted-icon">—</span> Traditional workflow</div>
             <ul>
-              <li>Manual spreadsheets for vehicle and billing records</li>
-              <li>Delayed payment reminders and unclear due dates</li>
-              <li>Daily parking updates scattered across calls and notes</li>
-              <li>Slow reporting for owners and finance teams</li>
+              <li>Members, vehicles, and dues tracked across spreadsheets</li>
+              <li>Payments follow-up happens late and inconsistently</li>
+              <li>Daily updates get lost between calls, notes, and chats</li>
+              <li>Reporting pulls teams away from real decision-making</li>
             </ul>
           </article>
 
-          <div className="comparison-arrow" aria-hidden="true">
-            →
-          </div>
+          <div className="comparison-arrow" aria-hidden="true">→</div>
 
           <article className="comparison-card after-card">
-            <div className="card-label">
-              <span className="mini-icon green">✓</span>
-              EasyParking workflow
-            </div>
+            <div className="card-label"><span className="mini-icon success-icon">✓</span> EasyParking workflow</div>
             <ul>
-              <li>Unified member, vehicle, and booking records</li>
-              <li>Automated billing, due generation, and status tracking</li>
-              <li>Live monitoring for occupancy, payments, and operations</li>
-              <li>Clear insights that reduce churn and improve cashflow</li>
+              <li>Member and vehicle records remain in a single structured system</li>
+              <li>Billing and payment status update without manual chasing</li>
+              <li>Occupancy and lot activity are visible in real time</li>
+              <li>Owners and managers work from cleaner, faster reports</li>
             </ul>
           </article>
         </div>
@@ -262,14 +239,11 @@ export default function Home() {
       <section className="features-section section-block" id="features">
         <div className="section-heading split-heading">
           <div>
-            <p className="eyebrow dark-eyebrow">
-              <span className="eyebrow-dot" />
-              Platform features
-            </p>
-            <h2>Everything your team needs to operate with confidence.</h2>
+            <p className="eyebrow">Platform features</p>
+            <h2>Everything your team needs to stay in control.</h2>
           </div>
           <p>
-            Designed for parking operators who want speed, transparency, and better service without adding complexity.
+            Built for operators who want less admin, more visibility, and a smoother experience for both staff and drivers.
           </p>
         </div>
 
@@ -278,7 +252,7 @@ export default function Home() {
             <article className="feature-card" key={feature.title}>
               <div className="feature-head">
                 <span className="feature-index">0{index + 1}</span>
-                <span className="feature-icon">✦</span>
+                <span className="feature-bullet" aria-hidden="true" />
               </div>
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
@@ -289,11 +263,8 @@ export default function Home() {
 
       <section className="steps-section section-block" id="benefits">
         <div className="section-heading centered-heading">
-          <p className="eyebrow dark-eyebrow">
-            <span className="eyebrow-dot" />
-            How it works
-          </p>
-          <h2>Launch smarter operations in three simple steps.</h2>
+          <p className="eyebrow">How it works</p>
+          <h2>Three steps to a calmer parking operation.</h2>
         </div>
 
         <div className="steps-grid">
@@ -309,28 +280,22 @@ export default function Home() {
 
       <section className="benefits-panel section-block" aria-labelledby="benefits-heading">
         <div className="benefits-copy">
-          <p className="eyebrow light-eyebrow">
-            <span className="eyebrow-dot" />
-            Built for real operations
-          </p>
-          <h2 id="benefits-heading">A calmer workflow for owners, managers, and parking staff.</h2>
+          <p className="eyebrow eyebrow-light">Built for real operations</p>
+          <h2 id="benefits-heading">A stronger routine for staff, owners, and drivers.</h2>
         </div>
 
         <ul className="benefits-list">
-          <li>Reduce admin time with automated due generation and payment tasks.</li>
-          <li>Improve occupancy planning with real-time usage and demand visibility.</li>
-          <li>Keep all stakeholders aligned with transparent records and audit-friendly logs.</li>
-          <li>Create a more premium driver experience through cleaner service and faster resolution.</li>
+          <li>Reduce repetitive admin work with structured dues tracking and payment visibility.</li>
+          <li>Improve occupancy planning with real-time daily activity and usage patterns.</li>
+          <li>Keep owners and managers aligned through cleaner reporting and better records.</li>
+          <li>Create a more premium driver experience with smoother service and fewer delays.</li>
         </ul>
       </section>
 
       <section className="faq-section section-block" id="faq">
         <div className="faq-intro">
-          <p className="eyebrow dark-eyebrow">
-            <span className="eyebrow-dot" />
-            FAQ
-          </p>
-          <h2>Answers for teams evaluating operational improvements.</h2>
+          <p className="eyebrow">FAQ</p>
+          <h2>Questions teams usually ask before switching.</h2>
         </div>
 
         <div className="faq-list">
@@ -346,16 +311,11 @@ export default function Home() {
       <section className="cta-section" id="contact">
         <div className="cta-inner">
           <div>
-            <p className="eyebrow light-eyebrow">
-              <span className="eyebrow-dot" />
-              Ready to modernize parking operations?
-            </p>
-            <h2>Build a more reliable parking experience from day one.</h2>
+            <p className="eyebrow eyebrow-light">Ready to modernize?</p>
+            <h2>Build a parking operation that feels controlled from the first day.</h2>
           </div>
 
-          <a href="mailto:hello@easyparking.example.com" className="primary-button light-button">
-            Talk to sales
-          </a>
+          <a href="mailto:hello@easyparking.example.com" className="primary-button light-button">Talk to sales</a>
         </div>
       </section>
 
@@ -365,12 +325,12 @@ export default function Home() {
             <span className="brand-mark">EP</span>
             <span>EasyParking</span>
           </a>
-          <p>Parking operations designed for cleaner workflows, stronger collections, and happier customers.</p>
+          <p>Parking operations designed for cleaner workflows, stronger collections, and better day-to-day service.</p>
         </div>
 
         <div className="footer-links">
           <a href="#features">Features</a>
-          <a href="#ops">Operations</a>
+          <a href="#operations">Operations</a>
           <a href="#faq">FAQ</a>
         </div>
       </footer>
