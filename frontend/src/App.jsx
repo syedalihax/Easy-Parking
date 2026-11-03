@@ -114,8 +114,11 @@ function App() {
   );
   const userDisplayName = user?.fullName?.trim() || t('profile.notAssigned');
   const currentLanguage = i18n.resolvedLanguage || i18n.language || 'en';
-  const showProfileSetup = location.pathname === '/app/profile'
-    && new URLSearchParams(location.search).get('setup') === '1';
+  const profileSetupPromptKey = 'easyparking_profile_setup_prompt_seen';
+  const shouldShowProfileSetupPrompt = location.pathname === '/app/profile'
+    && new URLSearchParams(location.search).get('setup') === '1'
+    && !sessionStorage.getItem(profileSetupPromptKey);
+  const showProfileSetup = shouldShowProfileSetupPrompt;
   const hasParkingMembership = Array.isArray(parkings) && parkings.some((parking) => parking && parking._id);
   const sidebarNavigation = hasParkingMembership ? desktopNavigation : noParkingNavigation;
   const mobileNavigation = hasParkingMembership ? desktopNavigation : noParkingMobileNavigation;
@@ -232,14 +235,20 @@ function App() {
     }
   }, [selectedParkingId]);
 
+  const markProfileSetupPromptSeen = useCallback(() => {
+    sessionStorage.setItem(profileSetupPromptKey, '1');
+  }, [profileSetupPromptKey]);
+
   useEffect(() => {
     if (showProfileSetup) {
+      markProfileSetupPromptSeen();
       setShowProfileSuccess(true);
     }
-  }, [showProfileSetup]);
+  }, [markProfileSetupPromptSeen, showProfileSetup]);
 
   const logout = useCallback(async () => {
     localStorage.removeItem('easyparking_selected_parking');
+    sessionStorage.removeItem(profileSetupPromptKey);
     await clearStaleAuthArtifacts();
     const logoutTarget = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
     try {
@@ -257,7 +266,7 @@ function App() {
     setPendingInvitations([]);
     setIsSessionLoading(false);
     navigate('/login', { replace: true });
-  }, [clearStaleAuthArtifacts, navigate]);
+  }, [clearStaleAuthArtifacts, navigate, profileSetupPromptKey]);
 
   const loadParkings = useCallback(async () => {
     try {
@@ -308,7 +317,6 @@ function App() {
         setPendingInvitations([]);
       } finally {
         if (isCurrent) {
-          setIsSessionLoading(false);
           setIsAuthHydrated(true);
         }
       }
@@ -405,6 +413,7 @@ function App() {
         setUser(response.user);
         setProfileForm(profileFormFromUser(response.user));
         setShowRegistrationSuccess(false);
+        markProfileSetupPromptSeen();
         setShowProfileSuccess(true);
         setToken('session');
         setErrorMessage('');
@@ -543,7 +552,10 @@ function App() {
       setProfileForm(profileFormFromUser(response.user));
       setShowProfileSuccess(false);
       setStatusMessage(t('profile.saved'));
-      if (showProfileSetup) navigate('/app/profile', { replace: true });
+      if (showProfileSetup) {
+        markProfileSetupPromptSeen();
+        navigate('/app/profile', { replace: true });
+      }
       if (!parkings.length) {
         setShowParkingCreator(false);
         setShowInboxView(false);
@@ -830,6 +842,7 @@ function App() {
                 {isLoading ? t('app.saving') : t('profile.completeButton')}
               </button>
               <button type="button" className="secondary-button profile-later" onClick={() => {
+                markProfileSetupPromptSeen();
                 setShowProfileSuccess(false);
                 navigate('/app/profile', { replace: true });
               }}>
@@ -961,7 +974,7 @@ function App() {
     return renderLoadingScreen();
   }
 
-  if ((!token || !user) && isProtectedPath(location.pathname)) {
+  if ((!token || !user) && isProtectedPath(location.pathname) && !isSessionLoading) {
     return <Navigate to="/login" replace />;
   }
 
