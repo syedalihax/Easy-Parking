@@ -178,16 +178,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (location.pathname === '/login' || location.pathname === '/signup') {
-      setToken('');
-      setUser(null);
-      setParkings([]);
-      setSelectedParkingId('');
-      setPendingInvitations([]);
-      setErrorMessage('');
-      void clearStaleAuthArtifacts();
+    const isAuthRoute = ['/login', '/signup', '/register'].includes(location.pathname);
+    if (!isAuthRoute) return;
+
+    if (token && user) {
+      navigate(hasParkingMembership ? '/app/dashboard' : '/app/profile', { replace: true });
+      return;
     }
-  }, [clearStaleAuthArtifacts, location.pathname]);
+
+    setErrorMessage('');
+  }, [hasParkingMembership, location.pathname, navigate, token, user]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -287,21 +287,6 @@ function App() {
     let isCurrent = true;
 
     const restoreSession = async () => {
-      const hasSessionCookie = document.cookie.split(';').some((cookie) => {
-        const trimmed = cookie.trim();
-        return trimmed.startsWith('access_token=') || trimmed.startsWith('refresh_token=');
-      });
-
-      if (!hasSessionCookie) {
-        if (isCurrent) {
-          setUser(null);
-          setToken('');
-          setIsSessionLoading(false);
-          setIsAuthHydrated(true);
-        }
-        return;
-      }
-
       setIsSessionLoading(true);
 
       try {
@@ -318,6 +303,9 @@ function App() {
         if (!isCurrent) return;
         setUser(null);
         setToken('');
+        setParkings([]);
+        setSelectedParkingId('');
+        setPendingInvitations([]);
       } finally {
         if (isCurrent) {
           setIsSessionLoading(false);
