@@ -1845,6 +1845,16 @@ html {
 
 .legal-home-link {
   margin-block-start: 34px;
+  display: inline-flex;
+  min-width: 190px;
+  color: #fff;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.legal-home-link:hover {
+  color: #fff;
+  text-decoration: none;
 }
 
 .legal-footer {

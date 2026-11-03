@@ -477,7 +477,10 @@ function LandingLegalPage({ page }) {
             <p>{t(`landing.legal.${section}`)}</p>
           </section>
         ))}
-        <Link className="button-primary legal-home-link" to="/">{t('landing.nav.getStarted')}<GoogleIcon name="arrow_right_alt" size={18} /></Link>
+        <Link className="button-primary legal-home-link" to="/" aria-label={t('landing.nav.getStarted')}>
+          {t('landing.nav.getStarted')}
+          <GoogleIcon name="arrow_right_alt" size={18} />
+        </Link>
       </article>
       <footer className="legal-footer"><span>{t('landing.footer.copyright')}</span><Link to="/">{t('app.name')}</Link></footer>
     </main>

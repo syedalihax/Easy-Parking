@@ -1017,6 +1017,7 @@ function App() {
         <Route path="/" element={<LandingPage onChangeLanguage={changeLanguage} />} />
         <Route path="/privacy-policy" element={<LandingLegalPage page="privacy" />} />
         <Route path="/terms" element={<LandingLegalPage page="terms" />} />
+        <Route path="/profile" element={<Navigate to="/app/profile" replace />} />
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="/register" element={renderAuthForm('signup')} />
         <Route path="/app" element={(
