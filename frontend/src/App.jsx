@@ -967,8 +967,14 @@ function App() {
     </main>
   );
 
+  const isProtectedPath = (pathname) => pathname.startsWith('/app') || pathname === '/profile';
+
   if (!isAuthHydrated) {
     return renderLoadingScreen();
+  }
+
+  if ((!token || !user) && isProtectedPath(location.pathname)) {
+    return <Navigate to="/login" replace />;
   }
 
   if (!token || !user) {
@@ -982,6 +988,7 @@ function App() {
           <Route path="/" element={<LandingPage onChangeLanguage={changeLanguage} />} />
           <Route path="/privacy-policy" element={<LandingLegalPage page="privacy" />} />
           <Route path="/terms" element={<LandingLegalPage page="terms" />} />
+          <Route path="/profile" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={renderAuthForm('login')} />
           <Route path="/signup" element={renderAuthForm('signup')} />
           <Route path="/register" element={renderAuthForm('signup')} />
