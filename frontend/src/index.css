@@ -235,6 +235,15 @@
     box-shadow: inset 0 0 0 1px rgba(31, 46, 42, 0.02);
   }
 
+  .auth-legal-links {
+    @apply mt-2 flex flex-wrap items-center justify-center gap-2 text-center text-sm text-ink-muted;
+  }
+
+  .auth-legal-link {
+    @apply font-medium text-primary underline-offset-4 transition hover:text-primary-dark;
+    text-decoration: underline;
+  }
+
   .success-text,
   .error-text,
   .muted-text {

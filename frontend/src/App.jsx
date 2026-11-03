@@ -683,6 +683,12 @@ function App() {
           <button type="submit" className="primary-button" disabled={isLoading}>
             {isLoading ? t('auth.pleaseWait') : t(mode === 'login' ? 'auth.login' : 'auth.createAccount')}
           </button>
+
+          <div className="auth-legal-links" aria-label="Legal links">
+            <Link className="auth-legal-link" to="/terms">{t('landing.footer.terms')}</Link>
+            <span aria-hidden="true">·</span>
+            <Link className="auth-legal-link" to="/privacy-policy">{t('landing.footer.privacy')}</Link>
+          </div>
         </form>
       </div>
     </div>
