@@ -430,14 +430,21 @@
 
   .app-shell {
     @apply min-h-screen bg-background lg:grid lg:grid-cols-[260px_minmax(0,1fr)];
+    background: linear-gradient(180deg, #f7faf9 0%, #f3f7f8 100%);
   }
 
   .app-sidebar {
     @apply z-20 flex min-w-0 flex-col gap-6 border-b border-border bg-background p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-e lg:px-4 lg:py-6;
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,247,249,0.96));
+    backdrop-filter: blur(12px);
   }
 
   .brand-lockup {
     @apply flex items-center gap-3 text-ink no-underline;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid rgba(21, 35, 45, 0.06);
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.55);
   }
 
   .brand-lockup strong {
@@ -446,6 +453,7 @@
 
   .brand-logo {
     @apply size-11 rounded-xl object-contain;
+    box-shadow: 0 10px 18px rgba(27, 169, 107, 0.18);
   }
 
   .dashboard-parking-select {
@@ -469,22 +477,26 @@
   }
 
   .nav-link {
-    @apply flex min-h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-sm font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
+    @apply flex min-h-10 shrink-0 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-ink-muted no-underline transition hover:bg-primary-light hover:text-primary-dark lg:w-full;
+    border: 1px solid transparent;
   }
 
   .nav-link.is-active {
     @apply bg-primary-light font-bold text-primary-dark;
-    box-shadow: inset 0 0 0 1px rgb(14 122 93 / 10%);
+    border-color: rgba(27, 169, 107, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(27, 169, 107, 0.04), 0 8px 18px rgba(27, 169, 107, 0.06);
   }
 
   .sidebar-user {
     @apply hidden min-h-[68px] w-full shrink-0 items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5 text-ink no-underline shadow-sm transition;
     margin-top: auto;
+    background: linear-gradient(135deg, rgba(255,255,255,1), rgba(245,250,248,0.96));
   }
 
   .sidebar-user:hover,
   .sidebar-user.is-active {
     @apply border-primary/25 bg-primary-light;
+    box-shadow: 0 10px 20px rgba(27, 169, 107, 0.08);
   }
 
   .sidebar-user:focus-visible {
@@ -522,6 +534,7 @@
 
   .app-main {
     @apply mx-auto grid w-full min-w-0 content-start gap-6 p-4 sm:p-6 lg:max-w-[1680px] lg:gap-8 lg:px-10 lg:py-9;
+    background: transparent;
   }
 
   .customer-grid,
@@ -615,7 +628,9 @@
   }
 
   .stat-card {
-    @apply grid min-h-32 content-between gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm;
+    @apply grid min-h-32 content-between gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm;
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,251,0.96));
+    box-shadow: 0 14px 34px rgba(17, 24, 39, 0.05);
   }
 
   .stat-card-top {
@@ -662,11 +677,14 @@
   }
 
   .quick-action {
-    @apply flex min-h-14 min-w-0 items-center gap-3 rounded-lg border border-border bg-background px-3 text-sm font-semibold text-ink no-underline transition hover:border-primary/30 hover:bg-primary-light;
+    @apply flex min-h-14 min-w-0 items-center gap-3 rounded-2xl border border-border bg-background px-3 text-sm font-semibold text-ink no-underline transition hover:border-primary/30 hover:bg-primary-light;
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,247,249,0.96));
+    box-shadow: 0 10px 22px rgba(21, 35, 45, 0.04);
   }
 
   .quick-action-icon {
-    @apply flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary-dark;
+    @apply flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary-dark;
+    box-shadow: inset 0 0 0 1px rgba(27, 169, 107, 0.08);
   }
 
   .quick-action > span:nth-child(2) {
@@ -743,6 +761,9 @@
 
   .mobile-tab-bar {
     @apply fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface px-2 pt-2 shadow-md lg:hidden;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -8px 24px rgba(21, 35, 45, 0.08);
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
 
@@ -751,11 +772,13 @@
   }
 
   .mobile-tab {
-    @apply flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-1 text-[10px] font-semibold text-ink-muted no-underline;
+    @apply flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1 text-[10px] font-semibold text-ink-muted no-underline;
+    transition: color 0.15s ease, background-color 0.15s ease;
   }
 
   .mobile-tab.is-active {
     @apply text-primary-dark;
+    background: rgba(27, 169, 107, 0.08);
   }
 
   .offline-notice {
