@@ -711,6 +711,133 @@
     @apply shrink-0 text-ink-muted;
   }
 
+  .dashboard-wallet-shell {
+    @apply grid w-full gap-5;
+  }
+
+  .dashboard-carousel {
+    @apply grid gap-4 md:grid-cols-3;
+  }
+
+  .dashboard-summary-card {
+    @apply flex min-h-40 flex-col justify-between gap-4 rounded-[2rem] p-5 text-white shadow-[0_18px_36px_rgba(15,23,42,0.12)];
+  }
+
+  .dashboard-summary-card.teal {
+    background: linear-gradient(135deg, #12b79d 0%, #0ea5a1 100%);
+  }
+
+  .dashboard-summary-card.light-blue {
+    background: linear-gradient(135deg, #2b6eea 0%, #4a9bf5 100%);
+  }
+
+  .dashboard-summary-card.peach {
+    background: linear-gradient(135deg, #ff8f7a 0%, #ff6f61 100%);
+  }
+
+  .dashboard-summary-top {
+    @apply flex items-center justify-between gap-3 text-sm font-medium text-white/90;
+  }
+
+  .dashboard-summary-badge {
+    @apply flex size-10 items-center justify-center rounded-full bg-white/15;
+  }
+
+  .dashboard-summary-value {
+    @apply text-4xl font-black leading-none tracking-tight;
+  }
+
+  .dashboard-summary-detail {
+    @apply text-sm text-white/80;
+  }
+
+  .dashboard-section {
+    @apply grid gap-3;
+  }
+
+  .dashboard-section-head {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .dashboard-section-head h3 {
+    @apply m-0 text-2xl font-black text-ink;
+  }
+
+  .dashboard-see-all {
+    @apply text-base font-semibold text-primary-dark no-underline;
+  }
+
+  .dashboard-quick-grid {
+    @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .dashboard-quick-item {
+    @apply flex h-28 flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-4 text-center text-base font-semibold text-ink no-underline shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:border-primary/40 hover:bg-primary-light;
+  }
+
+  .dashboard-quick-icon {
+    @apply flex size-12 items-center justify-center rounded-2xl bg-primary-light text-primary-dark;
+  }
+
+  .dashboard-history-strip {
+    @apply grid gap-3 lg:grid-cols-3;
+  }
+
+  .dashboard-payment-card,
+  .payment-history-item {
+    @apply flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-[0_10px_22px_rgba(15,23,42,0.04)];
+  }
+
+  .dashboard-payment-icon,
+  .payment-history-icon {
+    @apply flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary-dark;
+  }
+
+  .dashboard-payment-main,
+  .payment-history-copy {
+    @apply grid min-w-0 flex-1 gap-1;
+  }
+
+  .dashboard-payment-main strong,
+  .payment-history-copy strong {
+    @apply text-base font-bold text-ink;
+  }
+
+  .dashboard-payment-main span,
+  .payment-history-copy span {
+    @apply text-sm text-ink-muted;
+  }
+
+  .dashboard-payment-amount,
+  .payment-history-amount {
+    @apply text-lg font-black tabular-nums text-primary-dark;
+  }
+
+  .dashboard-empty-card,
+  .dashboard-empty-state {
+    @apply rounded-2xl border border-dashed border-border bg-background p-4 text-sm text-ink-muted;
+  }
+
+  .dashboard-reminder-grid {
+    @apply grid gap-4 md:grid-cols-3;
+  }
+
+  .dashboard-reminder-panel {
+    @apply rounded-2xl border border-border bg-surface p-4 shadow-[0_10px_22px_rgba(15,23,42,0.04)];
+  }
+
+  .dashboard-reminder-panel h4 {
+    @apply mb-3 text-lg font-bold text-ink;
+  }
+
+  .dashboard-reminder-row {
+    @apply flex items-center justify-between gap-3 rounded-xl bg-background px-3 py-2 text-sm text-ink;
+  }
+
+  .payment-history-list {
+    @apply grid gap-3;
+  }
+
   .reminder-grid {
     @apply grid gap-4 lg:grid-cols-2;
   }

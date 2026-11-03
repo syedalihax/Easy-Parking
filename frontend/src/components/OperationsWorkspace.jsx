@@ -64,15 +64,26 @@ function DashboardWorkspace({ parkingId }) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState(null);
   const [reminders, setReminders] = useState(null);
+  const [paymentHistory, setPaymentHistory] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
-    Promise.allSettled([apiGetDashboard(parkingId), apiGetDashboardReminders(parkingId)])
-      .then(([summaryResult, remindersResult]) => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const summaryPromise = apiGetDashboard(parkingId);
+    const remindersPromise = apiGetDashboardReminders(parkingId);
+    const paymentHistoryPromise = apiGetReport(parkingId, 'payment-history', {
+      startDate: monthStart.toISOString().slice(0, 10),
+      endDate: now.toISOString().slice(0, 10),
+    });
+
+    Promise.allSettled([summaryPromise, remindersPromise, paymentHistoryPromise])
+      .then(([summaryResult, remindersResult, paymentHistoryResult]) => {
         if (!active) return;
+
         if (summaryResult.status === 'fulfilled') {
           setSummary(summaryResult.value);
         } else {
@@ -86,43 +97,74 @@ function DashboardWorkspace({ parkingId }) {
           setReminders(null);
           setErrorMessage(remindersResult.reason.message || t('errors.couldNotLoad'));
         }
+
+        if (paymentHistoryResult.status === 'fulfilled') {
+          setPaymentHistory(Array.isArray(paymentHistoryResult.value) ? paymentHistoryResult.value.slice(0, 3) : []);
+        } else {
+          setPaymentHistory([]);
+        }
       })
       .finally(() => {
         if (active) setIsLoading(false);
       });
+
     return () => {
       active = false;
     };
   }, [parkingId, reloadKey, t]);
 
-  const cards = summary ? [
-    { label: t('dashboard.outstanding'), detail: t('dashboard.outstandingHelp'), value: money(summary.totalOutstandingAmount), Icon: 'wallet', kind: 'financial' },
-    { label: t('dashboard.paymentsThisMonth'), detail: t('dashboard.paymentsThisMonthHelp'), value: money(summary.paymentsReceivedThisPeriod), Icon: 'payments', kind: 'financial' },
-    { label: t('dashboard.activeCustomers'), detail: t('dashboard.activePeopleHelp'), value: summary.totalActiveCustomers, Icon: 'groups', tone: 'green' },
-    { label: t('dashboard.activeVehicles'), detail: t('dashboard.activeVehiclesHelp'), value: summary.totalActiveVehicles, Icon: 'directions_car', tone: 'green' },
-    { label: t('dashboard.customersWithDues'), detail: t('dashboard.peopleWithDuesHelp'), value: summary.customersWithPendingDues, Icon: 'error', tone: 'amber' },
-    { label: t('dashboard.overSevenDays'), detail: t('dashboard.overSevenDaysHelp'), value: summary.customersWithOverdueDues, Icon: 'schedule', tone: 'rose' },
-    { label: t('dashboard.currentlyParked'), detail: t('dashboard.currentlyParkedHelp'), value: summary.dailyVehiclesCurrentlyParked, Icon: 'local_parking', tone: 'green' },
+  const quickActions = [
+    { label: 'Add Member', to: '/app/customers', Icon: 'person_add' },
+    { label: 'Receive Payment', to: '/app/payments', Icon: 'payments' },
+    { label: 'Dues', to: '/app/dues', Icon: 'wallet' },
+    { label: 'Daily Parking', to: '/app/daily-parking', Icon: 'local_parking' },
+    { label: 'Vehicles', to: '/app/vehicles', Icon: 'directions_car' },
+    { label: 'Reports', to: '/app/reports', Icon: 'bar_chart' },
+    { label: 'Team', to: '/app/team', Icon: 'groups' },
+    { label: 'Profile', to: '/app/profile', Icon: 'person' },
+    { label: 'More', to: '/app/more', Icon: 'more_horiz' },
+  ];
+
+  const summaryCards = summary ? [
+    {
+      label: 'Received this month',
+      value: money(summary.paymentsReceivedThisPeriod),
+      tone: 'teal',
+      detail: `${summary.totalActiveCustomers || 0} members active`,
+    },
+    {
+      label: 'Members pending',
+      value: summary.customersWithPendingDues || 0,
+      tone: 'light-blue',
+      detail: 'Need follow-up',
+    },
+    {
+      label: 'Outstanding',
+      value: money(summary.totalOutstandingAmount),
+      tone: 'peach',
+      detail: `${summary.customersWithOverdueDues || 0} overdue`,
+    },
   ] : [];
 
   return (
     <div className="operations-workspace">
-      <header className="workspace-heading">
+      <header className="workspace-heading dashboard-header">
         <div>
-          <p className="eyebrow">{t('dashboard.overview')}</p>
-          <h2>{t('nav.dashboard')}</h2>
-          <p className="workspace-hint">{t('dashboard.subtitle')}</p>
+          <p className="eyebrow">Overview</p>
+          <h2>Dashboard</h2>
         </div>
       </header>
+
       {errorMessage && summary && <p className="error-text" role="alert">{errorMessage}</p>}
+
       {isLoading ? (
-        <section className="dashboard-loading" aria-label={t('dashboard.loading')} aria-busy="true">
+        <section className="dashboard-loading" aria-label="Loading dashboard" aria-busy="true">
           <span /><span /><span />
         </section>
       ) : !summary ? (
         <div className="dashboard-error-state" role="alert">
           <GoogleIcon name="error" size={22} />
-          <p>{errorMessage || t('errors.couldNotLoad')}</p>
+          <p>{errorMessage || 'Could not load dashboard data.'}</p>
           <button
             type="button"
             className="secondary-button"
@@ -132,77 +174,152 @@ function DashboardWorkspace({ parkingId }) {
               setReloadKey((key) => key + 1);
             }}
           >
-            {t('errors.retry')}
+            Retry
           </button>
         </div>
       ) : (
-        <>
-          <section className="stats-grid dashboard-financial-stats" aria-label={t('dashboard.outstanding')}>
-            {cards.filter((card) => card.kind === 'financial').map(({ label, detail, value, Icon }) => (
-              <article className="stat-card stat-card-financial" key={label}>
-                <div className="stat-card-top">
+        <div className="dashboard-wallet-shell">
+          <section className="dashboard-carousel" aria-label="Monthly summary cards">
+            {summaryCards.map(({ label, value, tone, detail }) => (
+              <article key={label} className={`dashboard-summary-card ${tone}`}>
+                <div className="dashboard-summary-top">
                   <span>{label}</span>
-                  <span className="stat-card-icon"><GoogleIcon name={Icon} size={19} /></span>
+                  <span className="dashboard-summary-badge"><GoogleIcon name={tone === 'teal' ? 'payments' : tone === 'light-blue' ? 'groups' : 'wallet'} size={20} /></span>
                 </div>
-                <strong>{value}</strong>
-                <small>{detail}</small>
+                <div className="dashboard-summary-value">{value}</div>
+                <div className="dashboard-summary-detail">{detail}</div>
               </article>
             ))}
           </section>
-          <section className="stats-grid dashboard-operations-stats" aria-label={t('dashboard.overview')}>
-            {cards.filter((card) => card.kind !== 'financial').map(({ label, detail, value, Icon, tone }) => (
-              <article className={`stat-card stat-card-operations stat-card-${tone}`} key={label}>
-                <div className="stat-card-top">
+
+          <section className="dashboard-section">
+            <div className="dashboard-section-head">
+              <h3>Quick actions</h3>
+            </div>
+            <div className="dashboard-quick-grid">
+              {quickActions.map(({ label, to, Icon }) => (
+                <Link key={label} to={to} className="dashboard-quick-item">
+                  <span className="dashboard-quick-icon"><GoogleIcon name={Icon} size={20} /></span>
                   <span>{label}</span>
-                  <span className="stat-card-icon"><GoogleIcon name={Icon} size={19} /></span>
-                </div>
-                <strong>{value}</strong>
-                <small>{detail}</small>
-              </article>
-            ))}
-          </section>
-          <section className="panel">
-            <div className="panel-header"><h3>{t('dashboard.quickActions')}</h3></div>
-            <div className="quick-actions">
-              {actionLinks.map(({ key, to, Icon }) => (
-                <Link className="quick-action" to={to} key={key}>
-                  <span className="quick-action-icon"><GoogleIcon name={Icon} size={18} /></span>
-                  <span>{t(key)}</span>
-                  <GoogleIcon name="north_east" className="quick-action-arrow" size={15} />
                 </Link>
               ))}
             </div>
           </section>
-          {reminders && (
-            <section className="reminder-grid">
-              {[
-                [t('dashboard.pendingDues'), reminders.pendingDues, (item) => item.customerId],
-                [t('dashboard.overdueDues'), reminders.overdueDues, (item) => item.customerId],
-                [t('dashboard.partialPayments'), reminders.partialPayments, (item) => item.customerId],
-                [t('dashboard.upcomingBilling'), reminders.upcomingBillingPeriods, (item) => item.customerId],
-              ].map(([title, items, getCustomer]) => (
-                <article className="panel reminder-panel" key={title}>
-                  <div className="panel-header"><h3>{title}</h3></div>
-                  {items.length === 0 ? <p className="muted-text">{t('dashboard.nothing')}</p> : (
-                    <div className="list-stack">
-                      {items.slice(0, 8).map((item) => {
-                        const customer = getCustomer(item);
-                        const customerId = typeof customer === 'object' ? customer?._id : customer;
-                        const displayName = typeof customer === 'object' ? customer?.fullName : '';
-                        return (
-                          <Link className="reminder-item" to={customerId ? `/app/customers/${customerId}` : '/app/customers'} key={item._id}>
-                            <strong>{displayName || item.vehicleId?.registrationNumber || t('reports.customer')}</strong>
-                            <span>{item.currentPeriod ? `Period ends ${date(item.currentPeriod.end)}` : money(item.outstandingAmount)}</span>
-                          </Link>
-                        );
-                      })}
+
+          <section className="dashboard-section">
+            <div className="dashboard-section-head">
+              <h3>Payment history</h3>
+              <Link to="/app/payment-history" className="dashboard-see-all">See all</Link>
+            </div>
+            <div className="dashboard-history-strip">
+              {paymentHistory.length === 0 ? (
+                <div className="dashboard-empty-card">No recent payments yet.</div>
+              ) : (
+                paymentHistory.map((item) => (
+                  <article key={item.paymentId || item._id} className="dashboard-payment-card">
+                    <div className="dashboard-payment-icon"><GoogleIcon name="sync_alt" size={18} /></div>
+                    <div className="dashboard-payment-main">
+                      <strong>{item.customerName || 'Member payment'}</strong>
+                      <span>{new Date(item.paymentDate).toLocaleDateString()} · {item.method || 'cash'}</span>
                     </div>
-                  )}
-                </article>
-              ))}
+                    <div className="dashboard-payment-amount">+ {money(item.amount)}</div>
+                  </article>
+                ))
+              )}
+            </div>
+          </section>
+
+          {reminders && (
+            <section className="dashboard-section">
+              <div className="dashboard-section-head">
+                <h3>Follow-up</h3>
+              </div>
+              <div className="dashboard-reminder-grid">
+                {[
+                  ['Pending dues', reminders.pendingDues],
+                  ['Overdue', reminders.overdueDues],
+                  ['Partial payments', reminders.partialPayments],
+                ].map(([title, items]) => (
+                  <div key={title} className="dashboard-reminder-panel">
+                    <h4>{title}</h4>
+                    {items.length === 0 ? <p>No item</p> : items.slice(0, 2).map((item) => (
+                      <div key={item._id} className="dashboard-reminder-row">
+                        <span>{item.customerId?.fullName || 'Member'}</span>
+                        <strong>{money(item.outstandingAmount)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </section>
           )}
-        </>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PaymentHistoryWorkspace({ parkingId }) {
+  const [rows, setRows] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    apiGetReport(parkingId, 'payment-history', {
+      startDate: monthStart.toISOString().slice(0, 10),
+      endDate: now.toISOString().slice(0, 10),
+    })
+      .then((response) => {
+        if (!active) return;
+        setRows(Array.isArray(response) ? response : []);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setErrorMessage(error.message || 'Could not load payment history');
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [parkingId]);
+
+  return (
+    <div className="operations-workspace">
+      <header className="workspace-heading dashboard-header">
+        <div>
+          <p className="eyebrow">Payments</p>
+          <h2>Monthly Payment History</h2>
+        </div>
+      </header>
+
+      {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
+
+      {isLoading ? (
+        <section className="dashboard-loading" aria-label="Loading payment history" aria-busy="true">
+          <span /><span /><span />
+        </section>
+      ) : rows.length === 0 ? (
+        <div className="dashboard-empty-state">No payments recorded this month.</div>
+      ) : (
+        <section className="payment-history-list">
+          {rows.map((item) => (
+            <article key={item.paymentId || item._id} className="payment-history-item">
+              <div className="payment-history-icon"><GoogleIcon name="sync_alt" size={18} /></div>
+              <div className="payment-history-copy">
+                <strong>{item.customerName || 'Member payment'}</strong>
+                <span>{new Date(item.paymentDate).toLocaleDateString()} · {item.method || 'cash'}</span>
+              </div>
+              <div className="payment-history-amount">{money(item.amount)}</div>
+            </article>
+          ))}
+        </section>
       )}
     </div>
   );
@@ -348,4 +465,4 @@ function ReportsWorkspace({ parkingId }) {
   );
 }
 
-export { DashboardWorkspace, MoreWorkspace, ReportsWorkspace };
+export { DashboardWorkspace, MoreWorkspace, PaymentHistoryWorkspace, ReportsWorkspace };

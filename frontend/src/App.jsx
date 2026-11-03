@@ -34,6 +34,9 @@ const LandingLegalPage = lazy(() => import('./components/LandingPage').then((mod
 const DashboardWorkspace = lazy(() => import('./components/OperationsWorkspace').then((module) => ({
   default: module.DashboardWorkspace,
 })));
+const PaymentHistoryWorkspace = lazy(() => import('./components/OperationsWorkspace').then((module) => ({
+  default: module.PaymentHistoryWorkspace,
+})));
 const MoreWorkspace = lazy(() => import('./components/OperationsWorkspace').then((module) => ({
   default: module.MoreWorkspace,
 })));
@@ -1150,6 +1153,7 @@ function App() {
       )}>
         <Route index element={<Navigate to={hasParkingMembership ? 'dashboard' : 'inbox'} replace />} />
         <Route path="dashboard" element={<DashboardWorkspace key={`${activeParking?._id || 'no-parking'}-dashboard`} parkingId={activeParking?._id || ''} />} />
+        <Route path="payment-history" element={<PaymentHistoryWorkspace key={`${activeParking?._id || 'no-parking'}-payment-history`} parkingId={activeParking?._id || ''} />} />
         <Route path="reports" element={<ReportsWorkspace key={`${activeParking?._id || 'no-parking'}-reports`} parkingId={activeParking?._id || ''} />} />
         <Route path="more" element={<MoreWorkspace />} />
         <Route path="settings" element={renderParkingSettings()} />
