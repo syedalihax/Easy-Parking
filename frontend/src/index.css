@@ -457,10 +457,10 @@
 
   .brand-lockup {
     @apply flex items-center gap-3 text-ink no-underline;
-    padding: 0.6rem 0.7rem;
-    border: 1px solid rgba(21, 35, 45, 0.06);
-    border-radius: 1rem;
-    background: rgba(255,255,255,0.55);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .brand-lockup strong {
@@ -1159,6 +1159,10 @@
   .brand-lockup {
     align-items: center;
     color: #fff;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
   }
 
   .brand-logo {
