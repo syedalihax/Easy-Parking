@@ -17,22 +17,24 @@
 }
 
 @theme {
-  --color-primary: #0e7a5d;
-  --color-primary-dark: #1b3d35;
-  --color-primary-light: #edf9f3;
-  --color-highlight: #b7e46a;
-  --color-amber: #d89b4b;
-  --color-ink: #1f2e2a;
-  --color-ink-muted: #536560;
-  --color-background: #f6f3ee;
+  --color-primary: #1ba96b;
+  --color-primary-dark: #0d5a41;
+  --color-primary-light: #eafbf3;
+  --color-secondary: #5d5ce6;
+  --color-secondary-soft: #eeefff;
+  --color-highlight: #bfe85c;
+  --color-amber: #f0b24b;
+  --color-ink: #15232d;
+  --color-ink-muted: #5d6b75;
+  --color-background: #f5f7f8;
   --color-surface: #ffffff;
-  --color-border: #dfe7e2;
-  --color-success: #1a7a59;
-  --color-success-bg: #eaf7f1;
-  --color-warning: #9e6622;
-  --color-warning-bg: #fff3e3;
-  --color-danger: #b5564a;
-  --color-danger-bg: #f9eeee;
+  --color-border: #dfe7eb;
+  --color-success: #1a7f5a;
+  --color-success-bg: #eafaf3;
+  --color-warning: #a86a1b;
+  --color-warning-bg: #fff4df;
+  --color-danger: #b85454;
+  --color-danger-bg: #fff1f0;
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
