@@ -6,7 +6,11 @@ import {
   apiCreateCustomer,
   apiCreateVehicle,
   apiCreatePayment,
+  apiActivateCustomer,
+  apiDeleteCustomer,
   apiDeactivateCustomer,
+  apiActivateVehicle,
+  apiDeleteVehicle,
   apiDeactivateVehicle,
   apiGetDues,
   apiGetPayments,
@@ -412,6 +416,39 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
     }
   };
 
+  const activateCustomer = async () => {
+    if (!customer || !window.confirm(t('customer.confirmActivateCustomer', { name: customer.fullName }))) return;
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const response = await apiActivateCustomer(parkingId, customer._id);
+      setCustomer(response.customer);
+      setStatusMessage(t('customer.customerActivated'));
+      await loadCustomers(pagination.page);
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteCustomer = async () => {
+    if (!customer || !window.confirm(t('customer.confirmDeleteCustomer', { name: customer.fullName }))) return;
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      await apiDeleteCustomer(parkingId, customer._id);
+      setCustomer(null);
+      setStatusMessage(t('customer.customerRemoved'));
+      await loadCustomers(pagination.page);
+      navigate('/app/customers');
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const deactivateCustomer = async () => {
     if (!customer || !window.confirm(t('customer.confirmDeactivateCustomer', { name: customer.fullName }))) return;
     setIsLoading(true);
@@ -421,6 +458,41 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
       setCustomer(response.customer);
       setStatusMessage(t('customer.customerDeactivated'));
       await loadCustomers(pagination.page);
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const activateVehicle = async (vehicle) => {
+    if (!window.confirm(t('customer.confirmActivateVehicle', { number: vehicle.registrationNumber }))) return;
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const response = await apiActivateVehicle(parkingId, customer._id, vehicle._id);
+      const customerResponse = await apiGetCustomer(parkingId, customer._id);
+      setCustomer(customerResponse.customer);
+      setStatusMessage(t('customer.vehicleActivated'));
+      if (response.vehicle) {
+        setSelectedVehicle(response.vehicle);
+      }
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteVehicle = async (vehicle) => {
+    if (!window.confirm(t('customer.confirmDeleteVehicle', { number: vehicle.registrationNumber }))) return;
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      await apiDeleteVehicle(parkingId, customer._id, vehicle._id);
+      const response = await apiGetCustomer(parkingId, customer._id);
+      setCustomer(response.customer);
+      setStatusMessage(t('customer.vehicleRemoved'));
     } catch (error) {
       setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
@@ -682,7 +754,14 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
             </div>
             <div className="action-row">
               <button type="button" className="secondary-button" onClick={beginCustomerEdit}>{t('customer.edit')}</button>
-              {customer.status === 'active' && <button type="button" className="danger-button" onClick={deactivateCustomer}>{t('customer.deactivate')}</button>}
+              {customer.status === 'inactive' ? (
+                <>
+                  <button type="button" className="secondary-button" onClick={activateCustomer}>{t('customer.activate')}</button>
+                  <button type="button" className="danger-button" onClick={deleteCustomer}>{t('customer.remove')}</button>
+                </>
+              ) : (
+                <button type="button" className="danger-button" onClick={deactivateCustomer}>{t('customer.deactivate')}</button>
+              )}
             </div>
           </section>
 
@@ -704,11 +783,17 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                       <p>{[vehicle.vehicleType, vehicle.makeModel, vehicle.color].filter(Boolean).join(' · ') || t('customer.vehicleDetailsMissing')}</p>
                       <p className="muted-text">{t('customer.since', { date: new Date(vehicle.parkingStartDate).toLocaleDateString() })}</p>
                     </div>
-                    {vehicle.status === 'active' && (
+                    {vehicle.status === 'active' ? (
                       <div className="action-row">
                         <button className="secondary-button" type="button" onClick={() => beginVehicleForm(vehicle)}>{t('customer.edit')}</button>
                         <button className="secondary-button" type="button" onClick={() => beginVehicleForm(vehicle, true)}>{t('customer.replaceVehicle')}</button>
                         <button className="danger-button" type="button" onClick={() => deactivateVehicle(vehicle)}>{t('customer.deactivate')}</button>
+                      </div>
+                    ) : (
+                      <div className="action-row">
+                        <button className="secondary-button" type="button" onClick={() => beginVehicleForm(vehicle)}>{t('customer.edit')}</button>
+                        <button className="secondary-button" type="button" onClick={() => activateVehicle(vehicle)}>{t('customer.activate')}</button>
+                        <button className="danger-button" type="button" onClick={() => deleteVehicle(vehicle)}>{t('customer.remove')}</button>
                       </div>
                     )}
                   </article>

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Customer = require('../models/Customer');
 const Vehicle = require('../models/Vehicle');
 const ParkingSubscription = require('../models/ParkingSubscription');
+const MonthlyDue = require('../models/MonthlyDue');
 const { generateMissingDues } = require('../services/dueGeneration');
 const { getFinalBillingPeriod } = require('../utils/billingPeriods');
 const { isTransactionUnsupported } = require('../utils/mongoErrors');
@@ -204,12 +205,12 @@ const deactivateCustomer = async (req, res) => {
         throw error;
       }
 
-      const subscriptions = await ParkingSubscription.find({
+      const activeSubscriptions = await ParkingSubscription.find({
         parkingId: req.params.parkingId,
         customerId: customer._id,
         status: 'active',
       }).session(session);
-      for (const subscription of subscriptions) {
+      for (const subscription of activeSubscriptions) {
         await generateMissingDues(subscription._id, { session });
         const endedAt = new Date();
         const finalPeriod = getFinalBillingPeriod(subscription.startDate, endedAt);
@@ -220,6 +221,33 @@ const deactivateCustomer = async (req, res) => {
           subscription.pendingRateChange = undefined;
         }
         await subscription.save({ session });
+      }
+
+      const vehicles = await Vehicle.find({
+        parkingId: req.params.parkingId,
+        customerId: customer._id,
+      }).session(session);
+      for (const vehicle of vehicles) {
+        const activeVehicleSubscription = await ParkingSubscription.findOne({
+          parkingId: req.params.parkingId,
+          customerId: customer._id,
+          vehicleId: vehicle._id,
+          status: 'active',
+        }).session(session);
+        if (activeVehicleSubscription) {
+          await generateMissingDues(activeVehicleSubscription._id, { session });
+          const endedAt = new Date();
+          const finalPeriod = getFinalBillingPeriod(activeVehicleSubscription.startDate, endedAt);
+          activeVehicleSubscription.status = 'ended';
+          activeVehicleSubscription.endedAt = endedAt;
+          if (activeVehicleSubscription.pendingRateChange?.effectiveFrom
+            && new Date(activeVehicleSubscription.pendingRateChange.effectiveFrom) > finalPeriod.start) {
+            activeVehicleSubscription.pendingRateChange = undefined;
+          }
+          await activeVehicleSubscription.save({ session });
+        }
+        vehicle.status = 'inactive';
+        await vehicle.save({ session });
       }
 
       customer.status = 'inactive';
@@ -242,10 +270,69 @@ const deactivateCustomer = async (req, res) => {
   }
 };
 
+const activateCustomer = async (req, res) => {
+  try {
+    const customer = await Customer.findOne({
+      _id: req.params.customerId,
+      parkingId: req.params.parkingId,
+    });
+
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    if (customer.status === 'active') {
+      return res.json({ customer });
+    }
+
+    customer.status = 'active';
+    await customer.save();
+    return res.json({ customer });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid customer ID' });
+    }
+    return res.status(500).json({ message: 'Could not activate customer' });
+  }
+};
+
+const deleteCustomer = async (req, res) => {
+  try {
+    const customer = await Customer.findOne({
+      _id: req.params.customerId,
+      parkingId: req.params.parkingId,
+    }).select('_id status').lean();
+
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    if (customer.status !== 'inactive') {
+      return res.status(409).json({ message: 'Only inactive customers can be removed' });
+    }
+
+    await Promise.all([
+      Customer.deleteOne({ _id: req.params.customerId, parkingId: req.params.parkingId, status: 'inactive' }),
+      Vehicle.deleteMany({ parkingId: req.params.parkingId, customerId: req.params.customerId }),
+      ParkingSubscription.deleteMany({ parkingId: req.params.parkingId, customerId: req.params.customerId }),
+      MonthlyDue.deleteMany({ parkingId: req.params.parkingId, customerId: req.params.customerId }),
+    ]);
+
+    return res.json({ deleted: true });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid customer ID' });
+    }
+    return res.status(500).json({ message: 'Could not remove customer' });
+  }
+};
+
 module.exports = {
   createCustomer,
   listCustomers,
   getCustomer,
   updateCustomer,
   deactivateCustomer,
+  activateCustomer,
+  deleteCustomer,
 };

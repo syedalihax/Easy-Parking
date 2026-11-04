@@ -217,6 +217,16 @@ export const apiUpdateCustomer = (parkingId, customerId, payload) => jsonRequest
   { method: 'PATCH', body: JSON.stringify(payload) },
 );
 
+export const apiActivateCustomer = (parkingId, customerId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/activate`,
+  { method: 'PATCH' },
+);
+
+export const apiDeleteCustomer = (parkingId, customerId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}`,
+  { method: 'DELETE' },
+);
+
 export const apiDeactivateCustomer = (parkingId, customerId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/deactivate`,
   { method: 'PATCH' },
@@ -232,9 +242,19 @@ export const apiUpdateVehicle = (parkingId, customerId, vehicleId, payload) => j
   { method: 'PATCH', body: JSON.stringify(payload) },
 );
 
+export const apiActivateVehicle = (parkingId, customerId, vehicleId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}/activate`,
+  { method: 'PATCH' },
+);
+
 export const apiDeactivateVehicle = (parkingId, customerId, vehicleId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}/deactivate`,
   { method: 'PATCH' },
+);
+
+export const apiDeleteVehicle = (parkingId, customerId, vehicleId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}`,
+  { method: 'DELETE' },
 );
 
 export const apiReplaceVehicle = (parkingId, customerId, oldVehicleId, payload) => jsonRequest(

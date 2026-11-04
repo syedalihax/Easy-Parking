@@ -5,12 +5,16 @@ const {
   getCustomer,
   updateCustomer,
   deactivateCustomer,
+  activateCustomer,
+  deleteCustomer,
 } = require('../controllers/customerController');
 const {
   createVehicle,
   listCustomerVehicles,
   updateVehicle,
   deactivateVehicle,
+  activateVehicle,
+  deleteVehicle,
   replaceVehicle,
   searchVehicles,
   getVehicle,
@@ -36,12 +40,16 @@ router.post('/customers', createCustomer);
 router.get('/customers', listCustomers);
 router.get('/customers/:customerId', getCustomer);
 router.patch('/customers/:customerId', updateCustomer);
+router.patch('/customers/:customerId/activate', activateCustomer);
 router.patch('/customers/:customerId/deactivate', deactivateCustomer);
+router.delete('/customers/:customerId', deleteCustomer);
 
 router.post('/customers/:customerId/vehicles', createVehicle);
 router.get('/customers/:customerId/vehicles', listCustomerVehicles);
 router.patch('/customers/:customerId/vehicles/:vehicleId', updateVehicle);
+router.patch('/customers/:customerId/vehicles/:vehicleId/activate', activateVehicle);
 router.patch('/customers/:customerId/vehicles/:vehicleId/deactivate', deactivateVehicle);
+router.delete('/customers/:customerId/vehicles/:vehicleId', deleteVehicle);
 router.post(
   '/customers/:customerId/vehicles/:oldVehicleId/replace',
   replaceVehicle,

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Customer = require('../models/Customer');
 const Vehicle = require('../models/Vehicle');
 const ParkingSubscription = require('../models/ParkingSubscription');
+const MonthlyDue = require('../models/MonthlyDue');
 const { getBillingPeriod, getFinalBillingPeriod } = require('../utils/billingPeriods');
 const { generateMissingDues } = require('../services/dueGeneration');
 const { isTransactionUnsupported } = require('../utils/mongoErrors');
@@ -239,6 +240,75 @@ const deactivateVehicle = async (req, res) => {
   }
 };
 
+const activateVehicle = async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findOne({
+      _id: req.params.vehicleId,
+      parkingId: req.params.parkingId,
+      customerId: req.params.customerId,
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({ message: 'Vehicle not found' });
+    }
+
+    if (vehicle.status === 'active') {
+      return res.json({ vehicle });
+    }
+
+    const duplicate = await Vehicle.findOne({
+      parkingId: req.params.parkingId,
+      registrationNumber: vehicle.registrationNumber,
+      status: 'active',
+      _id: { $ne: vehicle._id },
+    });
+
+    if (duplicate) {
+      return res.status(409).json({ message: 'An active vehicle already uses this registration number' });
+    }
+
+    vehicle.status = 'active';
+    await vehicle.save();
+    return res.json({ vehicle });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid vehicle ID' });
+    }
+    return res.status(500).json({ message: 'Could not activate vehicle' });
+  }
+};
+
+const deleteVehicle = async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findOne({
+      _id: req.params.vehicleId,
+      parkingId: req.params.parkingId,
+      customerId: req.params.customerId,
+    }).select('_id status').lean();
+
+    if (!vehicle) {
+      return res.status(404).json({ message: 'Vehicle not found' });
+    }
+
+    if (vehicle.status !== 'inactive') {
+      return res.status(409).json({ message: 'Only inactive vehicles can be removed' });
+    }
+
+    await Promise.all([
+      Vehicle.deleteOne({ _id: req.params.vehicleId, parkingId: req.params.parkingId, customerId: req.params.customerId, status: 'inactive' }),
+      ParkingSubscription.deleteMany({ parkingId: req.params.parkingId, customerId: req.params.customerId, vehicleId: req.params.vehicleId }),
+      MonthlyDue.deleteMany({ parkingId: req.params.parkingId, customerId: req.params.customerId, vehicleId: req.params.vehicleId }),
+    ]);
+
+    return res.json({ deleted: true });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid vehicle ID' });
+    }
+    return res.status(500).json({ message: 'Could not remove vehicle' });
+  }
+};
+
 const replaceVehicle = async (req, res) => {
   const fields = normalizeVehicleFields(getVehicleFields(req.body));
   const validationMessage = validateVehicleFields(fields, true);
@@ -394,6 +464,8 @@ module.exports = {
   listCustomerVehicles,
   updateVehicle,
   deactivateVehicle,
+  activateVehicle,
+  deleteVehicle,
   replaceVehicle,
   searchVehicles,
   getVehicle,
