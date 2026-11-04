@@ -815,6 +815,8 @@
 
   .dashboard-wallet-shell {
     @apply grid w-full gap-5;
+    background: transparent;
+    box-shadow: none;
   }
 
   .dashboard-carousel {
@@ -823,6 +825,8 @@
     grid-auto-columns: minmax(230px, 290px);
     scroll-snap-type: x proximity;
     scrollbar-width: none;
+    background: transparent;
+    box-shadow: none;
   }
 
   .dashboard-carousel::-webkit-scrollbar {
