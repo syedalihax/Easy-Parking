@@ -75,7 +75,12 @@ const desktopNavigation = [
   { to: '/app/customers', key: 'nav.customers', Icon: 'groups', end: true },
   { to: '/app/payments', key: 'nav.payments', Icon: 'credit_card' },
   { to: '/app/daily-parking', key: 'nav.dailyParking', Icon: 'local_parking' },
-  { to: '/app/more', key: 'nav.more', Icon: 'more_horiz' },
+  { to: '/app/vehicles', key: 'nav.vehicles', Icon: 'directions_car' },
+  { to: '/app/dues', key: 'nav.dues', Icon: 'description' },
+  { to: '/app/reports', key: 'nav.reports', Icon: 'bar_chart' },
+  { to: '/app/team', key: 'menu.parkingAccess', Icon: 'groups' },
+  { to: '/app/settings', key: 'menu.parkingSettings', Icon: 'settings' },
+  { to: '/app/profile', key: 'menu.profile', Icon: 'person' },
 ];
 
 const noParkingNavigation = [
