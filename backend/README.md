@@ -1,4 +1,4 @@
-# easyParking backend
+﻿# EasyParking backend
 
 The backend is a Node.js and Express REST API. Mongoose models persist parking-scoped records in MongoDB. Authentication uses JWTs stored inside secure HttpOnly cookies, passwords are hashed with bcrypt, and billing periods use `date-fns` plus UTC-safe date handling.
 
@@ -55,7 +55,7 @@ The API listens on all network interfaces at port `5000` by default. Verify on t
 | `npm test` | Run backend tests with Node's built-in test runner |
 | `npm run import:demo` | Validate the synthetic demo dataset and show a dry-run summary |
 
-The demo importer defaults to the included `data/easyParking_50_Customers_Demo_Data.json`, targets the only parking in the configured MongoDB database, and never overwrites existing records. Review its dry-run before applying:
+The demo importer defaults to the included `data/EasyParking_50_Customers_Demo_Data.json`, targets the only parking in the configured MongoDB database, and never overwrites existing records. Review its dry-run before applying:
 
 ```powershell
 npm run import:demo
@@ -103,3 +103,4 @@ server.js                   Environment loading and HTTP server startup
 ```
 
 See [../DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md) for the data model and [../PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md) for business rules.
+

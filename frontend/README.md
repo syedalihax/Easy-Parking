@@ -1,6 +1,6 @@
-# easyParking frontend
+﻿# EasyParking frontend
 
-The frontend is a Vite-based React application for the easyParking parking management workflow. It includes a public landing experience, login/signup flow, and an authenticated app shell for parking operations.
+The frontend is a Vite-based React application for the EasyParking parking management workflow. It includes a public landing experience, login/signup flow, and an authenticated app shell for parking operations.
 
 ## App flow
 
@@ -89,3 +89,4 @@ vite.config.js               Vite, Tailwind, and PWA configuration
 - Auth screens include a home/back action, password show/hide controls, and stronger card elevation.
 - The app is online-first and shows an offline banner instead of queuing writes for offline sync.
 - Backend setup, MongoDB configuration, and API routes are documented in [../backend/README.md](../backend/README.md).
+

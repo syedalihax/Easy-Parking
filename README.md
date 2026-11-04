@@ -1,6 +1,6 @@
-# easyParking
+﻿# EasyParking
 
-easyParking is a mobile-first parking management PWA for small and medium parking businesses. It replaces a paper register with shared customer, vehicle, subscription, dues, and payment records.
+EasyParking is a mobile-first parking management PWA for small and medium parking businesses. It replaces a paper register with shared customer, vehicle, subscription, dues, and payment records.
 
 The application is split into a React frontend and an Express + MongoDB backend. Each parking business is treated as a separate tenant, so customer, vehicle, billing, payment, and access records are scoped to that parking. Monthly dues are generated after each vehicle's billing period closes, and payments are applied to oldest outstanding dues by default.
 
@@ -106,3 +106,4 @@ The frontend also supports `npm run lint` for static checks when needed.
 - [Phase 7: Dashboard & Reports](./PHASE7_DASHBOARD_REPORTS.md)
 - [Phase 8: UI/UX & Localization](./PHASE8_UI_LOCALIZATION.md)
 - [Phase 9: PWA, Testing & Deployment](./PHASE9_PWA_TESTING_DEPLOYMENT.md)
+

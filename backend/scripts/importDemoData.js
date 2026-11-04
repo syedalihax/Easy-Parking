@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -14,7 +14,7 @@ const User = require('../src/models/User');
 const Vehicle = require('../src/models/Vehicle');
 const { getCompletedBillingPeriods } = require('../src/utils/billingPeriods');
 
-const defaultFile = path.join(__dirname, '..', 'data', 'easyParking_50_Customers_Demo_Data.json');
+const defaultFile = path.join(__dirname, '..', 'data', 'EasyParking_50_Customers_Demo_Data.json');
 const args = process.argv.slice(2);
 const optionValue = (name) => {
   const index = args.indexOf(name);
@@ -390,3 +390,4 @@ main().catch((error) => {
   console.error(`Demo data import failed: ${error.message}`);
   process.exitCode = 1;
 });
+

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+﻿import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
@@ -36,8 +36,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'easyParking — Parking Management',
-        short_name: 'easyParking',
+        name: 'EasyParking — Parking Management',
+        short_name: 'EasyParking',
         description: 'Manage parking members, vehicles, monthly subscriptions, payments, and daily parking.',
         theme_color: '#087F5B',
         background_color: '#F4F1E8',
@@ -71,3 +71,4 @@ export default defineConfig({
     }),
   ],
 })
+

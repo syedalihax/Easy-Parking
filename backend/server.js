@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
@@ -8,6 +8,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 connectDB().then(() => {
   app.listen(PORT, HOST, () => {
-    console.log(`easyParking backend listening on ${HOST}:${PORT}`);
+    console.log(`EasyParking backend listening on ${HOST}:${PORT}`);
   });
 });
+

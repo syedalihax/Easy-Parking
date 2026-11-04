@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -23,28 +23,28 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://easyparking.example.com"),
-  title: "easyParking | Simple Parking Management Software",
+  title: "EasyParking | Simple Parking Management Software",
   description:
-    "easyParking helps parking owners and managers organize members, vehicles, subscriptions, dues, payments, and daily parking records in one clear workspace.",
+    "EasyParking helps parking owners and managers organize members, vehicles, subscriptions, dues, payments, and daily parking records in one clear workspace.",
   keywords: [
     "parking management",
     "parking software",
-    "easyParking",
+    "EasyParking",
     "parking billing",
     "parking records",
     "parking dues",
   ],
   openGraph: {
-    title: "easyParking | Simple Parking Management Software",
+    title: "EasyParking | Simple Parking Management Software",
     description:
       "Organize member records, vehicle details, monthly subscriptions, day-to-day parking, and payment history in one workspace.",
     url: "https://easyparking.example.com",
-    siteName: "easyParking",
+    siteName: "EasyParking",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "easyParking | Simple Parking Management Software",
+    title: "EasyParking | Simple Parking Management Software",
     description:
       "Organize member records, vehicle details, monthly subscriptions, day-to-day parking, and payment history in one workspace.",
   },
@@ -61,3 +61,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

@@ -1,6 +1,6 @@
-{
+﻿{
   "app": {
-    "name": "easyParking",
+    "name": "EasyParking",
     "parkingManagement": "Parking management",
     "selectedParking": "Selected parking",
     "logout": "Log out",
@@ -413,8 +413,8 @@
     "vehicleSearchPlaceholder": "Enter registration number"
   },
   "landing": {
-    "seoTitle": "easyParking — Simple Parking Management Software",
-    "seoDescription": "Manage parking members, vehicles, monthly subscriptions, payments and daily parking with easyParking. Replace paper registers with organized digital parking records.",
+    "seoTitle": "EasyParking — Simple Parking Management Software",
+    "seoDescription": "Manage parking members, vehicles, monthly subscriptions, payments and daily parking with EasyParking. Replace paper registers with organized digital parking records.",
     "nav": {
       "features": "Features",
       "howItWorks": "How it works",
@@ -458,8 +458,8 @@
     "comparison": {
       "eyebrow": "From scattered notes to a clear record",
       "title": "A better way to keep track",
-      "before": "Before easyParking",
-      "after": "With easyParking",
+      "before": "Before EasyParking",
+      "after": "With EasyParking",
       "beforeItems": [
         "Paper registers are hard to search",
         "Payment notes can go missing",
@@ -495,7 +495,7 @@
     "showcase": {
       "eyebrow": "Designed around real parking records",
       "title": "A workspace that keeps the details connected.",
-      "description": "These interface previews illustrate existing areas of easyParking. Example records are for demonstration only.",
+      "description": "These interface previews illustrate existing areas of EasyParking. Example records are for demonstration only.",
       "dashboard": "Dashboard",
       "member": "Member record",
       "vehicle": "Vehicle history",
@@ -534,13 +534,13 @@
       "eyebrow": "Questions, answered",
       "title": "Good to know before you begin.",
       "items": [
-        { "question": "What is easyParking?", "answer": "easyParking is a parking management application for organizing members, vehicles, monthly subscriptions, dues, payments, daily parking and reports." },
-        { "question": "Who can use easyParking?", "answer": "It is designed for parking owners and their Managers who need a straightforward way to maintain parking records." },
+        { "question": "What is EasyParking?", "answer": "EasyParking is a parking management application for organizing members, vehicles, monthly subscriptions, dues, payments, daily parking and reports." },
+        { "question": "Who can use EasyParking?", "answer": "It is designed for parking owners and their Managers who need a straightforward way to maintain parking records." },
         { "question": "Can one member have multiple vehicles?", "answer": "Yes. A member can have multiple vehicles, and each vehicle has its own monthly subscription and billing history." },
         { "question": "Can I manage monthly and daily parking?", "answer": "Yes. Monthly subscriptions and walk-in daily parking are tracked in separate workflows." },
         { "question": "Can I record partial payments?", "answer": "Yes. A payment can be partial or allocated across multiple outstanding monthly dues. Daily parking payments are recorded separately." },
         { "question": "Can multiple users access the same parking?", "answer": "An Owner can invite a Manager. Owners approve payment correction requests; Managers can request them." },
-        { "question": "Does easyParking support Urdu?", "answer": "Yes. The interface supports Urdu, Iranian Persian, English and Roman Urdu. Urdu and Persian use right-to-left layouts." },
+        { "question": "Does EasyParking support Urdu?", "answer": "Yes. The interface supports Urdu, Iranian Persian, English and Roman Urdu. Urdu and Persian use right-to-left layouts." },
         { "question": "Can I use it on my mobile phone?", "answer": "Yes. The application is responsive and installable as a Progressive Web App on supported devices. It needs an internet connection for records and changes." },
         { "question": "Is my parking data private?", "answer": "Parking records are scoped to a parking workspace, and the API checks the signed-in user's active membership before serving parking data. Ask your parking Owner about the service's hosting and retention policies." }
       ]
@@ -556,11 +556,11 @@
       "login": "Log in",
       "privacy": "Privacy information",
       "terms": "Terms of use",
-      "copyright": "© easyParking"
+      "copyright": "© EasyParking"
     },
     "legal": {
       "privacyTitle": "Privacy information",
-      "privacyIntro": "This product overview describes the information easyParking handles in its current workflows. It is not a complete service-provider privacy policy.",
+      "privacyIntro": "This product overview describes the information EasyParking handles in its current workflows. It is not a complete service-provider privacy policy.",
       "privacyDataTitle": "Records in the workspace",
       "privacyData": "Accounts can include a name, email or phone number and language preference. Parking workspaces can include member contact details, vehicle information, subscription records, dues, payments and daily parking entries.",
       "privacyAccessTitle": "Workspace access",
@@ -570,9 +570,9 @@
       "termsTitle": "Terms of use",
       "termsIntro": "These notes summarize the product's intended use; they are not a complete legal agreement.",
       "termsUseTitle": "Use and access",
-      "termsUse": "Use easyParking only with an account and parking workspace you are authorized to access. Owners manage invitations; Managers can work with parking records but cannot approve payment corrections.",
+      "termsUse": "Use EasyParking only with an account and parking workspace you are authorized to access. Owners manage invitations; Managers can work with parking records but cannot approve payment corrections.",
       "termsRecordsTitle": "Records and payments",
-      "termsRecords": "easyParking records information entered by its users. Check member, vehicle, billing and payment details for accuracy. Payments are manually recorded; the application does not process online payments.",
+      "termsRecords": "EasyParking records information entered by its users. Check member, vehicle, billing and payment details for accuracy. Payments are manually recorded; the application does not process online payments.",
       "termsLimitsTitle": "Service details",
       "termsLimits": "Pricing, service availability, support, jurisdiction and other legal terms have not been provided. Contact the service operator through your parking Owner for the applicable agreement."
     }
@@ -586,3 +586,4 @@
     "apiUnavailable": "The service is temporarily unavailable. Please try again in a moment."
   }
 }
+

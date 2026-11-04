@@ -1,6 +1,6 @@
-{
+﻿{
   "app": {
-    "name": "easyParking",
+    "name": "EasyParking",
     "parkingManagement": "Parking intizam",
     "selectedParking": "Muntakhib parking",
     "logout": "Logout",
@@ -413,8 +413,8 @@
     "vehicleSearchPlaceholder": "Registration number likhein"
   },
   "landing": {
-    "seoTitle": "easyParking — Asaan Parking Management Software",
-    "seoDescription": "easyParking se parking members, gariyan, mahina-war subscriptions, wasooli aur rozana parking manage karein. Kaghazi register ko munazzam digital records se badlein.",
+    "seoTitle": "EasyParking — Asaan Parking Management Software",
+    "seoDescription": "EasyParking se parking members, gariyan, mahina-war subscriptions, wasooli aur rozana parking manage karein. Kaghazi register ko munazzam digital records se badlein.",
     "nav": {
       "features": "Features",
       "howItWorks": "Kaise kaam karta hai",
@@ -458,8 +458,8 @@
     "comparison": {
       "eyebrow": "Bikhre notes se wazeh record tak",
       "title": "Record rakhne ka behtar tareeqa",
-      "before": "easyParking se pehle",
-      "after": "easyParking ke saath",
+      "before": "EasyParking se pehle",
+      "after": "EasyParking ke saath",
       "beforeItems": [
         "Kaghazi register mein talash mushkil",
         "Payment notes gum ho sakte hain",
@@ -495,7 +495,7 @@
     "showcase": {
       "eyebrow": "Asal parking records ke liye design",
       "title": "Aisa workspace jo tamam tafseel jor kar rakhe.",
-      "description": "Yeh interface previews easyParking ke mojooda hisson ko dikhate hain. Misaali records sirf demo ke liye hain.",
+      "description": "Yeh interface previews EasyParking ke mojooda hisson ko dikhate hain. Misaali records sirf demo ke liye hain.",
       "dashboard": "Dashboard",
       "member": "Member record",
       "vehicle": "Gari ki history",
@@ -534,13 +534,13 @@
       "eyebrow": "Aap ke sawalat, jawab ke saath",
       "title": "Shuru karne se pehle yeh jaan lein.",
       "items": [
-        { "question": "easyParking kya hai?", "answer": "easyParking parking management application hai jo members, gariyan, mahina-war subscriptions, baqaya, payments, rozana parking aur reports ko munazzam karti hai." },
-        { "question": "easyParking kon istemal kar sakta hai?", "answer": "Yeh parking Owners aur un ke Managers ke liye hai jinhein records rakhne ka seedha tareeqa chahiye." },
+        { "question": "EasyParking kya hai?", "answer": "EasyParking parking management application hai jo members, gariyan, mahina-war subscriptions, baqaya, payments, rozana parking aur reports ko munazzam karti hai." },
+        { "question": "EasyParking kon istemal kar sakta hai?", "answer": "Yeh parking Owners aur un ke Managers ke liye hai jinhein records rakhne ka seedha tareeqa chahiye." },
         { "question": "Kya aik member ki kai gariyan ho sakti hain?", "answer": "Ji haan. Aik member ki kai gariyan ho sakti hain aur har gari ki apni mahina-war subscription aur billing history hoti hai." },
         { "question": "Kya monthly aur daily parking dono manage hoti hain?", "answer": "Ji haan. Mahina-war subscriptions aur rozana walk-in parking alag workflows mein record hoti hain." },
         { "question": "Kya partial payment darj kar sakta hoon?", "answer": "Ji haan. Payment aik bill ka hissa ho sakti hai ya kai mahina-war baqaya mein allocate ho sakti hai. Daily parking alag record hoti hai." },
         { "question": "Kya kai users aik parking tak rasai rakh sakte hain?", "answer": "Owner Manager ko invite kar sakta hai. Owner correction requests approve karta hai aur Manager request bhej sakta hai." },
-        { "question": "Kya easyParking Urdu support karta hai?", "answer": "Ji haan. Interface Urdu, Iranian Persian, English aur Roman Urdu mein hai. Urdu aur Persian RTL layout istemal karte hain." },
+        { "question": "Kya EasyParking Urdu support karta hai?", "answer": "Ji haan. Interface Urdu, Iranian Persian, English aur Roman Urdu mein hai. Urdu aur Persian RTL layout istemal karte hain." },
         { "question": "Kya mobile phone par istemal ho sakta hai?", "answer": "Ji haan. App responsive hai aur supported devices par Progressive Web App ke taur par install ho sakti hai. Records dekhne aur tabdeel karne ke liye internet chahiye." },
         { "question": "Kya meri parking information private hai?", "answer": "Records parking workspace se linked hote hain aur API data dene se pehle active membership check karti hai. Hosting aur retention policy apne parking Owner se poochein." }
       ]
@@ -556,11 +556,11 @@
       "login": "Login",
       "privacy": "Privacy ki maloomat",
       "terms": "Istemaal ki sharaait",
-      "copyright": "© easyParking"
+      "copyright": "© EasyParking"
     },
     "legal": {
       "privacyTitle": "Privacy ki maloomat",
-      "privacyIntro": "Yeh product overview batata hai ke easyParking apne mojooda workflows mein kis qisam ki maloomat handle karta hai. Yeh service provider ki mukammal privacy policy nahin.",
+      "privacyIntro": "Yeh product overview batata hai ke EasyParking apne mojooda workflows mein kis qisam ki maloomat handle karta hai. Yeh service provider ki mukammal privacy policy nahin.",
       "privacyDataTitle": "Workspace records",
       "privacyData": "Accounts mein naam, email ya phone number aur zaban ki preference ho sakti hai. Parking workspace mein member contact details, gari ki maloomat, subscriptions, baqaya, payments aur daily parking entries ho sakti hain.",
       "privacyAccessTitle": "Workspace tak rasai",
@@ -570,9 +570,9 @@
       "termsTitle": "Istemaal ki sharaait",
       "termsIntro": "Yeh notes product ke maqsad ka khulasa hain; mukammal legal agreement nahin.",
       "termsUseTitle": "Istemaal aur rasai",
-      "termsUse": "easyParking sirf us account aur parking workspace ke liye istemal karein jis ki aap ko ijazat ho. Owner invitations manage karta hai; Manager records par kaam kar sakta hai magar payment correction approve nahin kar sakta.",
+      "termsUse": "EasyParking sirf us account aur parking workspace ke liye istemal karein jis ki aap ko ijazat ho. Owner invitations manage karta hai; Manager records par kaam kar sakta hai magar payment correction approve nahin kar sakta.",
       "termsRecordsTitle": "Records aur payments",
-      "termsRecords": "easyParking users ki darj ki hui maloomat record karta hai. Member, gari, billing aur payment details ki durusti check karein. Payments manually darj hoti hain; application online payments process nahin karti.",
+      "termsRecords": "EasyParking users ki darj ki hui maloomat record karta hai. Member, gari, billing aur payment details ki durusti check karein. Payments manually darj hoti hain; application online payments process nahin karti.",
       "termsLimitsTitle": "Service ki tafseel",
       "termsLimits": "Pricing, service availability, support, jurisdiction aur doosri legal sharaait mojood nahin. Mutaliqa agreement ke liye apne parking Owner ke zariye service operator se rabta karein."
     }
@@ -586,3 +586,4 @@
     "apiUnavailable": "Service abhi temporarily unavailable hai. Please thori der baad dobara koshish karein."
   }
 }
+
