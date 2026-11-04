@@ -9,6 +9,7 @@
     "cancel": "Mansookh",
     "saving": "Save ho raha hai...",
     "all": "Sab",
+    "seeAll": "Sab dekhein",
     "active": "Fa'aal",
     "inactive": "Ghair fa'aal",
     "paused": "Waqti ke liye band",
@@ -153,6 +154,10 @@
     "pendingDues": "Ada karne ke baqi bills",
     "overdueDues": "Saat din se zyada purane bills",
     "partialPayments": "Aadhi ada hui payment",
+    "followUp": "Follow-up",
+    "member": "Member",
+    "memberPayment": "Member ki adaigi",
+    "noRecentPayments": "Abhi tak koi recent payment nahi hui.",
     "upcomingBilling": "Qareeb aati payments",
     "nothing": "Dikhane ke liye kuch nahin.",
     "loading": "Dashboard load ho raha hai..."

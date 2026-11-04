@@ -9,6 +9,7 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "all": "All",
+    "seeAll": "See all",
     "active": "Active",
     "inactive": "Inactive",
     "paused": "Paused",
@@ -153,6 +154,10 @@
     "pendingDues": "Bills to be paid",
     "overdueDues": "Bills unpaid for 7+ days",
     "partialPayments": "Part-paid bills",
+    "followUp": "Follow-up",
+    "member": "Member",
+    "memberPayment": "Member payment",
+    "noRecentPayments": "No recent payments yet.",
     "upcomingBilling": "Payments coming soon",
     "nothing": "Nothing to show.",
     "loading": "Loading dashboard..."
