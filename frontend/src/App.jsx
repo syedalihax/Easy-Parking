@@ -129,7 +129,14 @@ function App() {
   const showProfileSetup = shouldShowProfileSetupPrompt;
   const hasParkingMembership = Array.isArray(parkings) && parkings.some((parking) => parking && parking._id);
   const sidebarNavigation = hasParkingMembership ? desktopNavigation : noParkingNavigation;
-  const mobileNavigation = hasParkingMembership ? desktopNavigation : noParkingMobileNavigation;
+  const mobileBottomNavigation = [
+    { to: '/app/dashboard', key: 'nav.dashboard', Icon: 'dashboard' },
+    { to: '/app/customers', key: 'nav.customers', Icon: 'groups', end: true },
+    { to: '/app/payments', key: 'nav.payments', Icon: 'credit_card' },
+    { to: '/app/daily-parking', key: 'nav.dailyParking', Icon: 'local_parking' },
+    { to: '/app/more', key: 'nav.more', Icon: 'more_horiz' },
+  ];
+  const mobileNavigation = hasParkingMembership ? mobileBottomNavigation : noParkingMobileNavigation;
   const [showProfileSuccess, setShowProfileSuccess] = useState(false);
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
   const isMoreSectionActive = [
