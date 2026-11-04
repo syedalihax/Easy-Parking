@@ -639,7 +639,7 @@
   }
 
   .app-main {
-    @apply mx-auto grid w-full min-w-0 content-start gap-6 p-4 sm:p-6 lg:max-w-[1680px] lg:gap-8 lg:px-10 lg:py-9;
+    @apply mx-auto grid w-full min-w-0 content-start gap-6 p-4 sm:p-6 lg:max-w-[1680px] lg:gap-8 lg:px-5 lg:py-9;
     background: transparent;
   }
 
@@ -834,7 +834,7 @@
     scroll-snap-align: start;
     aspect-ratio: 1 / 1;
     min-height: clamp(220px, 26vw, 300px);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 0px solid rgba(255, 255, 255, 0.14);
     border-radius: 22px;
     box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
     color: var(--text-dark);
@@ -842,7 +842,7 @@
   }
 
   .dashboard-summary-card.teal {
-    background: linear-gradient(135deg, #22c55e 0%, #14b8a6 38%, #0f766e 100%);
+    background: linear-gradient(135deg, #18352d 0%, #14b8a5 25%, #18352d 100%);
     border-color: rgba(255, 255, 255, 0.18);
     color: #fff;
   }
