@@ -417,7 +417,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
   };
 
   const activateCustomer = async () => {
-    if (!customer || !window.confirm(t('customer.confirmActivateCustomer', { name: customer.fullName }))) return;
+    if (!customer) return;
     setIsLoading(true);
     setErrorMessage('');
     try {
@@ -466,7 +466,6 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
   };
 
   const activateVehicle = async (vehicle) => {
-    if (!window.confirm(t('customer.confirmActivateVehicle', { number: vehicle.registrationNumber }))) return;
     setIsLoading(true);
     setErrorMessage('');
     try {
