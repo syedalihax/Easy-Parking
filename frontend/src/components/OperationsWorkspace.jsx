@@ -114,15 +114,15 @@ function DashboardWorkspace({ parkingId }) {
   }, [parkingId, reloadKey, t]);
 
   const quickActions = [
-    { labelKey: 'dashboard.addCustomer', to: '/app/customers', Icon: 'person_add' },
-    { labelKey: 'nav.receivePayment', to: '/app/payments', Icon: 'payments' },
-    { labelKey: 'dashboard.pendingPayments', to: '/app/dues', Icon: 'wallet' },
-    { labelKey: 'nav.dailyParking', to: '/app/daily-parking', Icon: 'local_parking' },
-    { labelKey: 'nav.vehicles', to: '/app/vehicles', Icon: 'directions_car' },
-    { labelKey: 'nav.reports', to: '/app/reports', Icon: 'bar_chart' },
-    { labelKey: 'menu.parkingAccess', to: '/app/team', Icon: 'groups' },
-    { labelKey: 'menu.profile', to: '/app/profile', Icon: 'person' },
-    { labelKey: 'nav.more', to: '/app/more', Icon: 'more_horiz' },
+    { labelKey: 'dashboard.addCustomer', to: '/app/customers', Icon: 'person_add', tone: 'green' },
+    { labelKey: 'nav.receivePayment', to: '/app/payments', Icon: 'payments', tone: 'green' },
+    { labelKey: 'dashboard.pendingPayments', to: '/app/dues', Icon: 'wallet', tone: 'orange' },
+    { labelKey: 'nav.dailyParking', to: '/app/daily-parking', Icon: 'local_parking', tone: 'green' },
+    { labelKey: 'nav.vehicles', to: '/app/vehicles', Icon: 'directions_car', tone: 'blue' },
+    { labelKey: 'nav.reports', to: '/app/reports', Icon: 'bar_chart', tone: 'blue' },
+    { labelKey: 'menu.parkingAccess', to: '/app/team', Icon: 'groups', tone: 'blue' },
+    { labelKey: 'menu.profile', to: '/app/profile', Icon: 'person', tone: 'green' },
+    { labelKey: 'nav.more', to: '/app/more', Icon: 'more_horiz', tone: 'blue' },
   ];
 
   const summaryCards = summary ? [
@@ -197,8 +197,8 @@ function DashboardWorkspace({ parkingId }) {
               <h3>{t('dashboard.quickActions')}</h3>
             </div>
             <div className="dashboard-quick-grid">
-              {quickActions.map(({ labelKey, to, Icon }) => (
-                <Link key={labelKey} to={to} className="dashboard-quick-item">
+              {quickActions.map(({ labelKey, to, Icon, tone }) => (
+                <Link key={labelKey} to={to} className="dashboard-quick-item" data-tone={tone}>
                   <span className="dashboard-quick-icon"><GoogleIcon name={Icon} size={20} /></span>
                   <span>{t(labelKey)}</span>
                 </Link>
