@@ -832,7 +832,9 @@
   .dashboard-summary-card {
     @apply flex min-h-40 flex-col justify-between gap-4 rounded-xl border p-5 shadow-none;
     scroll-snap-align: start;
-    border: 1px solid var(--border-neutral);
+    border: 1px solid #E2E5E3;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     color: var(--text-dark);
     background: #fff;
   }
@@ -845,13 +847,14 @@
 
   .dashboard-summary-card.light-blue {
     background: #fff;
-    border-color: var(--border-neutral);
+    border-color: #E2E5E3;
     color: var(--text-dark);
   }
 
   .dashboard-summary-card.peach {
     background: #fff;
-    border-color: var(--border-neutral);
+    border-color: #E2E5E3;
+    border-left: 3px solid var(--accent);
     color: var(--text-dark);
   }
 
@@ -873,13 +876,13 @@
   }
 
   .dashboard-summary-card.light-blue .dashboard-summary-badge {
-    background: rgba(32, 112, 197, 0.12);
-    color: #1b5da8;
+    background: rgba(59, 130, 246, 0.15);
+    color: #3B82F6;
   }
 
   .dashboard-summary-card.peach .dashboard-summary-badge {
-    background: rgba(255, 122, 26, 0.12);
-    color: var(--accent);
+    background: var(--accent);
+    color: #fff;
   }
 
   .dashboard-summary-card.teal .dashboard-summary-badge {
@@ -939,12 +942,12 @@
 
   .dashboard-quick-item[data-tone='green'] .dashboard-quick-icon {
     background: rgba(14, 124, 74, 0.12);
-    color: var(--brand-primary-dark);
+    color: var(--brand-primary);
   }
 
   .dashboard-quick-item[data-tone='blue'] .dashboard-quick-icon {
-    background: rgba(32, 112, 197, 0.12);
-    color: #1b5da8;
+    background: rgba(59, 130, 246, 0.12);
+    color: #3B82F6;
   }
 
   .dashboard-quick-item[data-tone='orange'] .dashboard-quick-icon {
@@ -982,7 +985,9 @@
 
   .dashboard-payment-icon,
   .payment-history-icon {
-    @apply flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary-dark;
+    @apply flex size-12 shrink-0 items-center justify-center rounded-xl;
+    background: rgba(14, 124, 74, 0.12);
+    color: var(--brand-primary);
   }
 
   .dashboard-payment-main,

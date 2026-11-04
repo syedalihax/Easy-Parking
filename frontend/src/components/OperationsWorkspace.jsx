@@ -115,12 +115,12 @@ function DashboardWorkspace({ parkingId }) {
 
   const quickActions = [
     { labelKey: 'dashboard.addCustomer', to: '/app/customers', Icon: 'person_add', tone: 'green' },
-    { labelKey: 'nav.receivePayment', to: '/app/payments', Icon: 'payments', tone: 'green' },
+    { labelKey: 'nav.receivePayment', to: '/app/payments', Icon: 'payments', tone: 'orange' },
     { labelKey: 'dashboard.pendingPayments', to: '/app/dues', Icon: 'wallet', tone: 'orange' },
-    { labelKey: 'nav.dailyParking', to: '/app/daily-parking', Icon: 'local_parking', tone: 'green' },
+    { labelKey: 'nav.dailyParking', to: '/app/daily-parking', Icon: 'local_parking', tone: 'blue' },
     { labelKey: 'nav.vehicles', to: '/app/vehicles', Icon: 'directions_car', tone: 'blue' },
-    { labelKey: 'nav.reports', to: '/app/reports', Icon: 'bar_chart', tone: 'blue' },
-    { labelKey: 'menu.parkingAccess', to: '/app/team', Icon: 'groups', tone: 'blue' },
+    { labelKey: 'nav.reports', to: '/app/reports', Icon: 'bar_chart', tone: 'orange' },
+    { labelKey: 'menu.parkingAccess', to: '/app/team', Icon: 'groups', tone: 'green' },
     { labelKey: 'menu.profile', to: '/app/profile', Icon: 'person', tone: 'green' },
     { labelKey: 'nav.more', to: '/app/more', Icon: 'more_horiz', tone: 'blue' },
   ];
