@@ -148,13 +148,6 @@ function DashboardWorkspace({ parkingId }) {
 
   return (
     <div className="operations-workspace">
-      <header className="workspace-heading dashboard-header">
-        <div>
-          <p className="eyebrow">{t('dashboard.overview')}</p>
-          <h2>{t('nav.dashboard')}</h2>
-        </div>
-      </header>
-
       {errorMessage && summary && <p className="error-text" role="alert">{errorMessage}</p>}
 
       {isLoading ? (
