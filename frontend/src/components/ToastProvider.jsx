@@ -1,6 +1,8 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const ToastContext = createContext(null);
+const TOAST_MIN_DURATION = 3000;
+const TOAST_CLOSE_DURATION = 220;
 
 const toastLabel = {
   success: 'Success',
@@ -64,21 +66,51 @@ function ToastViewport({ toasts }) {
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+  const timersRef = useRef(new Map());
 
-  const showToast = useCallback(({ type = 'info', message = '', duration = 3000 }) => {
+  const removeToast = useCallback((id) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+    const currentTimers = timersRef.current.get(id);
+    if (currentTimers) {
+      currentTimers.forEach((timer) => window.clearTimeout(timer));
+      timersRef.current.delete(id);
+    }
+  }, []);
+
+  const closeToast = useCallback((id) => {
+    setToasts((current) => current.map((toast) => (toast.id === id ? { ...toast, closing: true } : toast)));
+  }, []);
+
+  const showToast = useCallback(({ type = 'info', message = '', duration = TOAST_MIN_DURATION }) => {
     if (!message) return;
 
+    const safeDuration = Math.max(duration, TOAST_MIN_DURATION);
     const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 
-    setToasts((current) => [...current, { id, type, message, duration, closing: false }]);
+    setToasts((current) => [...current, { id, type, message, duration: safeDuration, closing: false }]);
 
-    window.setTimeout(() => {
-      setToasts((current) => current.map((toast) => (toast.id === id ? { ...toast, closing: true } : toast)));
-    }, Math.max(duration - 220, 0));
+    const closeTimer = window.setTimeout(() => {
+      closeToast(id);
+    }, safeDuration);
 
-    window.setTimeout(() => {
-      setToasts((current) => current.filter((toast) => toast.id !== id));
-    }, duration);
+    const removeTimer = window.setTimeout(() => {
+      removeToast(id);
+    }, safeDuration + TOAST_CLOSE_DURATION);
+
+    const existingTimers = timersRef.current.get(id);
+    if (existingTimers) {
+      existingTimers.forEach((timer) => window.clearTimeout(timer));
+    }
+    timersRef.current.set(id, [closeTimer, removeTimer]);
+  }, [closeToast, removeToast]);
+
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((timers) => {
+        timers.forEach((timer) => window.clearTimeout(timer));
+      });
+      timersRef.current.clear();
+    };
   }, []);
 
   const value = useMemo(() => ({ showToast }), [showToast]);
