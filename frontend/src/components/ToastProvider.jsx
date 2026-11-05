@@ -30,7 +30,7 @@ const toastStyles = {
 
 function ToastViewport({ toasts }) {
   return (
-    <div className="pointer-events-none fixed right-4 top-4 z-[80] flex w-[min(92vw,360px)] flex-col gap-3">
+    <div className="pointer-events-none fixed inset-x-0 top-[72px] z-[120] flex w-[min(92vw,360px)] flex-col gap-3 px-3 md:inset-x-auto md:right-4 md:left-auto md:top-4 md:w-[min(92vw,360px)] md:px-0">
       {toasts.map((toast) => {
         const accent = toastStyles[toast.type] || toastStyles.info;
 
