@@ -10,6 +10,7 @@ const { isTransactionUnsupported } = require('../utils/mongoErrors');
 const CUSTOMER_FIELDS = [
   'fullName',
   'primaryPhone',
+  'cnic',
   'secondaryPhone',
   'address',
   'notes',
@@ -25,7 +26,7 @@ const getCustomerFields = (body) => Object.fromEntries(
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const createCustomer = async (req, res) => {
-  const { fullName, primaryPhone } = req.body;
+  const { fullName, primaryPhone, cnic } = req.body;
 
   if (typeof fullName !== 'string' || !fullName.trim()) {
     return res.status(400).json({ message: 'Customer name is required' });
@@ -40,6 +41,7 @@ const createCustomer = async (req, res) => {
       ...getCustomerFields(req.body),
       fullName: fullName.trim(),
       primaryPhone: primaryPhone.trim(),
+      cnic: typeof cnic === 'string' ? cnic.trim() : '',
       parkingId: req.params.parkingId,
       createdBy: req.user.id,
     });
@@ -163,6 +165,9 @@ const updateCustomer = async (req, res) => {
     }
     if (typeof updates.primaryPhone === 'string') {
       updates.primaryPhone = updates.primaryPhone.trim();
+    }
+    if (Object.hasOwn(updates, 'cnic') && typeof updates.cnic === 'string') {
+      updates.cnic = updates.cnic.trim();
     }
 
     const customer = await Customer.findOneAndUpdate(

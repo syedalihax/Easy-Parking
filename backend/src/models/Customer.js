@@ -17,6 +17,11 @@ const customerSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    cnic: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     secondaryPhone: {
       type: String,
       default: '',
@@ -54,5 +59,6 @@ const customerSchema = new mongoose.Schema(
 customerSchema.index({ parkingId: 1 });
 customerSchema.index({ fullName: 'text' });
 customerSchema.index({ primaryPhone: 1 });
+customerSchema.index({ cnic: 1 });
 
 module.exports = mongoose.model('Customer', customerSchema);

@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { activateCustomer, deleteCustomer } = require('../src/controllers/customerController');
+const { activateCustomer, createCustomer, deleteCustomer } = require('../src/controllers/customerController');
 const { activateVehicle, deleteVehicle } = require('../src/controllers/vehicleController');
 
 const createResponse = () => ({
@@ -37,6 +37,35 @@ test('customer activation marks an inactive profile as active', async () => {
     assert.equal(response.body.customer.status, 'active');
   } finally {
     Customer.findOne = originalFindOne;
+  }
+});
+
+test('customer creation persists CNIC/ID card information', async () => {
+  const Customer = require('../src/models/Customer');
+  const originalCreate = Customer.create;
+  let createdPayload;
+
+  Customer.create = async (payload) => {
+    createdPayload = payload;
+    return payload;
+  };
+
+  try {
+    const response = createResponse();
+    await createCustomer({
+      params: { parkingId: 'parking-1' },
+      user: { id: 'user-1' },
+      body: {
+        fullName: 'Ali Khan',
+        primaryPhone: '03001234567',
+        cnic: '42101-1234567-1',
+      },
+    }, response);
+
+    assert.equal(response.statusCode, 201);
+    assert.equal(createdPayload.cnic, '42101-1234567-1');
+  } finally {
+    Customer.create = originalCreate;
   }
 });
 

@@ -36,6 +36,7 @@ import {
 const emptyCustomer = {
   fullName: '',
   primaryPhone: '',
+  cnic: '',
   secondaryPhone: '',
   address: '',
   notes: '',
@@ -588,6 +589,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
     setCustomerForm({
       fullName: customer.fullName || '',
       primaryPhone: customer.primaryPhone || '',
+      cnic: customer.cnic || '',
       secondaryPhone: customer.secondaryPhone || '',
       address: customer.address || '',
       notes: customer.notes || '',
@@ -628,6 +630,10 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
       <label className="field">
         <span>{t('customer.primaryPhone')}</span>
         <input required value={customerForm.primaryPhone} onChange={(event) => setCustomerForm({ ...customerForm, primaryPhone: event.target.value })} />
+      </label>
+      <label className="field">
+        <span>{t('customer.cnic')}</span>
+        <input value={customerForm.cnic} onChange={(event) => setCustomerForm({ ...customerForm, cnic: event.target.value })} placeholder="42101-1234567-1" />
       </label>
       <label className="field">
         <span>{t('customer.secondaryPhone')}</span>
@@ -811,6 +817,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
               <p className="eyebrow">{t('customer.profile')}</p>
               <h2>{customer.fullName}</h2>
               <p className="customer-phone">{customer.primaryPhone}</p>
+              {customer.cnic && <p className="muted-text"><strong>{t('customer.cnic')}:</strong> {customer.cnic}</p>}
               {customer.secondaryPhone && <p className="customer-phone">{customer.secondaryPhone}</p>}
               {customer.address && <p className="muted-text">{customer.address}</p>}
               {customer.notes && <p className="muted-text">{customer.notes}</p>}

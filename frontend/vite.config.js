@@ -1,6 +1,5 @@
 ﻿import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
 
 const publicSeoPlugin = {
@@ -33,42 +32,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
     publicSeoPlugin,
-    VitePWA({
-      registerType: 'autoUpdate',
-      manifest: {
-        name: 'EasyParking — Parking Management',
-        short_name: 'EasyParking',
-        description: 'Manage parking members, vehicles, monthly subscriptions, payments, and daily parking.',
-        theme_color: '#087F5B',
-        background_color: '#F4F1E8',
-        display: 'standalone',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: '/pwa-192x192.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml',
-            purpose: 'any',
-          },
-          {
-            src: '/pwa-512x512.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any',
-          },
-          {
-            src: '/pwa-maskable.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'maskable',
-          },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,txt,woff2,webmanifest}'],
-      },
-    }),
   ],
 })
 
