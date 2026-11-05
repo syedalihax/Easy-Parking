@@ -159,6 +159,9 @@ function LandingPage({ onChangeLanguage }) {
             <span>{t('app.name')}</span>
           </Link>
           <nav className={`landing-nav-links${isMenuOpen ? ' is-open' : ''}`} aria-label={t('nav.main')} id="landing-navigation">
+            <div className="landing-mobile-language">
+              <LanguageSelector value={language} onChange={onChangeLanguage} />
+            </div>
             <a href="#features" onClick={closeMenu}>{t('landing.nav.features')}</a>
             <a href="#how-it-works" onClick={closeMenu}>{t('landing.nav.howItWorks')}</a>
             <a href="#benefits" onClick={closeMenu}>{t('landing.nav.benefits')}</a>
@@ -167,7 +170,9 @@ function LandingPage({ onChangeLanguage }) {
             <Link className="landing-mobile-cta" to="/signup" onClick={closeMenu}>{t('landing.nav.getStarted')}</Link>
           </nav>
           <div className="landing-nav-actions">
-            <LanguageSelector value={language} onChange={onChangeLanguage} />
+            <div className="landing-desktop-language">
+              <LanguageSelector value={language} onChange={onChangeLanguage} />
+            </div>
             <Link className="landing-login-link" to="/login">{t('landing.nav.login')}</Link>
             <Link className="landing-nav-cta" to="/signup">{t('landing.nav.getStarted')}<GoogleIcon name="north_east" size={16} /></Link>
           </div>

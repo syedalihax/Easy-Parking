@@ -123,7 +123,18 @@ html {
   gap: 20px;
 }
 
-.landing-nav-actions .language-selector {
+.landing-desktop-language,
+.landing-mobile-language {
+  display: flex;
+  align-items: center;
+}
+
+.landing-mobile-language {
+  display: none;
+}
+
+.landing-nav-actions .language-selector,
+.landing-mobile-language .language-selector {
   min-width: 112px;
 }
 
@@ -219,6 +230,10 @@ html {
     gap: 13px;
   }
 
+  .landing-desktop-language {
+    display: none;
+  }
+
   .landing-nav-actions .landing-login-link {
     display: none;
   }
@@ -238,6 +253,38 @@ html {
 
   .landing-nav-links.is-open {
     display: grid;
+  }
+
+  .landing-mobile-language {
+    display: block;
+    padding: 10px 0 8px;
+    border-block-end: 1px solid #e5e9e1;
+  }
+
+  .landing-mobile-language .field {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+  }
+
+  .landing-mobile-language .field span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    color: var(--brand-ink-soft);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .landing-mobile-language .field .custom-dropdown {
+    flex: 1;
+    min-width: 0;
   }
 
   .landing-nav-links a {
@@ -303,6 +350,7 @@ html {
     min-width: 0;
   }
 
+  .landing-mobile-language .field select,
   .landing-nav-actions .field select {
     max-width: 92px;
     min-height: 39px;
