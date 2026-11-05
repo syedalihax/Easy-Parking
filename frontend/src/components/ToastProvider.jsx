@@ -50,12 +50,12 @@ function ToastViewport({ toasts }) {
             </div>
             <div className="absolute inset-x-0 bottom-0 h-[6px] overflow-hidden rounded-b-2xl bg-slate-200">
               <div
-                className={`h-full w-full ${accent.bar}`}
+                className={`block h-full ${accent.bar}`}
                 style={{
                   width: '100%',
-                  transformOrigin: 'left center',
                   animation: `toast-progress ${toast.duration}ms linear forwards`,
                   boxShadow: toast.type === 'success' ? '0 0 10px rgba(5,150,105,0.85)' : toast.type === 'error' ? '0 0 10px rgba(220,38,38,0.85)' : '0 0 10px rgba(2,132,199,0.85)',
+                  willChange: 'width',
                 }}
               />
             </div>
