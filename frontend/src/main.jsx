@@ -10,12 +10,15 @@ import './index.css'
 import './i18n'
 import App from './App.jsx'
 import OfflineNotice from './components/OfflineNotice.jsx'
+import { ToastProvider } from './components/ToastProvider.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <OfflineNotice />
-      <App />
+      <ToastProvider>
+        <OfflineNotice />
+        <App />
+      </ToastProvider>
     </BrowserRouter>
   </StrictMode>
 )

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import CustomModal from './CustomModal';
 import StatusBadge from './StatusBadge';
+import { useToast } from './ToastProvider';
 import {
   apiCreateCustomer,
   apiCreateVehicle,
@@ -53,6 +54,7 @@ const emptyVehicle = {
 
 function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen = 'customers' }) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const { customerId: routeCustomerId, vehicleId: routeVehicleId } = useParams();
   const screen = routeCustomerId ? 'profile' : routeVehicleId ? 'vehicle-detail' : initialScreen;
@@ -127,6 +129,18 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
     setPayments(paymentResult.payments || []);
     setSubscriptions(subscriptionResult.subscriptions || []);
   }, [parkingId]);
+
+  useEffect(() => {
+    if (statusMessage) {
+      showToast({ type: 'success', message: statusMessage });
+    }
+  }, [showToast, statusMessage]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      showToast({ type: 'error', message: errorMessage });
+    }
+  }, [errorMessage, showToast]);
 
   useEffect(() => {
     if (!routeCustomerId) return undefined;
@@ -687,9 +701,6 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
 
   return (
     <section className="customers-workspace">
-      {errorMessage && !showCustomerForm && !showVehicleForm && <p className="error-text">{errorMessage}</p>}
-      {statusMessage && <p className="success-text">{statusMessage}</p>}
-
       {screen === 'vehicle-detail' && selectedVehicle && (
         <>
           <Link to="/app/vehicles" className="text-button" onClick={() => setSelectedVehicle(null)}>{t('customer.backToVehicleSearch')}</Link>

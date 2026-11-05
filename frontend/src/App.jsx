@@ -22,6 +22,7 @@ import {
   apiUpdatePreferredLanguage,
 } from './api';
 import LanguageSelector from './components/LanguageSelector';
+import { useToast } from './components/ToastProvider';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
 
@@ -92,6 +93,7 @@ const noParkingMobileNavigation = noParkingNavigation;
 
 function App() {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [token, setToken] = useState('');
@@ -150,9 +152,17 @@ function App() {
 
   useEffect(() => {
     if (!statusMessage) return undefined;
+    showToast({ type: 'success', message: statusMessage });
     const timer = window.setTimeout(() => setStatusMessage(''), 3000);
     return () => window.clearTimeout(timer);
-  }, [statusMessage]);
+  }, [showToast, statusMessage]);
+
+  useEffect(() => {
+    if (!errorMessage) return undefined;
+    showToast({ type: 'error', message: errorMessage });
+    const timer = window.setTimeout(() => setErrorMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [errorMessage, showToast]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return undefined;
@@ -212,6 +222,12 @@ function App() {
     const isRegistered = params.get('registered') === '1';
     setShowRegistrationSuccess(isRegistered && location.pathname === '/login');
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (showRegistrationSuccess) {
+      showToast({ type: 'success', message: t('auth.registrationSuccess') });
+    }
+  }, [showRegistrationSuccess, showToast, t]);
 
   useEffect(() => {
     let robots = document.querySelector('meta[name="robots"]');
@@ -602,23 +618,6 @@ function App() {
             {t('auth.signup')}
           </Link>
         </div>
-
-        {mode === 'login' && showRegistrationSuccess && (
-          <div
-            className="toast-notification"
-            role="status"
-            aria-live="polite"
-            style={{
-              position: 'relative',
-              width: '100%',
-              marginBottom: '1rem',
-              justifyContent: 'flex-start',
-            }}
-          >
-            <GoogleIcon name="check_circle" size={18} />
-            <span>{t('auth.registrationSuccess')}</span>
-          </div>
-        )}
 
         <form className="form-grid" onSubmit={handleAuthSubmit}>
           {mode === 'signup' && (
@@ -1137,15 +1136,8 @@ function App() {
               </aside>
             </>
           )}
-          {statusMessage && (
-            <div className="toast-notification" role="status" aria-live="polite">
-              <GoogleIcon name="check_circle" size={18} />
-              <span>{statusMessage}</span>
-            </div>
-          )}
           <main className="app-main" id="app-content" tabIndex="-1">
             <Outlet />
-            {errorMessage && <p className="error-text">{errorMessage}</p>}
           </main>
           <nav className="mobile-tab-bar" data-mode={hasParkingMembership ? 'parking' : 'no-parking'} aria-label={t('nav.main')}>
             {mobileNavigation.map(({ to, key, Icon, end }) => (

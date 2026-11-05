@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from './StatusBadge';
+import { useToast } from './ToastProvider';
 import {
   apiCreateDailyParkingEntry,
   apiGetActiveDailyParking,
@@ -29,6 +30,7 @@ const elapsed = (value) => {
 
 function DailyParkingWorkspace({ parkingId }) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [entry, setEntry] = useState(emptyEntry);
   const [rate, setRate] = useState(0);
   const [rateInput, setRateInput] = useState('');
@@ -50,6 +52,18 @@ function DailyParkingWorkspace({ parkingId }) {
     const response = await apiGetDailyParkingHistory(parkingId, dateFilter);
     setHistory(response.records);
   }, [dateFilter, parkingId]);
+
+  useEffect(() => {
+    if (statusMessage) {
+      showToast({ type: 'success', message: statusMessage });
+    }
+  }, [showToast, statusMessage]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      showToast({ type: 'error', message: errorMessage });
+    }
+  }, [errorMessage, showToast]);
 
   useEffect(() => {
     let active = true;
@@ -161,8 +175,6 @@ function DailyParkingWorkspace({ parkingId }) {
         ))}
       </nav>
 
-      {errorMessage && <p className="error-text" role="alert">{errorMessage}</p>}
-      {statusMessage && <p className="success-text" role="status">{statusMessage}</p>}
       {screen === 'entry' && (
         <form className="panel form-grid daily-entry-form" onSubmit={submitEntry}>
           <div className="panel-header"><h3>{t('daily.newEntry')}</h3><p className="muted-text">{t('daily.feeNotice', { amount: money(rate) })}</p></div>
