@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import CustomDropdown from './CustomDropdown';
 
 const languageKeys = {
   en: 'language.en',
@@ -9,14 +10,23 @@ const languageKeys = {
 
 function LanguageSelector({ value, onChange }) {
   const { t } = useTranslation();
+
+  const options = Object.entries(languageKeys).map(([code, key]) => ({
+    value: code,
+    label: t(key),
+  }));
+
   return (
     <label className="field language-selector">
       <span>{t('language.label')}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} aria-label={t('language.label')}>
-        {Object.entries(languageKeys).map(([code, key]) => (
-          <option value={code} key={code}>{t(key)}</option>
-        ))}
-      </select>
+      <CustomDropdown
+        value={value}
+        options={options}
+        onChange={onChange}
+        label={null}
+        placeholder={t('language.label')}
+        className="w-full"
+      />
     </label>
   );
 }

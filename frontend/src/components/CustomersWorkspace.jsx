@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import CustomModal from './CustomModal';
 import StatusBadge from './StatusBadge';
 import {
   apiCreateCustomer,
@@ -90,6 +91,30 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
   const [paymentDetail, setPaymentDetail] = useState(null);
   const [correctionForm, setCorrectionForm] = useState({ correctedAmount: '', reason: '' });
   const [rateForm, setRateForm] = useState({ subscriptionId: '', monthlyRate: '', timing: 'next_cycle' });
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    onCancel: null,
+    confirmText: 'OK',
+    cancelText: 'Cancel',
+  });
+
+  const openConfirmation = ({ title, message, onConfirm, confirmText = 'OK', cancelText = 'Cancel' }) => {
+    setConfirmationModal({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        setConfirmationModal((current) => ({ ...current, isOpen: false }));
+        onConfirm?.();
+      },
+      onCancel: () => setConfirmationModal((current) => ({ ...current, isOpen: false })),
+      confirmText,
+      cancelText,
+    });
+  };
 
   const loadBilling = useCallback(async (customerId) => {
     const [dueResult, paymentResult, subscriptionResult] = await Promise.all([
@@ -322,18 +347,25 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
   };
 
   const endSubscription = async (subscription) => {
-    if (!window.confirm(t('customer.confirmEndSubscription'))) return;
-    setIsLoading(true);
-    setErrorMessage('');
-    try {
-      await apiEndSubscription(parkingId, customer._id, subscription._id);
-      await loadBilling(customer._id);
-      setStatusMessage(t('customer.subscriptionEnded'));
-    } catch (error) {
-      setErrorMessage(error.message || t('errors.couldNotSave'));
-    } finally {
-      setIsLoading(false);
-    }
+    openConfirmation({
+      title: 'Confirm action',
+      message: t('customer.confirmEndSubscription'),
+      confirmText: 'OK',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setIsLoading(true);
+        setErrorMessage('');
+        try {
+          await apiEndSubscription(parkingId, customer._id, subscription._id);
+          await loadBilling(customer._id);
+          setStatusMessage(t('customer.subscriptionEnded'));
+        } catch (error) {
+          setErrorMessage(error.message || t('errors.couldNotSave'));
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
   };
 
   const receivePayment = async () => {
@@ -433,36 +465,48 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
   };
 
   const deleteCustomer = async () => {
-    if (!customer || !window.confirm(t('customer.confirmDeleteCustomer', { name: customer.fullName }))) return;
-    setIsLoading(true);
-    setErrorMessage('');
-    try {
-      await apiDeleteCustomer(parkingId, customer._id);
-      setCustomer(null);
-      setStatusMessage(t('customer.customerRemoved'));
-      await loadCustomers(pagination.page);
-      navigate('/app/customers');
-    } catch (error) {
-      setErrorMessage(error.message || t('errors.couldNotSave'));
-    } finally {
-      setIsLoading(false);
-    }
+    if (!customer) return;
+    openConfirmation({
+      title: 'Confirm action',
+      message: t('customer.confirmDeleteCustomer', { name: customer.fullName }),
+      onConfirm: async () => {
+        setIsLoading(true);
+        setErrorMessage('');
+        try {
+          await apiDeleteCustomer(parkingId, customer._id);
+          setCustomer(null);
+          setStatusMessage(t('customer.customerRemoved'));
+          await loadCustomers(pagination.page);
+          navigate('/app/customers');
+        } catch (error) {
+          setErrorMessage(error.message || t('errors.couldNotSave'));
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
   };
 
   const deactivateCustomer = async () => {
-    if (!customer || !window.confirm(t('customer.confirmDeactivateCustomer', { name: customer.fullName }))) return;
-    setIsLoading(true);
-    setErrorMessage('');
-    try {
-      const response = await apiDeactivateCustomer(parkingId, customer._id);
-      setCustomer(response.customer);
-      setStatusMessage(t('customer.customerDeactivated'));
-      await loadCustomers(pagination.page);
-    } catch (error) {
-      setErrorMessage(error.message || t('errors.couldNotSave'));
-    } finally {
-      setIsLoading(false);
-    }
+    if (!customer) return;
+    openConfirmation({
+      title: 'Confirm action',
+      message: t('customer.confirmDeactivateCustomer', { name: customer.fullName }),
+      onConfirm: async () => {
+        setIsLoading(true);
+        setErrorMessage('');
+        try {
+          const response = await apiDeactivateCustomer(parkingId, customer._id);
+          setCustomer(response.customer);
+          setStatusMessage(t('customer.customerDeactivated'));
+          await loadCustomers(pagination.page);
+        } catch (error) {
+          setErrorMessage(error.message || t('errors.couldNotSave'));
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
   };
 
   const activateVehicle = async (vehicle) => {
@@ -484,35 +528,45 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
   };
 
   const deleteVehicle = async (vehicle) => {
-    if (!window.confirm(t('customer.confirmDeleteVehicle', { number: vehicle.registrationNumber }))) return;
-    setIsLoading(true);
-    setErrorMessage('');
-    try {
-      await apiDeleteVehicle(parkingId, customer._id, vehicle._id);
-      const response = await apiGetCustomer(parkingId, customer._id);
-      setCustomer(response.customer);
-      setStatusMessage(t('customer.vehicleRemoved'));
-    } catch (error) {
-      setErrorMessage(error.message || t('errors.couldNotSave'));
-    } finally {
-      setIsLoading(false);
-    }
+    openConfirmation({
+      title: 'Confirm action',
+      message: t('customer.confirmDeleteVehicle', { number: vehicle.registrationNumber }),
+      onConfirm: async () => {
+        setIsLoading(true);
+        setErrorMessage('');
+        try {
+          await apiDeleteVehicle(parkingId, customer._id, vehicle._id);
+          const response = await apiGetCustomer(parkingId, customer._id);
+          setCustomer(response.customer);
+          setStatusMessage(t('customer.vehicleRemoved'));
+        } catch (error) {
+          setErrorMessage(error.message || t('errors.couldNotSave'));
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
   };
 
   const deactivateVehicle = async (vehicle) => {
-    if (!window.confirm(t('customer.confirmDeactivateVehicle', { number: vehicle.registrationNumber }))) return;
-    setIsLoading(true);
-    setErrorMessage('');
-    try {
-      await apiDeactivateVehicle(parkingId, customer._id, vehicle._id);
-      const response = await apiGetCustomer(parkingId, customer._id);
-      setCustomer(response.customer);
-      setStatusMessage(t('customer.vehicleDeactivated'));
-    } catch (error) {
-      setErrorMessage(error.message || t('errors.couldNotSave'));
-    } finally {
-      setIsLoading(false);
-    }
+    openConfirmation({
+      title: 'Confirm action',
+      message: t('customer.confirmDeactivateVehicle', { number: vehicle.registrationNumber }),
+      onConfirm: async () => {
+        setIsLoading(true);
+        setErrorMessage('');
+        try {
+          await apiDeactivateVehicle(parkingId, customer._id, vehicle._id);
+          const response = await apiGetCustomer(parkingId, customer._id);
+          setCustomer(response.customer);
+          setStatusMessage(t('customer.vehicleDeactivated'));
+        } catch (error) {
+          setErrorMessage(error.message || t('errors.couldNotSave'));
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
   };
 
   const beginCustomerEdit = () => {
@@ -783,16 +837,52 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                       <p className="muted-text">{t('customer.since', { date: new Date(vehicle.parkingStartDate).toLocaleDateString() })}</p>
                     </div>
                     {vehicle.status === 'active' ? (
-                      <div className="action-row">
-                        <button className="secondary-button" type="button" onClick={() => beginVehicleForm(vehicle)}>{t('customer.edit')}</button>
-                        <button className="secondary-button" type="button" onClick={() => beginVehicleForm(vehicle, true)}>{t('customer.replaceVehicle')}</button>
-                        <button className="danger-button" type="button" onClick={() => deactivateVehicle(vehicle)}>{t('customer.deactivate')}</button>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                          onClick={() => beginVehicleForm(vehicle)}
+                        >
+                          {t('customer.edit')}
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100"
+                          onClick={() => beginVehicleForm(vehicle, true)}
+                        >
+                          {t('customer.replaceVehicle')}
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                          onClick={() => deactivateVehicle(vehicle)}
+                        >
+                          {t('customer.deactivate')}
+                        </button>
                       </div>
                     ) : (
-                      <div className="action-row">
-                        <button className="secondary-button" type="button" onClick={() => beginVehicleForm(vehicle)}>{t('customer.edit')}</button>
-                        <button className="secondary-button" type="button" onClick={() => activateVehicle(vehicle)}>{t('customer.activate')}</button>
-                        <button className="danger-button" type="button" onClick={() => deleteVehicle(vehicle)}>{t('customer.remove')}</button>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                          onClick={() => beginVehicleForm(vehicle)}
+                        >
+                          {t('customer.edit')}
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-800"
+                          onClick={() => activateVehicle(vehicle)}
+                        >
+                          {t('customer.activate')}
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                          onClick={() => deleteVehicle(vehicle)}
+                        >
+                          {t('customer.remove')}
+                        </button>
                       </div>
                     )}
                   </article>
@@ -1047,42 +1137,32 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
       )}
 
       {paymentConfirmation && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4" role="presentation">
-          <section className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-md" role="dialog" aria-modal="true" aria-labelledby="payment-confirmation-title">
-            <p className="eyebrow">{t('customer.confirmAction')}</p>
-            <h2 id="payment-confirmation-title" className="mt-0 text-2xl font-bold" dir="ltr">{t('customer.recordAmount', { amount: Number(paymentForm.amount || 0).toLocaleString() })}</h2>
-            <p>{t('customer.methodLabel', { method: t(`daily.${paymentForm.method}`) })}</p>
-            <p>{paymentForm.manual
+        <CustomModal
+          isOpen={paymentConfirmation}
+          title={t('customer.confirmAction')}
+          message={
+            `${t('customer.recordAmount', { amount: Number(paymentForm.amount || 0).toLocaleString() })}. ${t('customer.methodLabel', { method: t(`daily.${paymentForm.method}`) })}. ${paymentForm.manual
               ? t('customer.manualDueCount', { count: paymentForm.manualDueOrder.length })
-              : t('customer.oldestAllocationConfirm')}</p>
-            {paymentPreview?.customerId === customer?._id && paymentPreview.amount === Number(paymentForm.amount) && (
-              <>
-                <p dir="ltr">{t('customer.preview', {
-                  allocated: (Number(paymentForm.amount) - paymentPreview.unallocatedAmount).toLocaleString(),
-                  count: paymentPreview.allocations.length,
-                  unallocated: paymentPreview.unallocatedAmount.toLocaleString(),
-                })}</p>
-                <ul className="list-disc ps-5 text-sm">
-                  {paymentPreview.allocations.map((allocation) => {
-                    const due = dues.find((item) => item._id === String(allocation.monthlyDueId));
-                    return (
-                      <li key={String(allocation.monthlyDueId)}>
-                        {due
-                          ? `${new Date(due.billingPeriodStart).toLocaleDateString()} – ${new Date(due.billingPeriodEnd).toLocaleDateString()}`
-                          : t('customer.due')}: Rs. {allocation.allocatedAmount.toLocaleString()}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </>
-            )}
-            <div className="action-row mt-5">
-              <button className="primary-button" type="button" disabled={isLoading} onClick={receivePayment}>{isLoading ? t('customer.recording') : t('customer.confirmRecordPayment')}</button>
-              <button className="secondary-button" type="button" disabled={isLoading} onClick={() => setPaymentConfirmation(false)}>{t('customer.goBack')}</button>
-            </div>
-          </section>
-        </div>
+              : t('customer.oldestAllocationConfirm')}`
+          }
+          confirmText={isLoading ? t('customer.recording') : t('customer.confirmRecordPayment')}
+          cancelText={t('customer.goBack')}
+          onConfirm={() => {
+            receivePayment();
+          }}
+          onCancel={() => setPaymentConfirmation(false)}
+        />
       )}
+
+      <CustomModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmText={confirmationModal.confirmText}
+        cancelText={confirmationModal.cancelText}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={confirmationModal.onCancel}
+      />
     </section>
   );
 }
