@@ -13,17 +13,17 @@ const toastLabel = {
 const toastStyles = {
   success: {
     accent: 'bg-emerald-100 text-emerald-700',
-    bar: 'bg-emerald-600 shadow-[0_0_10px_rgba(5,150,105,0.8)]',
+    bar: 'bg-emerald-600',
     icon: '✓',
   },
   error: {
     accent: 'bg-red-100 text-red-700',
-    bar: 'bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]',
+    bar: 'bg-red-600',
     icon: '!',
   },
   info: {
     accent: 'bg-sky-100 text-sky-700',
-    bar: 'bg-sky-600 shadow-[0_0_10px_rgba(2,132,199,0.8)]',
+    bar: 'bg-sky-600',
     icon: 'i',
   },
 };
@@ -48,13 +48,14 @@ function ToastViewport({ toasts }) {
                 <p className="mt-1 text-sm leading-5 text-slate-600">{toast.message}</p>
               </div>
             </div>
-            <div className="absolute inset-x-0 bottom-0 h-[4px] overflow-hidden rounded-b-2xl bg-slate-200">
+            <div className="absolute inset-x-0 bottom-0 h-[6px] overflow-hidden rounded-b-2xl bg-slate-200">
               <div
                 className={`h-full w-full ${accent.bar}`}
                 style={{
+                  width: '100%',
                   transformOrigin: 'left center',
                   animation: `toast-progress ${toast.duration}ms linear forwards`,
-                  boxShadow: toast.type === 'success' ? '0 0 12px rgba(5,150,105,0.8)' : toast.type === 'error' ? '0 0 12px rgba(220,38,38,0.8)' : '0 0 12px rgba(2,132,199,0.8)',
+                  boxShadow: toast.type === 'success' ? '0 0 10px rgba(5,150,105,0.85)' : toast.type === 'error' ? '0 0 10px rgba(220,38,38,0.85)' : '0 0 10px rgba(2,132,199,0.85)',
                 }}
               />
             </div>

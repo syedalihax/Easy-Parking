@@ -43,9 +43,12 @@
     transform: scaleX(1);
     opacity: 1;
   }
+  50% {
+    opacity: 1;
+  }
   to {
     transform: scaleX(0);
-    opacity: 1;
+    opacity: 0.95;
   }
 }
 
