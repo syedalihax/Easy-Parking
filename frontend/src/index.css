@@ -1255,7 +1255,7 @@ body::-webkit-scrollbar-corner,
   }
 
   .mobile-menu-button {
-    @apply hidden size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-ink;
+    @apply hidden size-10 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-ink shadow-none;
   }
 
   .mobile-menu-backdrop {
