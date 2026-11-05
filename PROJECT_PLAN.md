@@ -27,12 +27,12 @@ A parking business management app for managing customers, vehicles, subscription
 Premium fintech + SaaS feel that feels trustworthy, clean, and easy to use.
 
 ### Confirmed visual direction
-- Primary: deep green / emerald, used for trust and money-safe feeling
-- Accent: violet / purple, used for premium SaaS signal
-- Background: off-white and very light gray
-- Text: dark neutral gray / black
-- Buttons: bold, rounded, high-contrast
-- Style: clean, modern, mobile-first, not overly decorative
+- Primary: deep forest green, used for trust and operational stability
+- Accent: warm clay / terracotta, used for selective emphasis and tactile warmth
+- Background: warm ivory / stone, to feel premium and less synthetic than generic white/blue SaaS themes
+- Text: deep slate / charcoal for clarity and contrast
+- Buttons: bold, rounded, grounded, and high-contrast without neon saturation
+- Style: warm-minimal, operationally premium, mobile-first, editorially structured
 
 ### Design principles
 - No generic AI template layout

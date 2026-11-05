@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0..200');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 .material-symbols-outlined {
@@ -53,34 +54,35 @@
 }
 
 :root {
-  --brand-primary: #0E7C4A;
-  --brand-primary-dark: #075C36;
-  --accent: #FF7A1A;
-  --bg-page: #F4F6F5;
-  --text-dark: #0D1F17;
-  --border-neutral: #E5E8E7;
+  --brand-primary: #1F6A52;
+  --brand-primary-dark: #174D3C;
+  --accent: #C97A4D;
+  --bg-page: #F5F1EA;
+  --text-dark: #1D2A2F;
+  --border-neutral: #E5DDD3;
 }
 
 @theme {
-  --color-primary: #0E7C4A;
-  --color-primary-dark: #075C36;
-  --color-primary-light: #eafbf3;
-  --color-secondary: #5d5ce6;
-  --color-secondary-soft: #eeefff;
-  --color-highlight: #bfe85c;
-  --color-amber: #f0b24b;
-  --color-ink: #15232d;
-  --color-ink-muted: #5d6b75;
-  --color-background: #F4F6F5;
-  --color-surface: #ffffff;
-  --color-border: #E5E8E7;
-  --color-success: #0E7C4A;
-  --color-success-bg: #eafaf3;
-  --color-warning: #a86a1b;
-  --color-warning-bg: #fff4df;
-  --color-danger: #b85454;
-  --color-danger-bg: #fff1f0;
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-primary: #1F6A52;
+  --color-primary-dark: #174D3C;
+  --color-primary-light: #edf5f1;
+  --color-secondary: #C97A4D;
+  --color-secondary-soft: #f7efe7;
+  --color-highlight: #dcb98a;
+  --color-amber: #c7864b;
+  --color-ink: #1D2A2F;
+  --color-ink-muted: #5F6D6A;
+  --color-background: #F5F1EA;
+  --color-surface: #fffdf9;
+  --color-border: #E5DDD3;
+  --color-success: #1F6A52;
+  --color-success-bg: #edf6f2;
+  --color-warning: #8A5A2A;
+  --color-warning-bg: #f8efe1;
+  --color-danger: #B55545;
+  --color-danger-bg: #fbeae8;
+  --font-sans: "Plus Jakarta Sans", "Manrope", "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans", "Manrope", "Segoe UI", sans-serif;
 }
 
 html,
@@ -343,19 +345,19 @@ body::-webkit-scrollbar-corner,
 
   .primary-button {
     @apply border-0 bg-primary text-white shadow-none hover:bg-primary-dark;
-    box-shadow: 0 10px 22px rgba(27, 169, 107, 0.18);
+    box-shadow: 0 12px 24px rgba(31, 106, 82, 0.18);
   }
 
   .secondary-button {
-    @apply border bg-primary-light text-primary-dark;
-    border-color: rgba(27, 169, 107, 0.22);
-    box-shadow: inset 0 0 0 1px rgba(27, 169, 107, 0.04);
+    @apply border bg-secondary-soft text-primary-dark;
+    border-color: rgba(31, 106, 82, 0.15);
+    box-shadow: inset 0 0 0 1px rgba(31, 106, 82, 0.04);
   }
 
   .secondary-button:hover {
-    @apply bg-primary;
-    border-color: rgba(13, 90, 65, 0.32);
-    color: white;
+    @apply bg-primary-light;
+    border-color: rgba(23, 77, 60, 0.2);
+    color: var(--brand-primary-dark);
   }
 
   @media (max-width: 767px) {
