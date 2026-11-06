@@ -130,19 +130,22 @@ function DashboardWorkspace({ parkingId }) {
     {
       label: t('dashboard.paymentsThisMonth'),
       value: money(summary.paymentsReceivedThisPeriod),
-      tone: 'teal',
+      tone: 'primary',
+      icon: 'payments',
       detail: t('dashboard.paymentsThisMonthHelp'),
     },
     {
       label: t('dashboard.customersWithDues'),
       value: summary.customersWithPendingDues || 0,
-      tone: 'light-blue',
+      tone: 'neutral',
+      icon: 'groups',
       detail: t('dashboard.peopleWithDuesHelp'),
     },
     {
       label: t('dashboard.outstanding'),
       value: money(summary.totalOutstandingAmount),
-      tone: 'peach',
+      tone: 'accent',
+      icon: 'wallet',
       detail: summary.dailyOutstandingAmount > 0
         ? `${money(summary.dailyOutstandingAmount)} ${t('daily.walkIn')}`
         : t('dashboard.outstandingHelp'),
@@ -175,24 +178,32 @@ function DashboardWorkspace({ parkingId }) {
         </div>
       ) : (
         <div className="dashboard-wallet-shell">
-          <section className="ledger-strip" aria-label={t('dashboard.overview')}>
-            {summaryCards.map(({ label, value, detail }) => (
-              <div className="ledger-cell" key={label}>
-                <span className="ledger-label">{label}</span>
-                <strong className="ledger-value">{value}</strong>
-                <span className="ledger-note">{detail}</span>
-              </div>
+          <section className="wallet-cards" aria-label={t('dashboard.overview')}>
+            {summaryCards.map(({ label, value, detail, tone, icon }) => (
+              <article key={label} className={`wallet-card wallet-card--${tone}`}>
+                <div className="wallet-card-head">
+                  <span className="wallet-card-label">{label}</span>
+                  <span className="wallet-card-icon" aria-hidden="true"><GoogleIcon name={icon} size={19} /></span>
+                </div>
+                <strong className="wallet-card-value">{value}</strong>
+                <span className="wallet-card-note">{detail}</span>
+              </article>
             ))}
           </section>
 
-          <nav className="quick-row" aria-label={t('dashboard.quickActions')}>
-            {quickActions.slice(0, 3).map(({ labelKey, to }) => (
-              <Link key={labelKey} to={to}>
-                {t(labelKey)}
-                <span aria-hidden="true">→</span>
-              </Link>
-            ))}
-          </nav>
+          <section className="dashboard-section">
+            <div className="dashboard-section-head">
+              <h3>{t('dashboard.quickActions')}</h3>
+            </div>
+            <nav className="quick-grid" aria-label={t('dashboard.quickActions')}>
+              {quickActions.map(({ labelKey, to, Icon }) => (
+                <Link key={labelKey} to={to} className="quick-tile">
+                  <span className="quick-tile-icon" aria-hidden="true"><GoogleIcon name={Icon} size={20} /></span>
+                  <span>{t(labelKey)}</span>
+                </Link>
+              ))}
+            </nav>
+          </section>
 
           <section className="dashboard-section">
             <div className="dashboard-section-head">
