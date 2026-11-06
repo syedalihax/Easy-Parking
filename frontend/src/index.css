@@ -2395,7 +2395,7 @@ select:focus-visible {
   }
 
   .daily-entry-form .daily-primary-field,
-  .daily-entry-form > label:nth-of-type(5) {
+  .daily-entry-form .daily-notes-field {
     grid-column: 1 / -1;
   }
 
@@ -3159,6 +3159,27 @@ html[dir="rtl"] select {
 .rate-card-rows {
   display: grid;
   gap: 8px;
+}
+
+.rate-card-row-group {
+  display: grid;
+  gap: 4px;
+}
+
+.rate-card-row-group .error-text {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+/* date pickers sit in the normal form grid; keep them from swelling the column */
+.daily-entry-form .field {
+  min-width: 0;
+}
+
+.daily-date-field input[type="date"] {
+  width: 100%;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .rate-card-row {

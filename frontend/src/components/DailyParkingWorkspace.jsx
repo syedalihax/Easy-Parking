@@ -22,6 +22,30 @@ const emptyEntry = {
   notes: '',
 };
 
+const pad = (value) => String(value).padStart(2, '0');
+
+// Local YYYY-MM-DD — never toISOString(), which would shift the day for
+// managers east/west of UTC.
+const localDateValue = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+const todayValue = () => localDateValue(new Date());
+
+// Pairs the picked calendar day with the current local clock time, so a
+// backdated entry keeps a sensible time-of-day instead of jumping timezones.
+const isoFromDate = (dateValue) => {
+  if (!dateValue) return '';
+  const [year, month, day] = dateValue.split('-').map(Number);
+  const now = new Date();
+  return new Date(
+    year,
+    month - 1,
+    day,
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds(),
+  ).toISOString();
+};
+
 const money = (value) => `Rs. ${Number(value || 0).toLocaleString()}`;
 const dateTime = (value) => formatDateTime(value);
 const elapsed = (value) => {
@@ -34,6 +58,9 @@ function DailyParkingWorkspace({ parkingId }) {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const [entry, setEntry] = useState(emptyEntry);
+  const [entryDate, setEntryDate] = useState(todayValue);
+  const [exitDate, setExitDate] = useState('');
+  const [entryTypeError, setEntryTypeError] = useState('');
   const [rate, setRate] = useState(0);
   const [rateInput, setRateInput] = useState('');
   const [rateCard, setRateCard] = useState([]);
@@ -94,10 +121,31 @@ function DailyParkingWorkspace({ parkingId }) {
     event.preventDefault();
     setErrorMessage('');
     setStatusMessage('');
+    setEntryTypeError('');
+    const vehicleType = String(entry.vehicleType || '').trim();
+    if (!vehicleType) {
+      setEntryTypeError(t('daily.typeRequired'));
+      return;
+    }
+    const entryDateTime = isoFromDate(entryDate || todayValue());
+    let exitDateTime = '';
+    // The exit picker is only offered for backdated entries; ignore anything
+    // that would place the exit before the entry.
+    if (exitDate && exitDate >= (entryDate || todayValue())) {
+      exitDateTime = isoFromDate(exitDate);
+      if (new Date(exitDateTime) < new Date(entryDateTime)) exitDateTime = entryDateTime;
+    }
     setIsLoading(true);
     try {
-      await apiCreateDailyParkingEntry(parkingId, entry);
+      await apiCreateDailyParkingEntry(parkingId, {
+        ...entry,
+        vehicleType,
+        entryDateTime,
+        ...(exitDateTime ? { exitDateTime } : {}),
+      });
       setEntry(emptyEntry);
+      setEntryDate(todayValue());
+      setExitDate('');
       setStatusMessage(t('daily.entryRegistered'));
       await Promise.all([loadActive(), loadHistory()]);
       setScreen('active');
@@ -127,6 +175,16 @@ function DailyParkingWorkspace({ parkingId }) {
   const addCardRow = () => setCardRows((rows) => [...rows, { vehicleType: '', rate: '' }]);
   const removeCardRow = (index) => setCardRows((rows) => rows.filter((_, i) => i !== index));
 
+  // Every row is priced explicitly: no blank type, no blank/negative rate.
+  const cardRowError = (row) => {
+    if (!String(row.vehicleType || '').trim()) return t('daily.typeRequired');
+    if (String(row.rate ?? '').trim() === '') return t('daily.rateRequired');
+    const value = Number(row.rate);
+    if (!Number.isFinite(value) || value < 0) return t('daily.rateRequired');
+    return '';
+  };
+  const cardIsIncomplete = cardRows.length === 0 || cardRows.some((row) => cardRowError(row));
+
   // The entry is priced by its type; anything not on the card falls back to the default.
   const feeForType = (type) => {
     const key = String(type || '').trim().toLowerCase();
@@ -143,13 +201,11 @@ function DailyParkingWorkspace({ parkingId }) {
       setErrorMessage(t('daily.invalidRate'));
       return;
     }
-    const rows = cardRows
-      .map((row) => ({ vehicleType: String(row.vehicleType).trim(), rate: Number(row.rate) }))
-      .filter((row) => row.vehicleType);
-    if (rows.some((row) => !Number.isFinite(row.rate) || row.rate < 0)) {
-      setErrorMessage(t('daily.invalidRate'));
-      return;
-    }
+    if (cardIsIncomplete) return;
+    const rows = cardRows.map((row) => ({
+      vehicleType: String(row.vehicleType).trim(),
+      rate: Number(row.rate),
+    }));
     setIsLoading(true);
     try {
       const response = await apiUpdateRateCard(parkingId, { dailyParkingRate: fallback, rates: rows });
@@ -181,12 +237,18 @@ function DailyParkingWorkspace({ parkingId }) {
     setDateFilter((current) => ({ ...current, [field]: value }));
   };
 
+  const today = todayValue();
+  // A backdated entry can also be closed in the same step; today's entries stay open.
+  const showExitDate = Boolean(entryDate) && entryDate < today;
+
   return (
     <section className="daily-workspace">
       <header className="workspace-heading">
         <div><p className="eyebrow">{t('daily.walkIn')}</p><h2>{t('daily.title')}</h2></div>
         <div className="daily-rate">
-          <strong dir="ltr">{t('daily.rate', { amount: money(rate) })}</strong>
+          <strong dir={rateCard.length ? undefined : 'ltr'}>
+            {rateCard.length ? t('daily.rateCard') : t('daily.rate', { amount: money(rate) })}
+          </strong>
           {!editingRate && <button className="text-button" type="button" onClick={openRateEditor}>{t('daily.editRate')}</button>}
         </div>
       </header>
@@ -196,7 +258,7 @@ function DailyParkingWorkspace({ parkingId }) {
           {rateCard.map((row) => (
             <span className="rate-chip" key={row.vehicleType}>
               {row.vehicleType}
-              <strong dir="ltr">{money(row.rate)}</strong>
+              <strong dir="ltr">{money(feeForType(row.vehicleType))}</strong>
             </span>
           ))}
         </div>
@@ -210,28 +272,40 @@ function DailyParkingWorkspace({ parkingId }) {
           </div>
 
           <div className="rate-card-rows">
-            {cardRows.map((row, index) => (
-              <div className="rate-card-row" key={`row-${index}`}>
-                <input
-                  value={row.vehicleType}
-                  onChange={(event) => updateCardRow(index, 'vehicleType', event.target.value)}
-                  placeholder={t('daily.vehicleType')}
-                  aria-label={t('daily.vehicleType')}
-                />
-                <input
-                  type="number"
-                  min="0"
-                  step="any"
-                  dir="ltr"
-                  value={row.rate}
-                  onChange={(event) => updateCardRow(index, 'rate', event.target.value)}
-                  placeholder="0"
-                  aria-label={`${t('daily.rateLabel')} · ${row.vehicleType || index + 1}`}
-                />
-                <button type="button" className="secondary-button rate-card-remove" onClick={() => removeCardRow(index)} aria-label={`${t('daily.removeType')} ${row.vehicleType || index + 1}`}>×</button>
-              </div>
-            ))}
+            {cardRows.map((row, index) => {
+              const rowError = cardRowError(row);
+              return (
+                <div className="rate-card-row-group" key={`row-${index}`}>
+                  <div className="rate-card-row">
+                    <input
+                      value={row.vehicleType}
+                      onChange={(event) => updateCardRow(index, 'vehicleType', event.target.value)}
+                      placeholder={t('daily.vehicleType')}
+                      aria-label={t('daily.vehicleType')}
+                      aria-invalid={Boolean(rowError)}
+                      required
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      dir="ltr"
+                      value={row.rate}
+                      onChange={(event) => updateCardRow(index, 'rate', event.target.value)}
+                      placeholder="0"
+                      aria-label={`${t('daily.rateLabel')} · ${row.vehicleType || index + 1}`}
+                      aria-invalid={Boolean(rowError)}
+                      required
+                    />
+                    <button type="button" className="secondary-button rate-card-remove" onClick={() => removeCardRow(index)} aria-label={`${t('daily.removeType')} ${row.vehicleType || index + 1}`}>×</button>
+                  </div>
+                  {rowError && <p className="error-text" role="alert">{`${row.vehicleType || `#${index + 1}`} — ${rowError}`}</p>}
+                </div>
+              );
+            })}
           </div>
+
+          {cardRows.length === 0 && <p className="error-text" role="alert">{t('daily.rateCardRequired')}</p>}
 
           <div className="action-row">
             <button type="button" className="secondary-button" onClick={addCardRow}>{t('daily.addType')}</button>
@@ -243,7 +317,7 @@ function DailyParkingWorkspace({ parkingId }) {
           </label>
 
           <div className="action-row">
-            <button type="submit" className="primary-button" disabled={isLoading}>{t('daily.saveRate')}</button>
+            <button type="submit" className="primary-button" disabled={isLoading || cardIsIncomplete}>{t('daily.saveRate')}</button>
             <button type="button" className="secondary-button" onClick={() => setEditingRate(false)}>{t('app.cancel')}</button>
           </div>
         </form>
@@ -261,26 +335,80 @@ function DailyParkingWorkspace({ parkingId }) {
 
       {screen === 'entry' && (
         <form className="panel form-grid daily-entry-form" onSubmit={submitEntry}>
-          <div className="panel-header"><h3>{t('daily.newEntry')}</h3><p className="muted-text">{t('daily.feeNotice', { amount: money(feeForType(entry.vehicleType)) })}</p></div>
+          <div className="panel-header">
+            <h3>{t('daily.newEntry')}</h3>
+            {entry.vehicleType && <p className="muted-text">{t('daily.feeNotice', { amount: money(feeForType(entry.vehicleType)) })}</p>}
+          </div>
           <label className="field daily-primary-field">
             <span>{t('daily.vehicleNumber')} *</span>
             <input autoFocus value={entry.vehicleNumber} onChange={(event) => setEntry({ ...entry, vehicleNumber: event.target.value })} placeholder={t('daily.vehicleNumberPlaceholder')} required />
           </label>
-          <label className="field">
-            <span>{t('daily.vehicleType')} {t('daily.optional')}</span>
+          <label className="field daily-date-field">
+            <span>{t('daily.entryDate')} *</span>
             <input
-              list="daily-vehicle-types"
-              value={entry.vehicleType}
-              onChange={(event) => setEntry({ ...entry, vehicleType: event.target.value })}
-              placeholder={t('daily.vehicleTypePlaceholder')}
+              type="date"
+              dir="ltr"
+              value={entryDate}
+              max={today}
+              required
+              onChange={(event) => {
+                const value = event.target.value;
+                setEntryDate(value);
+                if (exitDate && exitDate < value) setExitDate('');
+              }}
             />
-            <datalist id="daily-vehicle-types">
-              {rateCard.map((row) => <option key={row.vehicleType} value={row.vehicleType} />)}
-            </datalist>
+          </label>
+          {showExitDate && (
+            <label className="field daily-date-field">
+              <span>{t('daily.exitDate')} {t('daily.optional')}</span>
+              <input
+                type="date"
+                dir="ltr"
+                value={exitDate}
+                min={entryDate}
+                max={today}
+                aria-describedby="daily-exit-date-help"
+                onChange={(event) => setExitDate(event.target.value)}
+              />
+              <small id="daily-exit-date-help" className="muted-text">{t('daily.exitDateHelp')}</small>
+            </label>
+          )}
+          <label className="field">
+            <span>{t('daily.vehicleType')} *</span>
+            {rateCard.length > 0 ? (
+              <select
+                value={entry.vehicleType}
+                onChange={(event) => {
+                  setEntry({ ...entry, vehicleType: event.target.value });
+                  setEntryTypeError('');
+                }}
+                aria-required="true"
+                aria-invalid={Boolean(entryTypeError)}
+                aria-describedby={entryTypeError ? 'daily-vehicle-type-error' : undefined}
+              >
+                <option value="">{t('daily.vehicleType')}…</option>
+                {rateCard.map((row) => (
+                  <option key={row.vehicleType} value={row.vehicleType}>{row.vehicleType}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={entry.vehicleType}
+                onChange={(event) => {
+                  setEntry({ ...entry, vehicleType: event.target.value });
+                  setEntryTypeError('');
+                }}
+                placeholder={t('daily.vehicleType')}
+                aria-required="true"
+                aria-invalid={Boolean(entryTypeError)}
+                aria-describedby={entryTypeError ? 'daily-vehicle-type-error' : undefined}
+              />
+            )}
+            {entryTypeError && <span id="daily-vehicle-type-error" className="error-text" role="alert">{entryTypeError}</span>}
           </label>
           <label className="field"><span>{t('daily.customerName')} {t('daily.optional')}</span><input value={entry.customerName} onChange={(event) => setEntry({ ...entry, customerName: event.target.value })} /></label>
           <label className="field"><span>{t('daily.customerPhone')} {t('daily.optional')}</span><input value={entry.customerPhone} onChange={(event) => setEntry({ ...entry, customerPhone: event.target.value })} /></label>
-          <label className="field"><span>{t('daily.notes')} {t('daily.optional')}</span><textarea rows="2" value={entry.notes} onChange={(event) => setEntry({ ...entry, notes: event.target.value })} /></label>
+          <label className="field daily-notes-field"><span>{t('daily.notes')} {t('daily.optional')}</span><textarea rows="2" value={entry.notes} onChange={(event) => setEntry({ ...entry, notes: event.target.value })} /></label>
           <button type="submit" className="primary-button" disabled={isLoading}>{t('daily.register')}</button>
         </form>
       )}

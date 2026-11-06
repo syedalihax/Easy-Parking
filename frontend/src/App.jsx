@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Link,
   Navigate,
@@ -48,6 +48,9 @@ const ReportsWorkspace = lazy(() => import('./components/OperationsWorkspace').t
   default: module.ReportsWorkspace,
 })));
 import GoogleIcon from './components/GoogleIcon';
+import './mobile-nav.css';
+
+const MOBILE_MENU_EXIT_MS = 260;
 
 const defaultAuthForm = {
   fullName: '',
@@ -115,6 +118,12 @@ function App() {
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [teamInvitations, setTeamInvitations] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuClosing, setIsMobileMenuClosing] = useState(false);
+  const mobileDrawerRef = useRef(null);
+  const mobileMenuButtonRef = useRef(null);
+  const mobileMenuTimerRef = useRef(0);
+  const mobileMenuRestoreFocusRef = useRef(true);
+  const previousPathRef = useRef(location.pathname);
   const [showParkingCreator, setShowParkingCreator] = useState(false);
   const [showInboxView, setShowInboxView] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -169,13 +178,85 @@ function App() {
     return () => window.clearTimeout(timer);
   }, [errorMessage, showToast]);
 
+  const openMobileMenu = useCallback(() => {
+    window.clearTimeout(mobileMenuTimerRef.current);
+    setIsMobileMenuClosing(false);
+    setIsMobileMenuOpen(true);
+  }, []);
+
+  const closeMobileMenu = useCallback((restoreFocus = true) => {
+    if (!isMobileMenuOpen) return;
+    mobileMenuRestoreFocusRef.current = restoreFocus;
+    setIsMobileMenuOpen(false);
+    setIsMobileMenuClosing(true);
+    window.clearTimeout(mobileMenuTimerRef.current);
+    mobileMenuTimerRef.current = window.setTimeout(() => {
+      setIsMobileMenuClosing(false);
+      if (mobileMenuRestoreFocusRef.current) {
+        mobileMenuButtonRef.current?.focus({ preventScroll: true });
+      }
+    }, MOBILE_MENU_EXIT_MS);
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => () => window.clearTimeout(mobileMenuTimerRef.current), []);
+
+  // Close on route change (including programmatic redirects) without yanking
+  // focus away from whatever the new screen puts there.
+  useEffect(() => {
+    if (previousPathRef.current === location.pathname) return;
+    previousPathRef.current = location.pathname;
+    if (isMobileMenuOpen) closeMobileMenu(false);
+  }, [closeMobileMenu, isMobileMenuOpen, location.pathname]);
+
+  // Escape closes, Tab stays inside the panel, and the drawer takes focus on open.
   useEffect(() => {
     if (!isMobileMenuOpen) return undefined;
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setIsMobileMenuOpen(false);
+
+    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const getFocusable = () => Array.from(mobileDrawerRef.current?.querySelectorAll(focusableSelector) || []);
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        // Let an open language dropdown swallow its own Escape first.
+        if (mobileDrawerRef.current?.querySelector('.dropdown-trigger[aria-expanded="true"]')) return;
+        event.preventDefault();
+        closeMobileMenu(true);
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const focusable = getFocusable();
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === first || !mobileDrawerRef.current?.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !mobileDrawerRef.current?.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
+
+    document.addEventListener('keydown', onKeyDown);
+    const frame = window.requestAnimationFrame(() => {
+      mobileDrawerRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [closeMobileMenu, isMobileMenuOpen]);
+
+  // Lock background scroll while the drawer is open.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined;
+    document.body.classList.add('mp-scroll-lock');
+    return () => document.body.classList.remove('mp-scroll-lock');
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
@@ -1163,11 +1244,12 @@ function App() {
             </Link>
             <button
               type="button"
+              ref={mobileMenuButtonRef}
               className="mobile-menu-button"
               aria-label={isMobileMenuOpen ? t('menu.close') : t('menu.open')}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu-drawer"
-              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              onClick={() => (isMobileMenuOpen ? closeMobileMenu(true) : openMobileMenu())}
             >
               {isMobileMenuOpen ? <GoogleIcon name="close" size={22} /> : <GoogleIcon name="menu" size={22} />}
             </button>
@@ -1206,45 +1288,60 @@ function App() {
               <span>{t('app.logout')}</span>
             </button>
           </aside>
-          {isMobileMenuOpen && (
+          {(isMobileMenuOpen || isMobileMenuClosing) && (
             <>
-              <button
-                type="button"
-                className="mobile-menu-backdrop"
-                aria-label={t('menu.close')}
-                onClick={() => setIsMobileMenuOpen(false)}
+              <div
+                className={`mp-scrim${isMobileMenuClosing ? ' is-closing' : ''}`}
+                aria-hidden="true"
+                onClick={() => closeMobileMenu(true)}
               />
-              <aside id="mobile-menu-drawer" className="mobile-menu-drawer" aria-label={t('menu.title')}>
-                <div className="mobile-menu-user">
-                  <strong>{userDisplayName}</strong>
-                  <span>{activeParking?.role ? t(`team.${activeParking.role}`) : t('profile.notAssigned')}</span>
+              <aside
+                id="mobile-menu-drawer"
+                ref={mobileDrawerRef}
+                className={`mp-drawer${isMobileMenuClosing ? ' is-closing' : ''}`}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('menu.title')}
+                tabIndex={-1}
+              >
+                <div className="mp-head">
+                  <img src="/favicon.svg" alt="" className="mp-mark" />
+                  <span className="mp-head-copy">
+                    <strong>{t('app.name')}</strong>
+                    <small>{activeParking?.name || t('app.parkingManagement')}</small>
+                  </span>
+                  <button
+                    type="button"
+                    className="mp-close"
+                    aria-label={t('menu.close')}
+                    onClick={() => closeMobileMenu(true)}
+                  >
+                    <GoogleIcon name="close" size={20} />
+                  </button>
                 </div>
-                {hasParkingMembership ? (
-                  <nav className="mobile-menu-links">
-                    <NavLink to="/app/settings" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                      <GoogleIcon name="settings" size={19} /><span>{t('menu.parkingSettings')}</span>
+                <nav className="mp-nav" aria-label={t('nav.main')}>
+                  {sidebarNavigation.map(({ to, key, Icon, end }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      end={end}
+                      onClick={() => closeMobileMenu(false)}
+                      className={({ isActive }) => `mp-link${isActive ? ' is-active' : ''}`}
+                    >
+                      <GoogleIcon name={Icon} size={19} />
+                      <span className="mp-link-label">{t(key)}</span>
                     </NavLink>
-                    <NavLink to="/app/team" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                      <GoogleIcon name="shield" size={19} /><span>{t('menu.parkingAccess')}</span>
-                    </NavLink>
-                    <NavLink to="/app/profile" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                      <GoogleIcon name="person" size={19} /><span>{t('menu.profile')}</span>
-                    </NavLink>
-                  </nav>
-                ) : (
-                  <nav className="mobile-menu-links">
-                    <NavLink to="/app/create-parking" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                      <GoogleIcon name="add_circle" size={19} /><span>{t('setup.create')}</span>
-                    </NavLink>
-                    <NavLink to="/app/inbox" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-menu-link${isActive ? ' is-active' : ''}`}>
-                      <GoogleIcon name="inbox" size={19} /><span>{t('team.inbox')}</span>
-                    </NavLink>
-                  </nav>
-                )}
-                <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
-                <button type="button" className="mobile-menu-logout" onClick={logout}>
-                  <span>{t('app.logout')}</span>
-                </button>
+                  ))}
+                </nav>
+                <div className="mp-foot">
+                  <div className="mp-lang">
+                    <LanguageSelector value={currentLanguage} onChange={changeLanguage} />
+                  </div>
+                  <button type="button" className="mp-logout" onClick={logout}>
+                    <GoogleIcon name="logout" size={18} />
+                    <span>{t('app.logout')}</span>
+                  </button>
+                </div>
               </aside>
             </>
           )}
