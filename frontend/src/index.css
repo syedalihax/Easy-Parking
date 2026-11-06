@@ -1976,3 +1976,137 @@ body::-webkit-scrollbar-corner,
     background-position: -150% 0;
   }
 }
+
+
+/* ---------- Dashboard: one ledger strip, not three gradient cards ---------- */
+/* The old cards were teal/blue/orange gradients with shadows: the single most
+   template-looking thing in the app. Money now reads like a ledger. */
+
+.ledger-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+}
+
+.ledger-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 22px 24px 24px;
+  border-left: 1px solid var(--color-border);
+}
+
+.ledger-cell:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.ledger-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.ledger-value {
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.ledger-note {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-ink-muted);
+}
+
+.quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 28px;
+  padding: 18px 0 2px;
+}
+
+.quick-row a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.quick-row a:hover,
+.quick-row a:focus-visible {
+  border-bottom-color: var(--color-primary);
+}
+
+.quick-row a span {
+  margin-left: 6px;
+  color: var(--color-secondary);
+}
+
+.attention-rows {
+  border-top: 1px solid var(--color-border);
+}
+
+.attention-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.attention-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.attention-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+}
+
+.attention-item {
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.dashboard-payment-card {
+  border-radius: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+@media (max-width: 720px) {
+  .ledger-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ledger-cell {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    padding: 16px 0;
+  }
+
+  .ledger-cell:first-child {
+    border-top: 0;
+  }
+
+  .attention-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+}

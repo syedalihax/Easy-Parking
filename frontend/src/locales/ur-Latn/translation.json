@@ -163,7 +163,8 @@
     "upcomingBilling": "Qareeb aati payments",
     "nothing": "Dikhane ke liye kuch nahin.",
     "loading": "Dashboard load ho raha hai..."
-  },
+  ,
+    "nothingToday": "Aaj kisi cheez ki taraf tawajjo darkar nahi."},
   "daily": {
     "walkIn": "Aarzi parking",
     "title": "Rozana parking",
