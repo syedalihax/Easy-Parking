@@ -38,6 +38,7 @@ const getDashboard = async (req, res) => {
       outstandingResult,
       paymentsResult,
       dailyVehiclesCurrentlyParked,
+      dailyUnpaidResult,
     ] = await Promise.all([
       Vehicle.countDocuments({ parkingId, status: 'active' }),
       Customer.countDocuments({ parkingId, status: 'active' }),
@@ -56,6 +57,17 @@ const getDashboard = async (req, res) => {
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       DailyParkingRecord.countDocuments({ parkingId, exitDateTime: { $exists: false } }),
+      // Walk-in fees are money owed like any bill: count them in what is still to collect.
+      DailyParkingRecord.aggregate([
+        {
+          $match: {
+            parkingId: new mongoose.Types.ObjectId(parkingId),
+            paymentStatus: 'unpaid',
+            fee: { $gt: 0 },
+          },
+        },
+        { $group: { _id: null, total: { $sum: '$fee' }, count: { $sum: 1 } } },
+      ]),
     ]);
 
     return res.json({
@@ -63,7 +75,9 @@ const getDashboard = async (req, res) => {
       totalActiveCustomers,
       customersWithPendingDues: pendingCustomers.length,
       customersWithOverdueDues: overdueCustomers.length,
-      totalOutstandingAmount: outstandingResult[0]?.total || 0,
+      totalOutstandingAmount: (outstandingResult[0]?.total || 0) + (dailyUnpaidResult[0]?.total || 0),
+      dailyOutstandingAmount: dailyUnpaidResult[0]?.total || 0,
+      dailyUnpaidCount: dailyUnpaidResult[0]?.count || 0,
       paymentsReceivedThisPeriod: paymentsResult[0]?.total || 0,
       dailyVehiclesCurrentlyParked,
     });

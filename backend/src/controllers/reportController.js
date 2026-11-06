@@ -127,13 +127,33 @@ const listOutstandingBalancesReport = async (req, res) => {
     const rows = grouped.map(({ _id, outstandingAmount }) => {
       const customer = customerMap.get(String(_id));
       return {
+        source: 'monthly',
         customerId: _id,
         customerName: customer?.fullName || '',
         customerPhone: customer?.primaryPhone || '',
         customerStatus: customer?.status || '',
+        vehicleNumber: '',
         outstandingAmount,
       };
     });
+
+    // Walk-in fees are owed money too — they belong in the same report.
+    const walkIn = await DailyParkingRecord.find({
+      parkingId: req.params.parkingId,
+      paymentStatus: 'unpaid',
+      fee: { $gt: 0 },
+    }).select('vehicleNumber customerName customerPhone entryDateTime fee').sort({ entryDateTime: 1 }).lean();
+
+    rows.push(...walkIn.map((record) => ({
+      source: 'daily',
+      customerId: null,
+      customerName: record.customerName || '',
+      customerPhone: record.customerPhone || '',
+      customerStatus: 'walk-in',
+      vehicleNumber: record.vehicleNumber,
+      outstandingAmount: record.fee,
+    })));
+
     return sendReport(req, res, 'outstanding-balances', rows);
   } catch (error) {
     return reportError(res, error, 'Could not load outstanding balances report');
@@ -149,13 +169,18 @@ const listPaymentHistoryReport = async (req, res) => {
     const query = { parkingId: req.params.parkingId };
     if (method) query.method = method;
     Object.assign(query, dateRange(req.query, 'paymentDate') || {});
-    const payments = await Payment.find(query).populate('customerId', 'fullName primaryPhone')
-      .populate('receivedBy', 'fullName').sort({ paymentDate: -1 }).lean();
+    const payments = await Payment.find(query)
+      .populate('customerId', 'fullName primaryPhone')
+      .populate('dailyRecordId', 'vehicleNumber')
+      .populate('receivedBy', 'fullName')
+      .sort({ paymentDate: -1 }).lean();
     const rows = payments.map((payment) => ({
       paymentId: payment._id,
+      source: payment.source || 'monthly',
       paymentDate: payment.paymentDate,
       customerName: payment.customerId?.fullName || '',
       customerPhone: payment.customerId?.primaryPhone || '',
+      vehicleNumber: payment.dailyRecordId?.vehicleNumber || '',
       amount: payment.amount,
       method: payment.method,
       status: payment.status,

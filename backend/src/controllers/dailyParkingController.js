@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const DailyParkingRecord = require('../models/DailyParkingRecord');
 const Parking = require('../models/Parking');
+const Payment = require('../models/Payment');
 
 const validMethods = ['cash', 'easypaisa', 'jazzcash'];
 
@@ -137,24 +139,59 @@ const recordExit = async (req, res) => {
 };
 
 const recordPayment = async (req, res) => {
-  const { method } = req.body;
+  const { method, referenceNumber = '', notes = '' } = req.body;
   if (!validMethods.includes(method)) {
     return res.status(400).json({ message: 'Payment method must be cash, easypaisa, or jazzcash' });
   }
+
+  let session;
   try {
-    const record = await DailyParkingRecord.findOneAndUpdate(
-      { _id: req.params.recordId, parkingId: req.params.parkingId, paymentStatus: 'unpaid' },
-      { $set: { paymentStatus: 'paid', paymentMethod: method, receivedBy: req.user.id } },
-      { returnDocument: 'after', runValidators: true },
-    ).lean();
-    if (!record) return res.status(404).json({ message: 'Unpaid daily parking record not found' });
-    return res.json({ record });
+    session = await mongoose.startSession();
+    let record;
+    let payment = null;
+
+    await session.withTransaction(async () => {
+      record = await DailyParkingRecord.findOneAndUpdate(
+        { _id: req.params.recordId, parkingId: req.params.parkingId, paymentStatus: 'unpaid' },
+        { $set: { paymentStatus: 'paid', paymentMethod: method, receivedBy: req.user.id } },
+        { returnDocument: 'after', runValidators: true, session },
+      ).lean();
+
+      if (!record) {
+        const notFound = new Error('Unpaid daily parking record not found');
+        notFound.status = 404;
+        throw notFound;
+      }
+
+      // A zero-fee entry has nothing to collect, so no ledger row is written.
+      if (record.fee > 0) {
+        [payment] = await Payment.create([{
+          parkingId: record.parkingId,
+          source: 'daily',
+          dailyRecordId: record._id,
+          amount: record.fee,
+          method,
+          receivedBy: req.user.id,
+          referenceNumber: String(referenceNumber).trim(),
+          notes: String(notes).trim(),
+          paymentDate: new Date(),
+        }], { session });
+      }
+    });
+
+    return res.json({ record, payment });
   } catch (error) {
+    if (error.status === 404) return res.status(404).json({ message: error.message });
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'A payment is already recorded for this parking entry' });
+    }
     if (error.name === 'CastError' || error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
     }
-    console.error('Daily parking payment update failed:', error);
+    console.error('Daily parking payment failed:', error);
     return res.status(500).json({ message: 'Could not record daily parking payment' });
+  } finally {
+    if (session) await session.endSession();
   }
 };
 
