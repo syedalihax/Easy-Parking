@@ -7,6 +7,7 @@ const {
   resolveDailyRate,
   validateRateCard,
 } = require('../utils/dailyRates');
+const { parseEntryTimes } = require('../utils/entryTimes');
 
 const validMethods = ['cash', 'easypaisa', 'jazzcash'];
 
@@ -112,18 +113,32 @@ const replaceRateCard = async (req, res) => {
 };
 
 const createEntry = async (req, res) => {
-  const { vehicleNumber, vehicleType = '', customerName = '', customerPhone = '', notes = '' } = req.body;
+  const body = req.body || {};
+  const { vehicleNumber, vehicleType = '', customerName = '', customerPhone = '', notes = '' } = body;
   if (typeof vehicleNumber !== 'string' || !vehicleNumber.trim()) {
     return res.status(400).json({ message: 'Vehicle number is required' });
   }
+
+  // Optional back-dating: absent fields stay null so the model defaults apply.
+  let entryTimes;
+  try {
+    entryTimes = parseEntryTimes(body);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
   try {
     const normalizedNumber = vehicleNumber.trim().toUpperCase();
-    const activeRecord = await DailyParkingRecord.exists({
-      parkingId: req.params.parkingId,
-      vehicleNumber: normalizedNumber,
-      exitDateTime: { $exists: false },
-    });
-    if (activeRecord) return res.status(409).json({ message: 'This vehicle already has an active parking entry' });
+    // Only an entry that is still parked can clash with an active record; a
+    // backdated record that already exited is history and must be allowed.
+    if (!entryTimes.exitDateTime) {
+      const activeRecord = await DailyParkingRecord.exists({
+        parkingId: req.params.parkingId,
+        vehicleNumber: normalizedNumber,
+        exitDateTime: { $exists: false },
+      });
+      if (activeRecord) return res.status(409).json({ message: 'This vehicle already has an active parking entry' });
+    }
 
     const parking = await Parking.findById(req.params.parkingId)
       .select('dailyParkingRate dailyRates')
@@ -138,7 +153,7 @@ const createEntry = async (req, res) => {
       defaultRate: parking.dailyParkingRate,
     });
 
-    const record = await DailyParkingRecord.create({
+    const payload = {
       parkingId: req.params.parkingId,
       vehicleNumber: normalizedNumber,
       vehicleType: pricing.vehicleType,
@@ -146,7 +161,12 @@ const createEntry = async (req, res) => {
       customerPhone,
       notes,
       fee: pricing.rate,
-    });
+    };
+    if (entryTimes.entryDateTime) payload.entryDateTime = entryTimes.entryDateTime;
+    if (entryTimes.exitDateTime) payload.exitDateTime = entryTimes.exitDateTime;
+
+    const record = await DailyParkingRecord.create(payload);
+
     return res.status(201).json({
       record,
       pricing: { rate: pricing.rate, vehicleType: pricing.vehicleType, matched: pricing.matched },

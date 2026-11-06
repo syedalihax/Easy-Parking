@@ -94,11 +94,11 @@ test('normalizeVehicleType collapses case and whitespace but ignores non-strings
 test('validateRateCard trims names and keeps rates verbatim', () => {
   const normalized = validateRateCard([
     { vehicleType: ' Rickshaw ', rate: 50 },
-    { vehicleType: 'Car', rate: 0 },
+    { vehicleType: 'Car', rate: 250 },
   ]);
   assert.deepEqual(normalized, [
     { vehicleType: 'Rickshaw', rate: 50 },
-    { vehicleType: 'Car', rate: 0 },
+    { vehicleType: 'Car', rate: 250 },
   ]);
 });
 
@@ -107,7 +107,7 @@ test('validateRateCard accepts an empty card and exactly the maximum number of t
 
   const full = Array.from({ length: MAX_RATE_CARD_TYPES }, (_, index) => ({
     vehicleType: `Type ${index}`,
-    rate: index,
+    rate: index + 1,
   }));
   assert.equal(validateRateCard(full).length, MAX_RATE_CARD_TYPES);
 
@@ -124,14 +124,29 @@ test('validateRateCard rejects non-arrays, malformed entries, and bad rates', ()
   assert.throws(() => validateRateCard(['Car']), /must be an object/);
   assert.throws(() => validateRateCard([{ rate: 50 }]), /vehicleType is required/);
   assert.throws(() => validateRateCard([{ vehicleType: '   ', rate: 50 }]), /vehicleType is required/);
-  assert.throws(() => validateRateCard([{ vehicleType: 'Car' }]), /rate must be a non-negative number/);
-  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: -1 }]), /non-negative number/);
-  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: Number.NaN }]), /non-negative number/);
-  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: Infinity }]), /non-negative number/);
-  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: '100' }]), /non-negative number/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Car' }]), /Rate is required for Car/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: null }]), /Rate is required for Car/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: '' }]), /Rate is required for Car/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Motorcycle', rate: 0 }]), /Rate must be greater than zero for Motorcycle/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: -1 }]), /greater than zero for Car/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: Number.NaN }]), /greater than zero for Car/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: Infinity }]), /greater than zero for Car/);
+  assert.throws(() => validateRateCard([{ vehicleType: 'Car', rate: '100' }]), /greater than zero for Car/);
   assert.throws(
     () => validateRateCard([{ vehicleType: 'x'.repeat(41), rate: 10 }]),
     /cannot exceed 40 characters/,
+  );
+});
+
+test('validateRateCard names the offending row when a rate is missing or zero', () => {
+  const card = [
+    { vehicleType: 'Rickshaw', rate: 50 },
+    { vehicleType: 'Water Tanker', rate: 0 },
+  ];
+  assert.throws(() => validateRateCard(card), /Rate must be greater than zero for Water Tanker/);
+  assert.throws(
+    () => validateRateCard([{ vehicleType: 'Car' }, { vehicleType: 'Motorcycle' }]),
+    /Rate is required for Car/,
   );
 });
 

@@ -11,11 +11,16 @@ const normalizeVehicleType = (value) => {
 };
 
 const isNonNegativeMoney = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+const isPositiveMoney = (value) => typeof value === 'number' && Number.isFinite(value) && value > 0;
 
 /**
  * Validates and normalizes a rate card. Throws an Error with a user-facing
  * message when the card is unusable, otherwise returns a clean array of
  * `{ vehicleType, rate }` with trimmed display names and de-duplicated keys.
+ *
+ * Every row must name a vehicle type and carry a price greater than zero: a
+ * rate card is what the operator charges, so a blank or zero row is an
+ * unfinished card rather than a free type.
  */
 const validateRateCard = (rates) => {
   if (!Array.isArray(rates)) {
@@ -38,8 +43,12 @@ const validateRateCard = (rates) => {
     if (vehicleType.length > MAX_VEHICLE_TYPE_LENGTH) {
       throw new Error(`rates[${index}].vehicleType cannot exceed ${MAX_VEHICLE_TYPE_LENGTH} characters`);
     }
-    if (!isNonNegativeMoney(entry.rate)) {
-      throw new Error(`rates[${index}].rate must be a non-negative number`);
+    const { rate } = entry;
+    if (rate === undefined || rate === null || rate === '') {
+      throw new Error(`Rate is required for ${vehicleType}`);
+    }
+    if (!isPositiveMoney(rate)) {
+      throw new Error(`Rate must be greater than zero for ${vehicleType}`);
     }
 
     const key = normalizeVehicleType(vehicleType);
@@ -83,6 +92,7 @@ module.exports = {
   MAX_RATE_CARD_TYPES,
   MAX_VEHICLE_TYPE_LENGTH,
   isNonNegativeMoney,
+  isPositiveMoney,
   normalizeVehicleType,
   resolveDailyRate,
   validateRateCard,
