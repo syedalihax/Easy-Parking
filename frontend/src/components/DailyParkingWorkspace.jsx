@@ -203,7 +203,7 @@ function DailyParkingWorkspace({ parkingId }) {
                     <p>{record.customerName || t('daily.walkInCustomer')} · <span dir="ltr">{money(record.fee)}</span></p>
                   </div>
                   <div className="action-row">
-                    <StatusBadge status={record.paymentStatus === 'paid' ? 'received' : 'due'} label={record.paymentStatus === 'paid' ? t('daily.received') : t('daily.due')} />
+                    <StatusBadge status={record.paymentStatus === 'paid' ? 'received' : 'due'} label={record.paymentStatus === 'paid' ? t('daily.received') : t('daily.unpaid')} />
                     <button className="secondary-button" type="button" onClick={() => updateRecord(record._id, 'exit')}>{t('daily.recordExit')}</button>
                     {record.paymentStatus === 'unpaid' && (
                       <select aria-label={`${t('daily.payment')} · ${record.vehicleNumber}`} defaultValue="" onChange={(event) => event.target.value && updateRecord(record._id, event.target.value)}>
@@ -232,7 +232,24 @@ function DailyParkingWorkspace({ parkingId }) {
               {history.map((record) => (
                 <article className="list-item daily-record" key={record._id}>
                   <div><strong>{record.vehicleNumber}</strong><p>{record.customerName || t('daily.walkInCustomer')} · {record.vehicleType || t('daily.vehicleType')}</p><p dir="ltr">{dateTime(record.entryDateTime)}{record.exitDateTime ? ` – ${dateTime(record.exitDateTime)}` : ` · ${t('daily.stillParked')}`}</p></div>
-                  <div><strong className="money-figure" dir="ltr">{money(record.fee)}</strong><p>{record.paymentStatus === 'paid' ? `${t('daily.received')} · ${t(`daily.${record.paymentMethod}`)}` : t('daily.due')}</p><StatusBadge status={record.paymentStatus === 'paid' ? 'received' : 'due'} label={record.paymentStatus === 'paid' ? t('daily.received') : t('daily.due')} /></div>
+                  <div className="daily-history-settlement">
+                    <strong className="money-figure" dir="ltr">{money(record.fee)}</strong>
+                    <p>{record.paymentStatus === 'paid'
+                      ? `${t('daily.received')}${record.paymentMethod ? ` · ${t(`daily.${record.paymentMethod}`)}` : ''}`
+                      : t('daily.unpaid')}</p>
+                    {record.paymentStatus === 'unpaid' && record.fee > 0 && (
+                      <select
+                        aria-label={`${t('daily.payment')} · ${record.vehicleNumber}`}
+                        defaultValue=""
+                        onChange={(event) => event.target.value && updateRecord(record._id, event.target.value)}
+                      >
+                        <option value="" disabled>{t('daily.markPaid')}</option>
+                        <option value="cash">{t('daily.cash')}</option>
+                        <option value="easypaisa">{t('daily.easypaisa')}</option>
+                        <option value="jazzcash">{t('daily.jazzcash')}</option>
+                      </select>
+                    )}
+                  </div>
                 </article>
               ))}
             </div>
