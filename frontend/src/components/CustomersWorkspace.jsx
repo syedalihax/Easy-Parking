@@ -17,6 +17,7 @@ import {
   apiGetDues,
   apiGetPayments,
   apiGetPayment,
+  apiCreateCurrentDue,
   apiGetSubscriptions,
   apiGetVehicle,
   apiPreviewPayment,
@@ -131,6 +132,18 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
     setPayments(paymentResult.payments || []);
     setSubscriptions(subscriptionResult.subscriptions || []);
   }, [parkingId]);
+
+  const createCurrentBill = async (subscription) => {
+    setErrorMessage('');
+    setStatusMessage('');
+    try {
+      await apiCreateCurrentDue(parkingId, customer._id, subscription._id);
+      await loadBilling(customer._id);
+      setStatusMessage(t('customer.billCreated'));
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    }
+  };
 
   useEffect(() => {
     if (statusMessage) {
@@ -934,9 +947,22 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                           <strong>{registration || t('customer.vehicleSubscription')}</strong>
                           <p className="muted-text"><span dir="ltr">Rs. {subscription.monthlyRate.toLocaleString()}</span> / {t('customer.month')} · {t(`customer.subscriptionStatus.${subscription.status}`)}</p>
                           {subscription.pendingRateChange && <p className="muted-text">{t('customer.nextRate', { amount: subscription.pendingRateChange.newRate.toLocaleString() })}</p>}
+                          {subscription.status === 'active' && subscription.currentPeriod && (
+                            <p className="muted-text">
+                              {t('customer.currentPeriod', {
+                                from: formatDate(subscription.currentPeriod.start),
+                                to: formatDate(subscription.currentPeriod.end),
+                              })}
+                              {' · '}
+                              {subscription.currentDue ? t('customer.currentPeriodBilled') : t('customer.currentPeriodUnbilled')}
+                            </p>
+                          )}
                         </div>
                         {subscription.status === 'active' && (
                           <div className="action-row">
+                            {!subscription.currentDue && (
+                              <button type="button" className="secondary-button" onClick={() => createCurrentBill(subscription)} disabled={isLoading}>{t('customer.createBill')}</button>
+                            )}
                             <button type="button" className="secondary-button" onClick={() => setRateForm({
                               subscriptionId: subscription._id,
                               monthlyRate: String(subscription.monthlyRate),

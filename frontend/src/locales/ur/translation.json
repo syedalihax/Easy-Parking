@@ -424,7 +424,11 @@
     "confirmRecordPayment": "تصدیق اور وصولی درج کریں",
     "goBack": "واپس جائیں",
     "vehicleSearchPlaceholder": "رجسٹریشن نمبر درج کریں"
-  },
+  ,    "currentPeriod": "موجودہ مدت: {{from}} – {{to}}",
+        "currentPeriodBilled": "بل بن گیا",
+        "currentPeriodUnbilled": "ابھی بل نہیں بنا",
+        "createBill": "بل بنائیں",
+        "billCreated": "موجودہ مدت کا بل بن گیا"},
   "landing": {
     "seoTitle": "EasyParking — آسان پارکنگ مینجمنٹ سافٹ ویئر",
     "seoDescription": "EasyParking کے ذریعے پارکنگ ممبران، گاڑیاں، ماہانہ سبسکرپشن، وصولیاں اور روزانہ پارکنگ منظم کریں۔ کاغذی رجسٹر کو ڈیجیٹل ریکارڈ سے بدلیں۔",

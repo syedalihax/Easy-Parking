@@ -61,7 +61,34 @@ const listSubscriptions = async (req, res) => {
       parkingId: req.params.parkingId,
       customerId: req.params.customerId,
     }).populate('vehicleId', 'registrationNumber status').sort({ createdAt: -1 }).lean();
-    return res.json({ subscriptions });
+
+    // Arrears billing leaves the running month invisible until it closes. Send the
+    // open period with the subscription so the UI can show what is accruing.
+    const now = new Date();
+    const dueRows = await MonthlyDue.find({
+      parkingId: req.params.parkingId,
+      customerId: req.params.customerId,
+      subscriptionId: { $in: subscriptions.map((subscription) => subscription._id) },
+    }).select('subscriptionId billingPeriodStart status amountDue outstandingAmount').lean();
+
+    const duesByPeriod = new Map(dueRows.map((due) => (
+      [`${due.subscriptionId}:${new Date(due.billingPeriodStart).toISOString()}`, due]
+    )));
+
+    const enriched = subscriptions.map((subscription) => {
+      if (subscription.status !== 'active') return subscription;
+      const period = getBillingPeriod(subscription.startDate, now);
+      const due = duesByPeriod.get(`${subscription._id}:${period.start.toISOString()}`) || null;
+      return {
+        ...subscription,
+        currentPeriod: { start: period.start, end: period.end },
+        currentDue: due
+          ? { _id: due._id, status: due.status, amountDue: due.amountDue, outstandingAmount: due.outstandingAmount }
+          : null,
+      };
+    });
+
+    return res.json({ subscriptions: enriched });
   } catch (error) {
     if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid customer or parking ID' });
     return res.status(500).json({ message: 'Could not load subscriptions' });
@@ -155,4 +182,60 @@ const listDues = async (req, res) => {
   }
 };
 
-module.exports = { createSubscription, listSubscriptions, changeRate, endSubscription, listDues };
+// Bills the period the member is parking in right now. Arrears still bills at the
+// period end; this covers "invoice me now" and members who leave mid-period.
+const createCurrentDue = async (req, res) => {
+  try {
+    const subscription = await ParkingSubscription.findOne({
+      _id: req.params.subscriptionId,
+      parkingId: req.params.parkingId,
+      customerId: req.params.customerId,
+      status: 'active',
+    }).lean();
+
+    if (!subscription) return res.status(404).json({ message: 'Active subscription not found' });
+
+    const period = getBillingPeriod(subscription.startDate);
+    const existing = await MonthlyDue.findOne({
+      subscriptionId: subscription._id,
+      billingPeriodStart: period.start,
+    }).lean();
+
+    if (existing) {
+      return res.status(409).json({ message: 'A bill already exists for this period', due: existing });
+    }
+
+    const amountDue = subscription.monthlyRate;
+    const due = await MonthlyDue.create({
+      parkingId: subscription.parkingId,
+      customerId: subscription.customerId,
+      vehicleId: subscription.vehicleId,
+      subscriptionId: subscription._id,
+      billingPeriodStart: period.start,
+      billingPeriodEnd: period.end,
+      dueDate: period.end,
+      amountDue,
+      amountPaid: 0,
+      outstandingAmount: amountDue,
+      status: 'pending',
+    });
+
+    return res.status(201).json({ due });
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ message: 'A bill already exists for this period' });
+    if (error.name === 'CastError' || error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error('Current period bill failed:', error);
+    return res.status(500).json({ message: 'Could not create the bill' });
+  }
+};
+
+module.exports = {
+  createSubscription,
+  listSubscriptions,
+  changeRate,
+  endSubscription,
+  listDues,
+  createCurrentDue,
+};

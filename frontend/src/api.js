@@ -281,6 +281,11 @@ export const apiGetVehicle = (parkingId, vehicleId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/vehicles/${encodeURIComponent(vehicleId)}`,
 );
 
+export const apiCreateCurrentDue = (parkingId, customerId, subscriptionId) => jsonRequest(
+  `/parkings/${parkingId}/customers/${customerId}/subscriptions/${subscriptionId}/dues`,
+  { method: 'POST' },
+);
+
 export const apiGetSubscriptions = (parkingId, customerId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions`,
 );
