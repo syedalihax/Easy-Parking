@@ -156,6 +156,11 @@ export const apiUpdateDailyRate = (parkingId, dailyParkingRate) => jsonRequest(
   { method: 'PATCH', body: JSON.stringify({ dailyParkingRate }) },
 );
 
+export const apiUpdateRateCard = (parkingId, payload) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-rate/card`,
+  { method: 'PUT', body: JSON.stringify(payload) },
+);
+
 export const apiCreateDailyParkingEntry = (parkingId, payload) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/daily-parking/entry`,
   { method: 'POST', body: JSON.stringify(payload) },

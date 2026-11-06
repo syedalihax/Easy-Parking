@@ -4,8 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/pwa-192x192.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#087F5B" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1F6A52" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="easyParking" />
     <meta name="description" content="Manage parking members, vehicles, monthly subscriptions, payments and daily parking with easyParking. Replace paper registers with organized digital parking records." />
     <meta name="robots" content="index,follow" />
     <meta property="og:type" content="website" />
@@ -29,9 +33,155 @@
       }
     </script>
     <title>easyParking — Simple Parking Management Software</title>
+
+    <!-- Critical splash styles: paint the brand screen before any JS/bundle arrives. -->
+    <style>
+      :root { color-scheme: light; }
+      html { background: #1F6A52; }
+      html.app-splash-active,
+      html.app-splash-active body { overflow: hidden; }
+
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: calc(env(safe-area-inset-top, 0px) + 24px) 24px
+                 calc(env(safe-area-inset-bottom, 0px) + 24px);
+        background: #1F6A52;
+        background-image: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 62%);
+        color: #fff;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 420ms ease, visibility 420ms ease;
+      }
+
+      #app-splash.is-hiding {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .app-splash__mark {
+        width: 72px;
+        height: 72px;
+        display: block;
+        margin-bottom: 20px;
+      }
+
+      .app-splash__wordmark {
+        margin: 0;
+        font-size: clamp(1.9rem, 8vw, 2.5rem);
+        line-height: 1.1;
+        letter-spacing: -0.025em;
+        font-weight: 500;
+        color: #fff;
+      }
+
+      .app-splash__wordmark strong {
+        font-weight: 800;
+      }
+
+      .app-splash__tagline {
+        margin: 10px 0 0;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.66);
+      }
+
+      .app-splash__bar {
+        margin-top: 34px;
+        width: 148px;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        overflow: hidden;
+      }
+
+      .app-splash__bar-fill {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        background: #ffffff;
+        transform: scaleX(0);
+        transform-origin: left center;
+        animation: app-splash-progress 1200ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+      }
+
+      @keyframes app-splash-progress {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #app-splash { transition: opacity 120ms linear; }
+        .app-splash__bar-fill { animation: none; transform: scaleX(1); }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-splash" role="status" aria-live="polite" aria-label="Loading easyParking">
+      <svg class="app-splash__mark" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+        <rect x="6" y="6" width="60" height="60" rx="18" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.42)" stroke-width="1.5" />
+        <path d="M31 51V24h9.5a9 9 0 0 1 0 18H31" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <p class="app-splash__wordmark">easy<strong>Parking</strong></p>
+      <p class="app-splash__tagline">Parking management</p>
+      <div class="app-splash__bar" aria-hidden="true">
+        <span class="app-splash__bar-fill"></span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      (function () {
+        var el = document.getElementById('app-splash');
+        if (!el) return;
+        document.documentElement.classList.add('app-splash-active');
+
+        // Never trap the user behind the splash: fade it out once the app has
+        // actually painted, or after a hard backstop. No-ops when the React
+        // <SplashScreen /> has already taken the node over.
+        function hide() {
+          var node = document.getElementById('app-splash');
+          if (!node) return;
+          node.classList.add('is-hiding');
+          document.documentElement.classList.remove('app-splash-active');
+          window.setTimeout(function () {
+            if (node.parentNode) node.parentNode.removeChild(node);
+          }, 500);
+        }
+
+        function watchAppPaint() {
+          var root = document.getElementById('root');
+          if (!root) return;
+          if (root.childElementCount > 0) {
+            window.setTimeout(hide, 1200);
+            return;
+          }
+          var observer = new MutationObserver(function () {
+            if (root.childElementCount === 0) return;
+            observer.disconnect();
+            window.setTimeout(hide, 1200);
+          });
+          observer.observe(root, { childList: true });
+        }
+
+        if (document.readyState === 'complete') watchAppPaint();
+        else window.addEventListener('load', watchAppPaint);
+
+        window.__easyParkingSplashTimer = window.setTimeout(hide, 10000);
+      })();
+    </script>
   </body>
 </html>

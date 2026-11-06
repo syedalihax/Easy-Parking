@@ -210,7 +210,13 @@
     "paymentRecorded": "Wasooli darj ho gayi",
     "invalidRate": "Ghair manfi rate darj karein",
     "loading": "Rozana parking load ho rahi hai..."
-  },
+  ,
+    "rateCard": "Rate card",
+    "rateCardHelp": "Har gaari ki qism ka apna rate. Jo fehrist mein na ho us par default rate lagega.",
+    "addType": "Qism shamil karein",
+    "defaultRate": "Default rate (Rs.)",
+    "removeType": "Qism hatayein",
+    "rateLabel": "Rate"},
   "reports": {
     "title": "Reports",
     "eyebrow": "Parking records",

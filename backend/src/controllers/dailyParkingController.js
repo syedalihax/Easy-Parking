@@ -2,14 +2,26 @@ const mongoose = require('mongoose');
 const DailyParkingRecord = require('../models/DailyParkingRecord');
 const Parking = require('../models/Parking');
 const Payment = require('../models/Payment');
+const {
+  isNonNegativeMoney,
+  resolveDailyRate,
+  validateRateCard,
+} = require('../utils/dailyRates');
 
 const validMethods = ['cash', 'easypaisa', 'jazzcash'];
 
+const rateCardResponse = (parking) => ({
+  dailyParkingRate: parking.dailyParkingRate,
+  rates: (parking.dailyRates || []).map(({ vehicleType, rate }) => ({ vehicleType, rate })),
+});
+
 const getDailyRate = async (req, res) => {
   try {
-    const parking = await Parking.findById(req.params.parkingId).select('dailyParkingRate').lean();
+    const parking = await Parking.findById(req.params.parkingId)
+      .select('dailyParkingRate dailyRates')
+      .lean();
     if (!parking) return res.status(404).json({ message: 'Parking not found' });
-    return res.json({ dailyParkingRate: parking.dailyParkingRate });
+    return res.json(rateCardResponse(parking));
   } catch (error) {
     if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid parking ID' });
     console.error('Daily parking rate lookup failed:', error);
@@ -17,23 +29,85 @@ const getDailyRate = async (req, res) => {
   }
 };
 
+// PATCH keeps the old `{ dailyParkingRate }` contract working for the current
+// UI, and additionally accepts `{ rates }` to update the per-type card.
 const updateDailyRate = async (req, res) => {
-  const { dailyParkingRate } = req.body;
-  if (typeof dailyParkingRate !== 'number' || !Number.isFinite(dailyParkingRate) || dailyParkingRate < 0) {
-    return res.status(400).json({ message: 'dailyParkingRate must be a non-negative number' });
+  const body = req.body || {};
+  const updates = {};
+
+  if (Object.prototype.hasOwnProperty.call(body, 'dailyParkingRate')) {
+    if (!isNonNegativeMoney(body.dailyParkingRate)) {
+      return res.status(400).json({ message: 'dailyParkingRate must be a non-negative number' });
+    }
+    updates.dailyParkingRate = body.dailyParkingRate;
   }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'rates')) {
+    try {
+      updates.dailyRates = validateRateCard(body.rates);
+    } catch (error) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ message: 'Provide dailyParkingRate, rates, or both' });
+  }
+
   try {
     const parking = await Parking.findByIdAndUpdate(
       req.params.parkingId,
-      { $set: { dailyParkingRate } },
+      { $set: updates },
       { returnDocument: 'after', runValidators: true },
-    ).select('dailyParkingRate').lean();
+    ).select('dailyParkingRate dailyRates').lean();
     if (!parking) return res.status(404).json({ message: 'Parking not found' });
-    return res.json({ dailyParkingRate: parking.dailyParkingRate });
+    return res.json(rateCardResponse(parking));
   } catch (error) {
-    if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid parking ID' });
+    if (error.name === 'CastError' || error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
     console.error('Daily parking rate update failed:', error);
     return res.status(500).json({ message: 'Could not update daily parking rate' });
+  }
+};
+
+// Admin-only replacement of the whole card: vehicle types omitted from `rates`
+// are removed. Existing records are untouched because fees are snapshotted.
+const replaceRateCard = async (req, res) => {
+  const body = req.body || {};
+  if (!Object.prototype.hasOwnProperty.call(body, 'rates')) {
+    return res.status(400).json({ message: 'rates is required' });
+  }
+
+  let rates;
+  try {
+    rates = validateRateCard(body.rates);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  const updates = { dailyRates: rates };
+  if (Object.prototype.hasOwnProperty.call(body, 'dailyParkingRate')) {
+    if (!isNonNegativeMoney(body.dailyParkingRate)) {
+      return res.status(400).json({ message: 'dailyParkingRate must be a non-negative number' });
+    }
+    updates.dailyParkingRate = body.dailyParkingRate;
+  }
+
+  try {
+    const parking = await Parking.findByIdAndUpdate(
+      req.params.parkingId,
+      { $set: updates },
+      { returnDocument: 'after', runValidators: true },
+    ).select('dailyParkingRate dailyRates').lean();
+    if (!parking) return res.status(404).json({ message: 'Parking not found' });
+    return res.json(rateCardResponse(parking));
+  } catch (error) {
+    if (error.name === 'CastError' || error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error('Daily parking rate card update failed:', error);
+    return res.status(500).json({ message: 'Could not update daily parking rate card' });
   }
 };
 
@@ -51,18 +125,32 @@ const createEntry = async (req, res) => {
     });
     if (activeRecord) return res.status(409).json({ message: 'This vehicle already has an active parking entry' });
 
-    const parking = await Parking.findById(req.params.parkingId).select('dailyParkingRate').lean();
+    const parking = await Parking.findById(req.params.parkingId)
+      .select('dailyParkingRate dailyRates')
+      .lean();
     if (!parking) return res.status(404).json({ message: 'Parking not found' });
+
+    // Price the entry now and snapshot the fee + matched type on the record, so
+    // later rate-card edits never rewrite history.
+    const pricing = resolveDailyRate({
+      vehicleType: typeof vehicleType === 'string' ? vehicleType : '',
+      rates: parking.dailyRates,
+      defaultRate: parking.dailyParkingRate,
+    });
+
     const record = await DailyParkingRecord.create({
       parkingId: req.params.parkingId,
       vehicleNumber: normalizedNumber,
-      vehicleType,
+      vehicleType: pricing.vehicleType,
       customerName,
       customerPhone,
       notes,
-      fee: parking.dailyParkingRate,
+      fee: pricing.rate,
     });
-    return res.status(201).json({ record });
+    return res.status(201).json({
+      record,
+      pricing: { rate: pricing.rate, vehicleType: pricing.vehicleType, matched: pricing.matched },
+    });
   } catch (error) {
     if (error.name === 'CastError' || error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
@@ -198,6 +286,7 @@ const recordPayment = async (req, res) => {
 module.exports = {
   getDailyRate,
   updateDailyRate,
+  replaceRateCard,
   createEntry,
   listRecords,
   listActiveRecords,

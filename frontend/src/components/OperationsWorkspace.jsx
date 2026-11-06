@@ -14,6 +14,17 @@ import { formatDate, formatDateTime, formatMethod, shortId } from '../lib/format
 const money = (value) => `Rs. ${Number(value || 0).toLocaleString()}`;
 const date = (value) => formatDate(value);
 
+// Whole days between the due date and today; 1 means "a day late".
+const daysOverdue = (value) => {
+  if (!value) return 0;
+  const due = new Date(value);
+  if (Number.isNaN(due.getTime())) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  return Math.floor((today - due) / 86400000);
+};
+
 const reports = [
   { id: 'customers', labelKey: 'reports.customers', filters: ['status'] },
   { id: 'active-vehicles', labelKey: 'reports.activeVehicles' },
@@ -117,40 +128,63 @@ function DashboardWorkspace({ parkingId }) {
   const quickActions = [
     { labelKey: 'dashboard.addCustomer', to: '/app/customers', Icon: 'person_add', tone: 'green' },
     { labelKey: 'nav.receivePayment', to: '/app/payments', Icon: 'payments', tone: 'orange' },
-    { labelKey: 'dashboard.pendingPayments', to: '/app/dues', Icon: 'wallet', tone: 'orange' },
-    { labelKey: 'nav.dailyParking', to: '/app/daily-parking', Icon: 'local_parking', tone: 'blue' },
-    { labelKey: 'nav.vehicles', to: '/app/vehicles', Icon: 'directions_car', tone: 'blue' },
+    { labelKey: 'dashboard.pendingPayments', to: '/app/dues', Icon: 'wallet', tone: 'blue' },
+    { labelKey: 'nav.dailyParking', to: '/app/daily-parking', Icon: 'local_parking', tone: 'amber' },
+    { labelKey: 'nav.vehicles', to: '/app/vehicles', Icon: 'directions_car', tone: 'green' },
     { labelKey: 'nav.reports', to: '/app/reports', Icon: 'bar_chart', tone: 'orange' },
-    { labelKey: 'menu.parkingAccess', to: '/app/team', Icon: 'groups', tone: 'green' },
-    { labelKey: 'menu.profile', to: '/app/profile', Icon: 'person', tone: 'green' },
-    { labelKey: 'nav.more', to: '/app/more', Icon: 'more_horiz', tone: 'blue' },
+    { labelKey: 'menu.parkingAccess', to: '/app/team', Icon: 'groups', tone: 'blue' },
+    { labelKey: 'menu.profile', to: '/app/profile', Icon: 'person', tone: 'amber' },
+    { labelKey: 'nav.more', to: '/app/more', Icon: 'more_horiz', tone: 'green' },
   ];
 
   const summaryCards = summary ? [
     {
       label: t('dashboard.paymentsThisMonth'),
       value: money(summary.paymentsReceivedThisPeriod),
-      tone: 'primary',
+      tone: 'green',
       icon: 'payments',
       detail: t('dashboard.paymentsThisMonthHelp'),
     },
     {
       label: t('dashboard.customersWithDues'),
       value: summary.customersWithPendingDues || 0,
-      tone: 'neutral',
+      tone: 'terracotta',
       icon: 'groups',
       detail: t('dashboard.peopleWithDuesHelp'),
     },
     {
       label: t('dashboard.outstanding'),
       value: money(summary.totalOutstandingAmount),
-      tone: 'accent',
+      tone: 'slate',
       icon: 'wallet',
       detail: summary.dailyOutstandingAmount > 0
         ? `${money(summary.dailyOutstandingAmount)} ${t('daily.walkIn')}`
         : t('dashboard.outstandingHelp'),
     },
   ] : [];
+
+  // One follow-up list instead of three labelled groups: unique unpaid bills,
+  // oldest first, so the sentence and the rows always agree on the numbers.
+  const followUp = useMemo(() => {
+    if (!reminders) return null;
+    const seen = new Set();
+    const dues = [
+      ...(reminders.pendingDues || []),
+      ...(reminders.overdueDues || []),
+      ...(reminders.partialPayments || []),
+    ]
+      .filter((item) => {
+        const key = String(item._id);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+    const total = dues.reduce((sum, item) => sum + Number(item.outstandingAmount || 0), 0);
+    const members = new Set(dues.map((item) => String(item.customerId?._id || item.customerId || item._id))).size;
+    return { dues, total, members };
+  }, [reminders]);
 
   return (
     <div className="operations-workspace">
@@ -180,10 +214,10 @@ function DashboardWorkspace({ parkingId }) {
         <div className="dashboard-wallet-shell">
           <section className="wallet-cards" aria-label={t('dashboard.overview')}>
             {summaryCards.map(({ label, value, detail, tone, icon }) => (
-              <article key={label} className={`wallet-card wallet-card--${tone}`}>
+              <article key={label} className={`wallet-card dash-wallet-card dash-wallet-card--${tone}`}>
                 <div className="wallet-card-head">
                   <span className="wallet-card-label">{label}</span>
-                  <span className="wallet-card-icon" aria-hidden="true"><GoogleIcon name={icon} size={19} /></span>
+                  <span className="dash-wallet-icon" aria-hidden="true"><GoogleIcon name={icon} size={18} /></span>
                 </div>
                 <strong className="wallet-card-value">{value}</strong>
                 <span className="wallet-card-note">{detail}</span>
@@ -195,11 +229,11 @@ function DashboardWorkspace({ parkingId }) {
             <div className="dashboard-section-head">
               <h3>{t('dashboard.quickActions')}</h3>
             </div>
-            <nav className="quick-grid" aria-label={t('dashboard.quickActions')}>
-              {quickActions.map(({ labelKey, to, Icon }) => (
-                <Link key={labelKey} to={to} className="quick-tile">
-                  <span className="quick-tile-icon" aria-hidden="true"><GoogleIcon name={Icon} size={20} /></span>
-                  <span>{t(labelKey)}</span>
+            <nav className="dash-quick-grid" aria-label={t('dashboard.quickActions')}>
+              {quickActions.map(({ labelKey, to, Icon, tone }) => (
+                <Link key={labelKey} to={to} className={`dash-quick-tile dash-quick-tile--${tone}`}>
+                  <span className="dash-quick-icon" aria-hidden="true"><GoogleIcon name={Icon} size={20} /></span>
+                  <span className="dash-quick-label">{t(labelKey)}</span>
                 </Link>
               ))}
             </nav>
@@ -210,55 +244,67 @@ function DashboardWorkspace({ parkingId }) {
               <h3>{t('reports.paymentHistory')}</h3>
               <Link to="/app/payment-history" className="dashboard-see-all">{t('app.seeAll')}</Link>
             </div>
-            <div className="dashboard-history-strip">
-              {paymentHistory.length === 0 ? (
-                <p className="muted-text">{t('dashboard.noRecentPayments')}</p>
-              ) : (
-                paymentHistory.map((item) => (
-                  <article key={item.paymentId || item._id} className="dashboard-payment-card">
-                    <div className="dashboard-payment-icon"><GoogleIcon name="sync_alt" size={18} /></div>
-                    <div className="dashboard-payment-main">
-                      <strong>{item.customerName || 'Member payment'}</strong>
-                      <span>{formatDate(item.paymentDate)} · {formatMethod(t, item.method)}</span>
-                    </div>
-                    <div className="dashboard-payment-amount">+ {money(item.amount)}</div>
-                  </article>
-                ))
-              )}
-            </div>
+            {paymentHistory.length === 0 ? (
+              <p className="muted-text">{t('dashboard.noRecentPayments')}</p>
+            ) : (
+              <ul className="dash-pay-list">
+                {paymentHistory.map((item, index) => {
+                  const name = item.customerName || t('dashboard.memberPayment');
+                  const tint = ['green', 'orange', 'blue', 'amber'][index % 4];
+                  return (
+                    <li key={item.paymentId || item._id} className="dash-pay-row">
+                      <span className={`dash-pay-avatar dash-pay-avatar--${tint}`} aria-hidden="true">
+                        {name.trim().charAt(0).toUpperCase()}
+                      </span>
+                      <span className="dash-pay-body">
+                        <strong className="dash-pay-name">{name}</strong>
+                        <span className="dash-pay-meta">{formatDate(item.paymentDate)} · {formatMethod(t, item.method)}</span>
+                      </span>
+                      <span className="dash-pay-amount" dir="ltr">+ {money(item.amount)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </section>
 
-          {reminders && (
+          {followUp && (
             <section className="dashboard-section">
               <div className="dashboard-section-head">
                 <h3>{t('dashboard.followUp')}</h3>
               </div>
-              {(() => {
-                const groups = [
-                  [t('dashboard.pendingDues'), reminders.pendingDues],
-                  [t('dashboard.overdueDues'), reminders.overdueDues],
-                  [t('dashboard.partialPayments'), reminders.partialPayments],
-                ].filter(([, items]) => items.length > 0);
-
-                if (groups.length === 0) return <p className="muted-text">{t('dashboard.nothingToday')}</p>;
-
-                return (
-                  <div className="attention-rows">
-                    {groups.map(([title, items]) => (
-                      <div key={title} className="attention-row">
-                        <span className="attention-label">{title}</span>
-                        <div className="attention-items">
-                          {items.slice(0, 3).map((item) => (
-                            <span key={item._id} className="attention-item">
-                              {item.customerId?.fullName || t('dashboard.member')} <strong>{money(item.outstandingAmount)}</strong>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
+              {followUp.dues.length === 0 ? (
+                <p className="muted-text">{t('dashboard.nothingToday')}</p>
+              ) : (
+                <div className="dash-followup">
+                  <p className="dash-followup-summary">
+                    {t('dashboard.followUpSummary', {
+                      count: followUp.members,
+                      amount: money(followUp.total),
+                    })}
+                  </p>
+                  <ul className="dash-followup-list">
+                    {followUp.dues.slice(0, 3).map((item) => {
+                      const age = daysOverdue(item.dueDate);
+                      return (
+                        <li key={item._id} className="dash-followup-row">
+                          <span className="dash-followup-name">{item.customerId?.fullName || t('dashboard.member')}</span>
+                          <span className="dash-followup-amount" dir="ltr">{money(item.outstandingAmount)}</span>
+                          <span className="dash-followup-age">
+                            {age > 0
+                              ? t('dashboard.daysOverdue', { count: age })
+                              : t('dashboard.dueOn', { date: formatDate(item.dueDate) })}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <Link to="/app/dues" className="dash-followup-link">
+                    {t('dashboard.pendingPayments')}
+                    <GoogleIcon name="arrow_forward" size={15} />
+                  </Link>
+                </div>
+              )}
             </section>
           )}
         </div>

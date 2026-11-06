@@ -162,9 +162,14 @@
     "noRecentPayments": "No recent payments yet.",
     "upcomingBilling": "Payments coming soon",
     "nothing": "Nothing to show.",
-    "loading": "Loading dashboard..."
-  ,
-    "nothingToday": "Nothing needs attention today."},
+    "loading": "Loading dashboard...",
+    "nothingToday": "Nothing needs attention today.",
+    "followUpSummary_one": "{{count}} member owes {{amount}}",
+    "followUpSummary_other": "{{count}} members owe {{amount}}",
+    "daysOverdue_one": "{{count}} day overdue",
+    "daysOverdue_other": "{{count}} days overdue",
+    "dueOn": "due {{date}}"
+  },
   "daily": {
     "walkIn": "Walk-in parking",
     "title": "Daily parking",
@@ -210,7 +215,13 @@
     "paymentRecorded": "Payment recorded",
     "invalidRate": "Enter a non-negative daily rate",
     "loading": "Loading daily parking..."
-  },
+  ,
+    "rateCard": "Rate card",
+    "rateCardHelp": "One price per vehicle type. Anything not listed is charged the default rate.",
+    "addType": "Add type",
+    "defaultRate": "Default rate (Rs.)",
+    "removeType": "Remove type",
+    "rateLabel": "Rate"},
   "reports": {
     "title": "Reports",
     "eyebrow": "Parking records",
