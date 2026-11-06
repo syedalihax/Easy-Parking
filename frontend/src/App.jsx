@@ -1114,6 +1114,8 @@ function App() {
           <Route path="/signup" element={renderAuthForm('signup')} />
           <Route path="/register" element={renderAuthForm('signup')} />
           <Route path="/404" element={<NotFoundPage />} />
+          {/* A signed-out deep link belongs at the login form, not on a 404. */}
+          <Route path="/app/*" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

@@ -32,6 +32,7 @@ import {
   apiUpdateCustomer,
   apiUpdateVehicle,
 } from '../api';
+import { formatDate, formatMethod } from '../lib/format';
 
 const emptyCustomer = {
   fullName: '',
@@ -724,7 +725,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
               <div><span>{t('customer.type')}</span><strong>{selectedVehicle.vehicleType || t('app.notProvided')}</strong></div>
               <div><span>{t('customer.makeModel')}</span><strong>{selectedVehicle.makeModel || t('app.notProvided')}</strong></div>
               <div><span>{t('customer.color')}</span><strong>{selectedVehicle.color || t('app.notProvided')}</strong></div>
-              <div><span>{t('customer.parkingStartDate')}</span><strong dir="ltr">{new Date(selectedVehicle.parkingStartDate).toLocaleDateString()}</strong></div>
+              <div><span>{t('customer.parkingStartDate')}</span><strong dir="ltr">{formatDate(selectedVehicle.parkingStartDate)}</strong></div>
               {selectedVehicle.notes && <div className="vehicle-notes"><span>{t('customer.notes')}</span><strong>{selectedVehicle.notes}</strong></div>}
             </div>
           </section>
@@ -852,7 +853,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                       <Link className="vehicle-registration-link" to={`/app/vehicles/${vehicle._id}`}>{vehicle.registrationNumber}</Link>
                       <StatusBadge status={vehicle.status === 'active' ? 'active' : 'inactive'} label={t(`app.${vehicle.status}`)} />
                       <p>{[vehicle.vehicleType, vehicle.makeModel, vehicle.color].filter(Boolean).join(' · ') || t('customer.vehicleDetailsMissing')}</p>
-                      <p className="muted-text">{t('customer.since', { date: new Date(vehicle.parkingStartDate).toLocaleDateString() })}</p>
+                      <p className="muted-text">{t('customer.since', { date: formatDate(vehicle.parkingStartDate) })}</p>
                     </div>
                     {vehicle.status === 'active' ? (
                       <div className="flex flex-col gap-2">
@@ -977,7 +978,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
               {dues.length === 0 ? <p className="muted-text">{t('customer.noCompletedPeriods')}</p> : dues.map((due) => (
                 <article key={due._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
                   <div>
-                    <strong dir="ltr">{new Date(due.billingPeriodStart).toLocaleDateString()} – {new Date(due.billingPeriodEnd).toLocaleDateString()}</strong>
+                    <strong dir="ltr">{formatDate(due.billingPeriodStart)} – {formatDate(due.billingPeriodEnd)}</strong>
                     <p className="muted-text">{due.vehicleId?.registrationNumber || t('customer.vehicle')} · <span dir="ltr">Rs. {due.amountDue.toLocaleString()}</span> {t('customer.due')}</p>
                   </div>
                   <div className="text-end">
@@ -1004,7 +1005,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                 <div className="flex flex-wrap gap-2">
                   {['cash', 'easypaisa', 'jazzcash'].map((method) => (
                     <button key={method} type="button" className={paymentForm.method === method ? 'workspace-tab is-active' : 'workspace-tab'} onClick={() => setPaymentForm({ ...paymentForm, method })}>
-                      {t(`daily.${method}`)}
+                      {formatMethod(t, method)}
                     </button>
                   ))}
                 </div>
@@ -1046,7 +1047,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                           : paymentForm.manualDueOrder.filter((id) => id !== due._id),
                       })}
                     />
-                    {new Date(due.billingPeriodStart).toLocaleDateString()} – {new Date(due.billingPeriodEnd).toLocaleDateString()} · Rs. {due.outstandingAmount.toLocaleString()} outstanding
+                    {formatDate(due.billingPeriodStart)} – {formatDate(due.billingPeriodEnd)} · Rs. {due.outstandingAmount.toLocaleString()} outstanding
                   </label>
                 ))}
                 {dues.every((due) => due.outstandingAmount <= 0) && <p className="muted-text">{t('customer.noOutstanding')}</p>}
@@ -1068,8 +1069,8 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                 {payments.map((payment) => (
                   <button type="button" key={payment._id} className="list-item text-start" onClick={() => openPaymentDetail(payment._id)}>
                     <div>
-                      <strong dir="ltr">Rs. {payment.amount.toLocaleString()} · {t(`daily.${payment.method}`)}</strong>
-                      <p><span dir="ltr">{new Date(payment.paymentDate).toLocaleDateString()}</span> · {t('customer.receivedBy', { name: payment.receivedBy?.fullName || t('customer.teamMember') })} · {t('customer.dueCount', { count: payment.allocations?.length || 0 })}</p>
+                      <strong dir="ltr">Rs. {payment.amount.toLocaleString()} · {formatMethod(t, payment.method)}</strong>
+                      <p><span dir="ltr">{formatDate(payment.paymentDate)}</span> · {t('customer.receivedBy', { name: payment.receivedBy?.fullName || t('customer.teamMember') })} · {t('customer.dueCount', { count: payment.allocations?.length || 0 })}</p>
                     </div>
                     <StatusBadge status={payment.status === 'active' ? 'active' : 'reversed'} label={t(`customer.paymentStatus.${payment.status}`)} />
                   </button>
@@ -1083,7 +1084,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="eyebrow">{t('customer.paymentDetail')}</p>
-                  <h3 className="m-0 text-xl" dir="ltr">Rs. {paymentDetail.payment.amount.toLocaleString()} · {t(`daily.${paymentDetail.payment.method}`)}</h3>
+                  <h3 className="m-0 text-xl" dir="ltr">Rs. {paymentDetail.payment.amount.toLocaleString()} · {formatMethod(t, paymentDetail.payment.method)}</h3>
                   <p className="muted-text"><span dir="ltr">{new Date(paymentDetail.payment.paymentDate).toLocaleString()}</span> · {t(`customer.paymentStatus.${paymentDetail.payment.status}`)}</p>
                 </div>
                 <button className="secondary-button" type="button" onClick={() => setPaymentDetail(null)}>{t('customer.close')}</button>
@@ -1093,7 +1094,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                 {paymentDetail.payment.allocations.map((allocation) => (
                   <p className="muted-text" key={allocation._id}>
                     {allocation.monthlyDueId
-                      ? `${new Date(allocation.monthlyDueId.billingPeriodStart).toLocaleDateString()} – ${new Date(allocation.monthlyDueId.billingPeriodEnd).toLocaleDateString()}`
+                      ? `${formatDate(allocation.monthlyDueId.billingPeriodStart)} – ${formatDate(allocation.monthlyDueId.billingPeriodEnd)}`
                       : t('customer.dueRecord')} · <span dir="ltr">Rs. {allocation.allocatedAmount.toLocaleString()}</span>
                   </p>
                 ))}
@@ -1159,7 +1160,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
           isOpen={paymentConfirmation}
           title={t('customer.confirmAction')}
           message={
-            `${t('customer.recordAmount', { amount: Number(paymentForm.amount || 0).toLocaleString() })}. ${t('customer.methodLabel', { method: t(`daily.${paymentForm.method}`) })}. ${paymentForm.manual
+            `${t('customer.recordAmount', { amount: Number(paymentForm.amount || 0).toLocaleString() })} ${t('customer.methodLabel', { method: formatMethod(t, paymentForm.method) })} ${paymentForm.manual
               ? t('customer.manualDueCount', { count: paymentForm.manualDueOrder.length })
               : t('customer.oldestAllocationConfirm')}`
           }

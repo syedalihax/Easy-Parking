@@ -9,9 +9,10 @@ import {
   apiGetDashboardReminders,
   apiGetReport,
 } from '../api';
+import { formatDate, formatDateTime, formatMethod, shortId } from '../lib/format';
 
 const money = (value) => `Rs. ${Number(value || 0).toLocaleString()}`;
-const date = (value) => value ? new Date(value).toLocaleDateString() : '';
+const date = (value) => formatDate(value);
 
 const reports = [
   { id: 'customers', labelKey: 'reports.customers', filters: ['status'] },
@@ -130,7 +131,7 @@ function DashboardWorkspace({ parkingId }) {
       label: t('dashboard.paymentsThisMonth'),
       value: money(summary.paymentsReceivedThisPeriod),
       tone: 'teal',
-      detail: `${summary.totalActiveCustomers || 0} ${t('dashboard.activeCustomers')}`,
+      detail: t('dashboard.paymentsThisMonthHelp'),
     },
     {
       label: t('dashboard.customersWithDues'),
@@ -142,7 +143,9 @@ function DashboardWorkspace({ parkingId }) {
       label: t('dashboard.outstanding'),
       value: money(summary.totalOutstandingAmount),
       tone: 'peach',
-      detail: `${summary.customersWithOverdueDues || 0} ${t('dashboard.overdueDues')}`,
+      detail: summary.dailyOutstandingAmount > 0
+        ? `${money(summary.dailyOutstandingAmount)} ${t('daily.walkIn')}`
+        : t('dashboard.outstandingHelp'),
     },
   ] : [];
 
@@ -213,7 +216,7 @@ function DashboardWorkspace({ parkingId }) {
                     <div className="dashboard-payment-icon"><GoogleIcon name="sync_alt" size={18} /></div>
                     <div className="dashboard-payment-main">
                       <strong>{item.customerName || 'Member payment'}</strong>
-                      <span>{new Date(item.paymentDate).toLocaleDateString()} · {item.method || 'cash'}</span>
+                      <span>{formatDate(item.paymentDate)} · {formatMethod(t, item.method)}</span>
                     </div>
                     <div className="dashboard-payment-amount">+ {money(item.amount)}</div>
                   </article>
@@ -308,7 +311,7 @@ function PaymentHistoryWorkspace({ parkingId }) {
               <div className="payment-history-icon"><GoogleIcon name="sync_alt" size={18} /></div>
               <div className="payment-history-copy">
                 <strong>{item.customerName || t('dashboard.memberPayment')}</strong>
-                <span>{new Date(item.paymentDate).toLocaleDateString()} · {item.method || t('daily.cash')}</span>
+                <span>{formatDate(item.paymentDate)} · {formatMethod(t, item.method)}</span>
               </div>
               <div className="payment-history-amount">{money(item.amount)}</div>
             </article>
@@ -328,15 +331,19 @@ const renderValue = (value, key, t) => {
     if (value === 'active' || value === 'inactive') return t(`app.${value}`);
     if (value === 'reversed') return t('customer.paymentStatus.reversed');
   }
-  if (key === 'paymentStatus') return t(`daily.${value}`);
-  if (key === 'method' || key === 'paymentMethod') return t(`daily.${value}`);
+  if (key === 'paymentStatus') return value ? t(`daily.${value}`) : '—';
+  if (key === 'method' || key === 'paymentMethod') return value ? t(`daily.${value}`) : '—';
+  // Ids are shown short; the CSV export keeps the full value.
+  if (/Id$/.test(key) && typeof value === 'string' && /^[a-f0-9]{24}$/i.test(value)) {
+    return shortId(value);
+  }
   if (key === 'eventType') {
     if (value === 'due') return t('customer.due');
     if (value === 'payment') return t('customer.paymentStatus.active');
     if (value === 'payment_reversed') return t('customer.paymentStatus.reversed');
   }
   if (typeof value === 'string' && /^\d{4}-\d\d-\d\dT/.test(value)) {
-    return key.toLowerCase().includes('time') ? new Date(value).toLocaleString() : date(value);
+    return key.toLowerCase().includes('time') ? formatDateTime(value) : formatDate(value);
   }
   return String(value);
 };
