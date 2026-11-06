@@ -1,102 +1,158 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import GoogleIcon from './GoogleIcon';
-import LanguageSelector from './LanguageSelector';
+import '../landing.css';
 import './LandingPage.css';
 
-const ProductPreview = lazy(() => import('./ProductPreview'));
+const siteUrl = import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/, '');
+const contactEmail = 'hello@easyparking.pk';
+const currentYear = new Date().getFullYear();
 
-const featureIcons = [
-  'groups',
-  'directions_car',
-  'calendar_month',
-  'payments',
-  'schedule',
-  'local_parking',
-  'description',
-  'north_east',
-  'shield',
-  'language',
+const roles = [
+  {
+    title: 'The owner behind the counter',
+    body:
+      'You know most members by their vehicle. The register is for the rest of it: who paid half in August, whose bike is still on last year’s rate, and which car left without clearing September.',
+  },
+  {
+    title: 'The manager on the gate',
+    body:
+      'Enters a walk-in, marks the exit, records a Cash or Easypaisa payment before the shift ends. Corrections go to the owner for approval, so the day’s cash stays checkable.',
+  },
+  {
+    title: 'Whoever keeps the books',
+    body:
+      'Wants October’s collections, the outstanding dues and the walk-in total in one spreadsheet — not a shoebox of slips and three WhatsApp threads.',
+  },
 ];
 
-const siteUrl = import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/, '');
+const features = [
+  {
+    title: 'Member ledger',
+    body:
+      'One record per member: contact details, notes, and every vehicle they park — each vehicle carrying its own monthly rate, start date and billing history.',
+  },
+  {
+    title: 'Monthly dues, one per period',
+    body:
+      'A due stores its billing period, due date, amount and balance. Anything unpaid stays visible on the member’s ledger instead of quietly rolling into a new month.',
+  },
+  {
+    title: 'Walk-ins priced by vehicle type',
+    body:
+      'A rickshaw at Rs. 50, a motorcycle at Rs. 40, a car at Rs. 100, a water tanker at Rs. 300 — each vehicle type draws its own rate card instead of one flat fee.',
+  },
+  {
+    title: 'Part payments and allocation',
+    body:
+      'Cash, Easypaisa or JazzCash. A payment posts against the oldest open due first, unless you set the order yourself because the member is paying a specific month.',
+  },
+  {
+    title: 'Reports you can hand over',
+    body:
+      'Pending dues, payment history, daily parking and per-member statements, each exportable to CSV at any point in the month.',
+  },
+];
 
-function LandingPage({ onChangeLanguage }) {
-  const { t, i18n } = useTranslation();
+const plans = [
+  {
+    name: 'Free',
+    note: 'One lot, while you try it',
+    amount: 'Rs. 0',
+    unit: 'no card, no expiry date',
+    included: [
+      'One lot, up to 25 vehicles',
+      'Member ledger, monthly dues, walk-ins',
+      'One Owner login',
+      'CSV export',
+    ],
+    cta: 'Start free',
+    to: '/signup',
+  },
+  {
+    name: 'Standard',
+    note: 'The daily working plan',
+    amount: 'Rs. 2,500',
+    unit: 'per lot, per month',
+    included: [
+      'Unlimited vehicles and members',
+      'Owner and Manager seats',
+      'Part payments and allocations',
+      'Correction approvals and audit trail',
+      'Every report, CSV export',
+    ],
+    cta: 'Start free',
+    to: '/signup',
+  },
+  {
+    name: 'Chains',
+    note: 'Five lots or more',
+    amount: 'Call us',
+    unit: 'priced on lot count',
+    included: [
+      'Several lots under one owner',
+      'Import of your existing register',
+      'Invoicing on PO, annual terms',
+      'A named person to call',
+    ],
+    cta: 'Book a call',
+    href: `mailto:${contactEmail}?subject=EasyParking%20for%20multiple%20lots`,
+  },
+];
+
+const faqs = [
+  {
+    q: 'When is a monthly bill raised?',
+    a: 'A due is created per vehicle, per billing period, from that vehicle’s subscription — carrying the period start and end, the due date, the amount and the balance. Nothing is generated behind your back: the current period’s due is raised when you raise it, so a vehicle that has left never gets an invoice.',
+  },
+  {
+    q: 'A member pays half now and half next month. What does the ledger show?',
+    a: 'Two separate things: the part-paid due with its remaining balance, and the next period’s due alongside it. The payment record shows which rupees went to which month, so “I already paid that” can be answered by opening the member, not by memory.',
+  },
+  {
+    q: 'Can one member hold two vehicles at different rates?',
+    a: 'Yes. The subscription sits on the vehicle, not on the member. A car at Rs. 1,500 and a motorcycle at Rs. 600 are two subscriptions under one member record, with separate dues, separate due dates and one combined balance.',
+  },
+  {
+    q: 'Which languages does the interface support?',
+    a: 'English, Urdu, Roman Urdu and Iranian Persian. Urdu and Persian switch the layout to right-to-left, and each account remembers the language it was set to last.',
+  },
+  {
+    q: 'Can I get my records out?',
+    a: 'Every report exports to CSV — pending dues, payment history, daily parking and member statements. Take the files with you at any time; nothing is held in a format that only EasyParking can read.',
+  },
+  {
+    q: 'What if a manager records the wrong payment?',
+    a: 'Managers request a correction on a recorded payment. The Owner approves or rejects it, and the change is written to the audit log with who changed what and when — so the cash figure and the history stay honest.',
+  },
+];
+
+const ledgerRows = [
+  { id: '024', name: 'Imran Qureshi', plate: 'QTA 2048', type: 'Car', billed: '1,500', paid: '1,500', balance: '—', state: 'paid', label: 'Paid' },
+  { id: '031', name: 'Sana Malik', plate: 'QTA 1180', type: 'Car', billed: '1,500', paid: '—', balance: '1,500', state: 'due', label: 'Due' },
+  { id: '018', name: 'Naeem Bhatti', plate: 'LEB 7721', type: 'Motorcycle', billed: '600', paid: '300', balance: '300', state: 'part', label: 'Part paid' },
+  { id: '009', name: 'Rafiq & Sons', plate: 'JZ 4477', type: 'Water tanker', billed: '4,000', paid: '2,000', balance: '2,000', state: 'part', label: 'Part paid' },
+  { id: '012', name: 'Adnan Shah', plate: 'QTA 0932', type: 'Rickshaw', billed: '800', paid: '800', balance: '—', state: 'paid', label: 'Paid' },
+];
+
+const railItems = ['Overview', 'Members', 'Monthly dues', 'Daily parking', 'Payments', 'Reports'];
+
+function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [isMobileView, setIsMobileView] = useState(false);
-  const [isStandaloneApp, setIsStandaloneApp] = useState(false);
-  const language = i18n.resolvedLanguage || i18n.language || 'en';
+  const [showInstall, setShowInstall] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-
-    const updateMobileState = () => {
-      const mobileQuery = window.matchMedia('(max-width: 768px)');
-      const touchQuery = window.matchMedia('(pointer: coarse)');
-      const standaloneQuery = window.matchMedia('(display-mode: standalone)');
-      const isMobile = mobileQuery.matches || touchQuery.matches;
-      const isStandalone = standaloneQuery.matches || window.navigator.standalone === true;
-
-      setIsMobileView(isMobile);
-      setIsStandaloneApp(isStandalone);
-
-      if (!isMobile || isStandalone) {
-        setShowInstallPrompt(false);
-      }
-    };
-
-    const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-
-      const isMobile = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-      if (isMobile && !isStandalone) {
-        setShowInstallPrompt(true);
-      }
-    };
-
-    const handleAppInstalled = () => {
-      setInstallPrompt(null);
-      setShowInstallPrompt(false);
-    };
-
-    updateMobileState();
-    window.addEventListener('resize', updateMobileState);
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('resize', updateMobileState);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    const choice = await installPrompt.userChoice;
-    if (choice.outcome === 'accepted') {
-      setShowInstallPrompt(false);
-    }
-    setInstallPrompt(null);
-  };
-
-  useEffect(() => {
-    const description = t('landing.seoDescription');
-    document.title = t('landing.seoTitle');
+    const description =
+      'EasyParking keeps monthly members, walk-in parking, dues and payments in one ledger for parking lots in Pakistan. Free for one lot up to 25 vehicles.';
+    document.title = 'EasyParking — one ledger for your parking lot';
     document.querySelector('meta[name="description"]')?.setAttribute('content', description);
     document.querySelector('meta[name="robots"]')?.setAttribute('content', 'index,follow');
-    document.querySelector('meta[property="og:title"]')?.setAttribute('content', t('landing.seoTitle'));
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'EasyParking — one ledger for your parking lot');
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', description);
-    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', t('landing.seoTitle'));
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', 'EasyParking — one ledger for your parking lot');
     document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', description);
 
     let canonical = document.querySelector('link[rel="canonical"]');
@@ -122,326 +178,490 @@ function LandingPage({ onChangeLanguage }) {
       openGraphImage?.setAttribute('content', `${siteUrl}/og-image.svg`);
       twitterImage?.setAttribute('content', `${siteUrl}/og-image.svg`);
     }
-  }, [language, t]);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const syncView = () => {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const mobile = window.matchMedia('(max-width: 900px)').matches || window.matchMedia('(pointer: coarse)').matches;
+      setIsStandalone(standalone);
+      if (mobile && !standalone) setShowInstall(true);
+      else setShowInstall(false);
+    };
+
+    const handleBeforeInstall = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+
+    const handleInstalled = () => {
+      setInstallPrompt(null);
+      setShowInstall(false);
+    };
+
+    syncView();
+    window.addEventListener('resize', syncView);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleInstalled);
+
+    return () => {
+      window.removeEventListener('resize', syncView);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
-    const closeOnEscape = (event) => {
+    const onKey = (event) => {
       if (event.key === 'Escape') setIsMenuOpen(false);
     };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [isMenuOpen]);
 
-  const closeMenu = () => setIsMenuOpen(false);
-  const valueItems = t('landing.value.items', { returnObjects: true });
-  const beforeItems = t('landing.comparison.beforeItems', { returnObjects: true });
-  const afterItems = t('landing.comparison.afterItems', { returnObjects: true });
-  const features = t('landing.features.items', { returnObjects: true });
-  const steps = t('landing.steps.items', { returnObjects: true });
-  const benefits = t('landing.benefits.items', { returnObjects: true });
-  const faqs = t('landing.faq.items', { returnObjects: true });
-  const revealUp = {
-    hidden: { opacity: 0, y: 26 },
-    visible: (index = 0) => ({
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut', delay: index * 0.08 },
-    }),
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === 'accepted') setShowInstall(false);
+    setInstallPrompt(null);
   };
 
+  const closeMenu = () => setIsMenuOpen(false);
+
   return (
-    <main className="landing-page" id="landing-content">
-      <header className="landing-header">
-        <div className="landing-nav-wrap">
-          <Link className="landing-brand" to="/" aria-label={t('app.name')}>
-            <img src="/favicon.svg" alt="" width="42" height="42" />
-            <span>{t('app.name')}</span>
+    <main className="landing-v2" id="landing-content" lang="en" dir="ltr">
+      <a className="v2-skip" href="#v2-start">
+        Skip to content
+      </a>
+
+      <header className="v2-header">
+        <div className="v2-header-inner">
+          <Link className="v2-brand" to="/" aria-label="EasyParking — home">
+            <img className="v2-mark" src="/favicon.svg" width="30" height="30" alt="" />
+            <span className="v2-brand-word">EasyParking</span>
           </Link>
-          <nav className={`landing-nav-links${isMenuOpen ? ' is-open' : ''}`} aria-label={t('nav.main')} id="landing-navigation">
-            <div className="landing-mobile-language">
-              <LanguageSelector value={language} onChange={onChangeLanguage} />
-            </div>
-            <a href="#features" onClick={closeMenu}>{t('landing.nav.features')}</a>
-            <a href="#how-it-works" onClick={closeMenu}>{t('landing.nav.howItWorks')}</a>
-            <a href="#benefits" onClick={closeMenu}>{t('landing.nav.benefits')}</a>
-            <a href="#faq" onClick={closeMenu}>{t('landing.nav.faq')}</a>
-            <Link className="landing-mobile-login" to="/login" onClick={closeMenu}>{t('landing.nav.login')}</Link>
-            <Link className="landing-mobile-cta" to="/signup" onClick={closeMenu}>{t('landing.nav.getStarted')}</Link>
+
+          <nav className="v2-nav" aria-label="Sections">
+            <a href="#product">What it does</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
           </nav>
-          <div className="landing-nav-actions">
-            <div className="landing-desktop-language">
-              <LanguageSelector value={language} onChange={onChangeLanguage} />
-            </div>
-            <Link className="landing-login-link" to="/login">{t('landing.nav.login')}</Link>
-            <Link className="landing-nav-cta" to="/signup">{t('landing.nav.getStarted')}<GoogleIcon name="north_east" size={16} /></Link>
+
+          <div className="v2-header-actions">
+            <Link className="v2-login" to="/login">
+              Log in
+            </Link>
+            <Link className="v2-btn v2-btn--solid v2-btn--small" to="/signup">
+              Start free
+            </Link>
+            <button
+              type="button"
+              className="v2-menu-btn"
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMenuOpen}
+              aria-controls="v2-mobile-nav"
+              onClick={() => setIsMenuOpen((open) => !open)}
+            >
+              <span />
+            </button>
           </div>
-          <button
-            type="button"
-            className="landing-menu-button"
-            aria-label={isMenuOpen ? t('landing.nav.closeMenu') : t('landing.nav.openMenu')}
-            aria-expanded={isMenuOpen}
-            aria-controls="landing-navigation"
-            onClick={() => setIsMenuOpen((open) => !open)}
-          >
-            {isMenuOpen ? <GoogleIcon name="close" size={21} /> : <GoogleIcon name="menu" size={21} />}
-          </button>
+
+          {isMenuOpen && (
+            <div className="v2-mobile-nav" id="v2-mobile-nav">
+              <a href="#product" onClick={closeMenu}>
+                What it does
+              </a>
+              <a href="#pricing" onClick={closeMenu}>
+                Pricing
+              </a>
+              <a href="#faq" onClick={closeMenu}>
+                FAQ
+              </a>
+              <Link to="/login" onClick={closeMenu}>
+                Log in
+              </Link>
+              <Link className="v2-mobile-cta" to="/signup" onClick={closeMenu}>
+                Start free
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
-      <section className="landing-hero">
-        <div className="landing-hero-inner">
-          <motion.div
-            className="hero-copy"
-            initial="hidden"
-            animate="visible"
-            variants={revealUp}
-            custom={0}
-          >
-            <p className="landing-eyebrow"><span className="eyebrow-mark" />{t('landing.hero.eyebrow')}</p>
-            <h1>{t('landing.hero.title')}</h1>
-            <p className="hero-description">{t('landing.hero.description')}</p>
-            <div className="hero-actions">
-              <Link className="button-primary" to="/signup">{t('landing.hero.primary')}<GoogleIcon name="arrow_right_alt" size={18} /></Link>
-              <a className="button-text" href="#features">{t('landing.hero.secondary')}<GoogleIcon name="keyboard_arrow_down" size={16} /></a>
+      <div className="v2-shell" id="v2-start">
+        <section className="v2-hero">
+          <p className="v2-kicker">Parking management · Pakistan</p>
+          <h1>
+            Every vehicle in your lot.
+            <span>Every rupee on the books.</span>
+          </h1>
+
+          <div className="v2-hero-base">
+            <p className="v2-lede">
+              EasyParking is the register behind the counter: monthly members, walk-in parking and
+              unpaid dues, kept one row per vehicle and one line per rupee.
+            </p>
+
+            <div className="v2-cta-col">
+              <Link className="v2-btn v2-btn--solid" to="/signup">
+                Start free
+              </Link>
+              <a className="v2-btn v2-btn--ghost" href="#pricing">
+                See pricing
+              </a>
+              <p className="v2-micro">Free for one lot, up to 25 vehicles. No card.</p>
             </div>
-            <div className="hero-proof"><GoogleIcon name="shield" size={17} /><span>{t('landing.value.eyebrow')}</span></div>
-          </motion.div>
-          <motion.div
-            className="hero-visual"
-            initial={{ opacity: 0, x: 30, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.12 }}
-          >
-            <div className="hero-visual-orbit" aria-hidden="true" />
-            <Suspense fallback={<div className="product-preview product-preview-loading" aria-live="polite"><div className="preview-window-bar"><div className="preview-window-dots" aria-hidden="true"><i /><i /><i /></div><span>{t('landing.hero.previewTitle')}</span></div><div className="preview-content"><div className="preview-placeholder" /></div></div>}>
-              <ProductPreview t={t} />
-            </Suspense>
-            
-          </motion.div>
-        </div>
-        <a className="hero-scroll-cue" href="#value" aria-label={t('landing.nav.features')}><span /><GoogleIcon name="keyboard_arrow_down" size={15} /></a>
-      </section>
 
-      <section className="value-band" id="value">
-        <div className="value-band-heading">
-          <p className="landing-eyebrow">{t('landing.value.eyebrow')}</p>
-          <h2>{t('landing.value.title')}</h2>
-        </div>
-        <ul className="value-list">
-          {valueItems.map((item, index) => (
-            <li key={item}><span className="value-index">0{index + 1}</span><span>{item}</span></li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="comparison-section landing-section">
-        <div className="section-heading">
-          <p className="landing-eyebrow">{t('landing.comparison.eyebrow')}</p>
-          <h2>{t('landing.comparison.title')}</h2>
-        </div>
-        <div className="comparison-layout">
-          <article className="comparison-column comparison-before">
-            <div className="comparison-heading"><span className="comparison-icon"><GoogleIcon name="cancel" size={20} /></span><h3>{t('landing.comparison.before')}</h3></div>
-            <ul>
-              {beforeItems.map((item) => <li key={item}><GoogleIcon name="close" size={16} />{item}</li>)}
-            </ul>
-          </article>
-          <div className="comparison-connector" aria-hidden="true"><GoogleIcon name="arrow_right_alt" size={19} /></div>
-          <article className="comparison-column comparison-after">
-            <div className="comparison-heading"><span className="comparison-icon"><GoogleIcon name="check_circle" size={20} /></span><h3>{t('landing.comparison.after')}</h3></div>
-            <ul>
-              {afterItems.map((item) => <li key={item}><GoogleIcon name="check" size={16} />{item}</li>)}
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <section className="features-section landing-section" id="features">
-        <div className="section-heading section-heading-wide">
-          <div><p className="landing-eyebrow">{t('landing.features.eyebrow')}</p><h2>{t('landing.features.title')}</h2></div>
-          <p>{t('landing.features.description')}</p>
-        </div>
-        <div className="features-grid">
-          {features.map((feature, index) => {
-            const Icon = featureIcons[index];
-            return (
-              <motion.article
-                className="feature-item"
-                key={feature.title}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: 'easeOut', delay: index * 0.08 }}
-                whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              >
-                <div className="feature-item-top"><span className="feature-number">0{index + 1}</span><GoogleIcon name={Icon} size={20} /></div>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
-              </motion.article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="showcase-section landing-section">
-        <div className="section-heading">
-          <p className="landing-eyebrow">{t('landing.showcase.eyebrow')}</p>
-          <h2>{t('landing.showcase.title')}</h2>
-          <p>{t('landing.showcase.description')}</p>
-        </div>
-        <div className="showcase-grid">
-          <article className="showcase-card showcase-member">
-            <div className="showcase-card-heading"><span className="showcase-icon"><GoogleIcon name="groups" size={18} /></span><span>{t('landing.showcase.member')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
-            <div className="member-mockup">
-              <span className="member-avatar">024</span>
-              <div><strong>{t('landing.showcase.memberName')}</strong><small>{t('landing.hero.members')}</small></div>
-              <span className="member-active"><GoogleIcon name="check_circle" size={14} />{t('app.active')}</span>
-            </div>
-            <div className="vehicle-mockup"><GoogleIcon name="directions_car" size={17} /><span>{t('landing.showcase.vehicleNumber')}</span><small>{t('landing.showcase.vehicle')}</small></div>
-            <div className="showcase-caption"><strong>{t('landing.showcase.member')}</strong><p>{features[0].description}</p></div>
-          </article>
-          <article className="showcase-card showcase-dues">
-            <div className="showcase-card-heading"><span className="showcase-icon showcase-icon-amber"><GoogleIcon name="wallet" size={18} /></span><span>{t('landing.showcase.dues')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
-            <div className="due-mockup">
-              <div><span>{t('landing.showcase.periodLabel')}</span><strong dir="ltr">01 Oct — 31 Oct</strong></div>
-              <strong className="due-mockup-amount" dir="ltr">Rs. 1,500</strong>
-              <span className="mock-status mock-status-due"><GoogleIcon name="schedule" size={13} />{t('landing.showcase.pending')}</span>
-            </div>
-            <div className="due-mockup due-mockup-paid">
-              <div><span>{t('landing.showcase.periodLabel')}</span><strong dir="ltr">01 Sep — 30 Sep</strong></div>
-              <strong className="due-mockup-amount" dir="ltr">Rs. 1,500</strong>
-              <span className="mock-status"><GoogleIcon name="check_circle" size={13} />{t('landing.showcase.paid')}</span>
-            </div>
-            <div className="showcase-caption"><strong>{t('landing.showcase.dues')}</strong><p>{features[4].description}</p></div>
-          </article>
-          <article className="showcase-card showcase-payment">
-            <div className="showcase-card-heading"><span className="showcase-icon"><GoogleIcon name="payments" size={18} /></span><span>{t('landing.showcase.payment')}</span><span className="showcase-demo">{t('landing.showcase.previewLabel')}</span></div>
-            <div className="payment-mockup">
-              <span>{t('landing.showcase.paymentLabel')}</span>
-              <strong dir="ltr">Rs. 1,000</strong>
-              <div className="payment-meter"><span /></div>
-              <div className="payment-mockup-footer"><span>{t('landing.showcase.periodLabel')}</span><span dir="ltr">Rs. 1,500</span></div>
-              <span className="mock-status"><GoogleIcon name="check_circle" size={13} />{t('landing.showcase.paid')}</span>
-            </div>
-            <div className="showcase-caption"><strong>{t('landing.showcase.payment')}</strong><p>{features[3].description}</p></div>
-          </article>
-        </div>
-      </section>
-
-      <section className="steps-section landing-section" id="how-it-works">
-        <div className="section-heading">
-          <p className="landing-eyebrow">{t('landing.steps.eyebrow')}</p>
-          <h2>{t('landing.steps.title')}</h2>
-        </div>
-        <ol className="steps-grid">
-          {steps.map((step, index) => (
-            <li className="step-item" key={step.title}>
-              <span className="step-number">0{index + 1}</span>
-              <div><h3>{step.title}</h3><p>{step.description}</p></div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="benefits-section landing-section" id="benefits">
-        <div className="benefits-panel">
-          <div className="benefits-heading"><p className="landing-eyebrow">{t('landing.benefits.eyebrow')}</p><h2>{t('landing.benefits.title')}</h2></div>
-          <ul className="benefits-list">
-            {benefits.map((benefit) => <li key={benefit}><GoogleIcon name="check_circle" size={17} />{benefit}</li>)}
-          </ul>
-          <div className="benefits-mark" aria-hidden="true"><img src="/favicon.svg" alt="" /></div>
-        </div>
-      </section>
-
-      <section className="faq-section landing-section" id="faq">
-        <div className="faq-intro">
-          <p className="landing-eyebrow"><GoogleIcon name="help" size={15} />{t('landing.faq.eyebrow')}</p>
-          <h2>{t('landing.faq.title')}</h2>
-        </div>
-        <div className="faq-list">
-          {faqs.map((item) => (
-            <details className="faq-item" key={item.question}>
-              <summary>{item.question}<span aria-hidden="true">+</span></summary>
-              <p>{item.answer}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      {(isMobileView && !isStandaloneApp) || installPrompt ? (
-        <section className="mobile-install-section">
-          <div className="mobile-install-card">
-            <div className="mobile-install-copy">
-              <p className="landing-eyebrow"><GoogleIcon name="download" size={15} />Install app</p>
-              <h2>Install Easy Parking on your Android</h2>
-              <p>Open the browser menu and add this app to your home screen for faster access and a native app experience.</p>
-            </div>
-            <div className="mobile-install-steps" aria-label="Install app steps">
-              <div className="install-step"><span>1</span><p>Tap the browser menu</p></div>
-              <div className="install-step"><span>2</span><p>Select “Install app” or “Add to Home screen”</p></div>
-              <div className="install-step"><span>3</span><p>Tap “Install” and use it like a normal app</p></div>
-            </div>
-            <button
-              type="button"
-              className="button-primary mobile-install-button"
-              onClick={handleInstallClick}
-              disabled={!installPrompt}
-            >
-              {installPrompt ? 'Install app now' : 'Install option not available'}
-            </button>
+            <aside className="v2-note">
+              <p className="v2-label">How billing works</p>
+              <p className="v2-note-body">
+                Each vehicle carries its own monthly rate. A due is raised per billing period and
+                stays on the member’s ledger until it clears — part payments leave a balance rather
+                than closing the month.
+              </p>
+            </aside>
           </div>
         </section>
-      ) : null}
 
-      <section className="landing-cta">
-        <div className="landing-cta-copy"><p className="landing-eyebrow">{t('app.name')}</p><h2>{t('landing.cta.title')}</h2><p>{t('landing.cta.description')}</p></div>
-        <Link className="button-primary button-primary-light" to="/signup">{t('landing.cta.button')}<GoogleIcon name="arrow_right_alt" size={18} /></Link>
-      </section>
+        <figure className="v2-figure">
+          <div className="v2-fig-caption">
+            <span>
+              <b>Fig. 1</b> — Monthly dues · October 2026
+            </span>
+            <span>Example records · not live data</span>
+          </div>
 
-      <footer className="landing-footer">
-        <div className="footer-main">
-          <div className="footer-brand-block">
-            <Link className="landing-brand landing-brand-footer" to="/">
-              <img src="/favicon.svg" alt="" width="38" height="38" />
-              <span>{t('app.name')}</span>
-            </Link>
-            <p>{t('landing.footer.description')}</p>
-          </div>
-          <div className="footer-link-group">
-            <strong>{t('landing.footer.navigation')}</strong>
-            <a href="#features">{t('landing.nav.features')}</a>
-            <a href="#how-it-works">{t('landing.nav.howItWorks')}</a>
-            <a href="#benefits">{t('landing.nav.benefits')}</a>
-          </div>
-          <div className="footer-link-group">
-            <strong>{t('landing.nav.getStarted')}</strong>
-            <Link to="/login">{t('landing.footer.login')}</Link>
-            <Link to="/signup">{t('landing.nav.getStarted')}</Link>
-            <Link to="/privacy-policy">{t('landing.footer.privacy')}</Link>
-            <Link to="/terms">{t('landing.footer.terms')}</Link>
-          </div>
-        </div>
-        <div className="footer-bottom"><span>{t('landing.footer.copyright')}</span><span>{t('app.parkingManagement')}</span></div>
-      </footer>
+          <div className="v2-screen">
+            <div className="v2-screen-bar">
+              <div className="v2-screen-bar-left">
+                <b>EasyParking</b>
+                <span className="v2-slash">/</span>
+                <span>Monthly dues</span>
+              </div>
+              <span className="v2-screen-bar-right">Lot 01 · 40 spaces</span>
+            </div>
 
-      {showInstallPrompt && (
-        <div className="pwa-install-banner" role="dialog" aria-live="polite" aria-label={t('landing.nav.getStarted')}>
-          <div className="pwa-install-banner-card">
+            <div className="v2-screen-body">
+              <aside className="v2-rail" aria-hidden="true">
+                <p className="v2-rail-title">Workspace</p>
+                <ul>
+                  {railItems.map((item) => (
+                    <li key={item} data-active={item === 'Monthly dues'}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+
+              <div className="v2-pane">
+                <div className="v2-pane-head">
+                  <span className="v2-pane-title">Monthly dues</span>
+                  <span className="v2-pane-meta">01 Oct — 31 Oct 2026 · 3 with balance</span>
+                </div>
+
+                <div className="v2-table-scroll">
+                  <table className="v2-ledger">
+                    <thead>
+                      <tr>
+                        <th scope="col">Member</th>
+                        <th scope="col">Vehicle</th>
+                        <th scope="col" className="num">
+                          Billed
+                        </th>
+                        <th scope="col" className="num">
+                          Paid
+                        </th>
+                        <th scope="col" className="num">
+                          Balance
+                        </th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ledgerRows.map((row) => (
+                        <tr key={row.id}>
+                          <td>
+                            <span className="v2-member">
+                              {row.name}
+                              <small>#{row.id}</small>
+                            </span>
+                          </td>
+                          <td>
+                            {row.plate}
+                            <span className="v2-pane-meta v2-veh-type"> · {row.type}</span>
+                          </td>
+                          <td className="num">{row.billed}</td>
+                          <td className="num">{row.paid}</td>
+                          <td className="num">{row.balance}</td>
+                          <td>
+                            <span className="v2-status" data-state={row.state}>
+                              {row.label}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="v2-pane-foot">
+                  <span>
+                    Outstanding on this lot — <b>Rs. 3,800</b> across 3 members
+                  </span>
+                  <span className="v2-export">Export CSV</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </figure>
+
+        <dl className="v2-facts">
+          <div>
+            <dt>Built for</dt>
+            <dd>Monthly members and walk-in parking, in the same lot</dd>
+          </div>
+          <div>
+            <dt>Priced by</dt>
+            <dd>Vehicle type — rickshaw, bike, car, tanker, tractor</dd>
+          </div>
+          <div>
+            <dt>Languages</dt>
+            <dd>English, Urdu, Roman Urdu, Persian</dd>
+          </div>
+          <div>
+            <dt>Data</dt>
+            <dd>CSV export from every report</dd>
+          </div>
+        </dl>
+
+        <section className="v2-section" id="who">
+          <header className="v2-section-head">
+            <span className="v2-index">01</span>
+            <h2>Who it is for</h2>
+            <p className="v2-section-note">
+              Three people run most parking lots. EasyParking is written for what each of them
+              actually does on a Tuesday.
+            </p>
+          </header>
+
+          <div className="v2-roles">
+            {roles.map((role, index) => (
+              <article className="v2-role" key={role.title}>
+                <span className="v2-role-index">{String(index + 1).padStart(2, '0')}</span>
+                <h3>{role.title}</h3>
+                <p>{role.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="v2-section" id="product">
+          <header className="v2-section-head">
+            <span className="v2-index">02</span>
+            <h2>What it does</h2>
+            <p className="v2-section-note">
+              Five jobs, done properly. No dashboard you have to interpret, no metric that only
+              exists to fill a screen.
+            </p>
+          </header>
+
+          <div className="v2-features">
+            {features.map((feature, index) => (
+              <article className="v2-feature" key={feature.title}>
+                <span className="v2-feature-num">{String(index + 1).padStart(2, '0')}</span>
+                <h3>{feature.title}</h3>
+                <p>{feature.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="v2-section" id="pricing">
+          <header className="v2-section-head">
+            <span className="v2-index">03</span>
+            <h2>Pricing</h2>
+            <p className="v2-section-note">
+              Charged per lot, not per vehicle. The number of cars you park is your business, not a
+              billing lever.
+            </p>
+          </header>
+
+          <table className="v2-price-table">
+            <thead>
+              <tr>
+                <th scope="col">Plan</th>
+                <th scope="col">Price</th>
+                <th scope="col">Included</th>
+                <th scope="col">
+                  <span className="v2-sr">Action</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {plans.map((plan) => (
+                <tr key={plan.name}>
+                  <td data-label="Plan">
+                    <span className="v2-plan">{plan.name}</span>
+                    <span className="v2-plan-note">{plan.note}</span>
+                  </td>
+                  <td data-label="Price">
+                    <span className="v2-amount">{plan.amount}</span>
+                    <span className="v2-amount-unit">{plan.unit}</span>
+                  </td>
+                  <td data-label="Included">
+                    <ul className="v2-included">
+                      {plan.included.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td data-label="">
+                    {plan.to ? (
+                      <Link className="v2-price-cta" to={plan.to}>
+                        {plan.cta} →
+                      </Link>
+                    ) : (
+                      <a className="v2-price-cta" href={plan.href}>
+                        {plan.cta} →
+                      </a>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="v2-price-foot">
+            <p className="v2-fineprint">
+              Prices in PKR, per lot, billed monthly. No per-vehicle charge and no setup fee. Leave
+              whenever you like and export your records on the way out.
+            </p>
+          </div>
+        </section>
+
+        <section className="v2-section" id="faq">
+          <div className="v2-faq-grid">
+            <div className="v2-faq-intro">
+              <span className="v2-index">04</span>
+              <h2>Questions we get asked</h2>
+              <p className="v2-section-note">
+                The ones about money, months and moving in. If yours is not here, write to us and
+                we will answer plainly.
+              </p>
+              <p className="v2-faq-contact">
+                <a href={`mailto:${contactEmail}?subject=Question%20about%20EasyParking`}>
+                  Ask us directly →
+                </a>
+              </p>
+            </div>
+
+            <div className="v2-faq-list">
+              {faqs.map((item) => (
+                <details className="v2-faq-item" key={item.q}>
+                  <summary>
+                    {item.q}
+                    <span aria-hidden="true">+</span>
+                  </summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="v2-closing">
+          <div>
+            <h2>Take the notebook out of the equation.</h2>
+            <p>Start with one lot. Set up the first ten members tonight, add the rest as they renew.</p>
+          </div>
+          <Link className="v2-btn v2-btn--solid" to="/signup">
+            Start free
+          </Link>
+        </section>
+
+        {showInstall && !isStandalone && (
+          <section className="v2-install" aria-label="Install on Android">
             <div>
-              <p className="pwa-install-kicker">{t('app.name')}</p>
-              <strong>{t('landing.nav.getStarted')}</strong>
+              <p className="v2-label">Android</p>
+              <h2>Keep it on the home screen.</h2>
+              <p>Opens without the address bar. Records still need a connection to reach the database.</p>
             </div>
-            <div className="pwa-install-actions">
-              <button type="button" className="pwa-install-button" onClick={handleInstallClick}>
-                Install
-              </button>
-              <button type="button" className="pwa-install-dismiss" onClick={() => setShowInstallPrompt(false)} aria-label="Dismiss install prompt">
-                Later
-              </button>
+            <ol className="v2-install-steps">
+              <li>
+                <b>1</b> Open the browser menu
+              </li>
+              <li>
+                <b>2</b> Choose “Install app” or “Add to Home screen”
+              </li>
+              <li>
+                <b>3</b> Confirm — it behaves like an installed app
+              </li>
+            </ol>
+            <button type="button" className="v2-btn v2-btn--ghost" onClick={handleInstall} disabled={!installPrompt}>
+              {installPrompt ? 'Install now' : 'Use browser menu'}
+            </button>
+          </section>
+        )}
+      </div>
+
+      <footer className="v2-footer">
+        <div className="v2-shell">
+          <div className="v2-footer-grid">
+            <div className="v2-footer-brand">
+              <Link className="v2-brand" to="/" aria-label="EasyParking — home">
+                <img className="v2-mark" src="/favicon.svg" width="26" height="26" alt="" />
+                <span className="v2-brand-word">EasyParking</span>
+              </Link>
+              <p>Parking records for lots in Pakistan. Members, dues, walk-ins and payments on one ledger.</p>
+              <p className="v2-footer-contact">
+                <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+              </p>
             </div>
+
+            <dl className="v2-footer-col">
+              <dt>Product</dt>
+              <dd>
+                <a href="#product">What it does</a>
+              </dd>
+              <dd>
+                <a href="#pricing">Pricing</a>
+              </dd>
+              <dd>
+                <a href="#faq">FAQ</a>
+              </dd>
+            </dl>
+
+            <dl className="v2-footer-col">
+              <dt>Account</dt>
+              <dd>
+                <Link to="/login">Log in</Link>
+              </dd>
+              <dd>
+                <Link to="/signup">Start free</Link>
+              </dd>
+            </dl>
+
+            <dl className="v2-footer-col">
+              <dt>Legal</dt>
+              <dd>
+                <Link to="/privacy-policy">Privacy</Link>
+              </dd>
+              <dd>
+                <Link to="/terms">Terms of use</Link>
+              </dd>
+            </dl>
+          </div>
+
+          <div className="v2-footer-bottom">
+            <span>© {currentYear} EasyParking · Pakistan</span>
+            <span>Prices in PKR · Set in Newsreader and Inter</span>
           </div>
         </div>
-      )}
+      </footer>
     </main>
   );
 }
