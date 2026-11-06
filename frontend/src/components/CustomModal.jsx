@@ -25,32 +25,32 @@ function CustomModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-sm" role="presentation">
+    <div className="modal-backdrop" role="presentation">
       <div
-        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_22px_60px_rgba(15,23,42,0.26)]"
+        className="modal-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="custom-modal-title"
       >
         <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-600">Confirmation</p>
-          <h3 id="custom-modal-title" className="mt-2 text-xl font-bold text-slate-900">{title}</h3>
+          <p className="modal-eyebrow">Confirmation</p>
+          <h3 id="custom-modal-title" className="modal-title">{title}</h3>
         </div>
 
-        <p className="text-sm leading-6 text-slate-600">{message}</p>
+        <p className="modal-message">{message}</p>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="modal-actions">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="secondary-button"
           >
             {cancelText}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+            className="primary-button"
           >
             {confirmText}
           </button>

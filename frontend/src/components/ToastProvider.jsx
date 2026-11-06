@@ -12,18 +12,15 @@ const toastLabel = {
 
 const toastStyles = {
   success: {
-    accent: 'bg-emerald-100 text-emerald-700',
-    bar: 'bg-emerald-600',
+    tone: 'success',
     icon: '✓',
   },
   error: {
-    accent: 'bg-red-100 text-red-700',
-    bar: 'bg-red-600',
+    tone: 'error',
     icon: '!',
   },
   info: {
-    accent: 'bg-sky-100 text-sky-700',
-    bar: 'bg-sky-600',
+    tone: 'info',
     icon: 'i',
   },
 };
@@ -37,24 +34,23 @@ function ToastViewport({ toasts }) {
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.18)] transition-all duration-200 ${toast.closing ? 'animate-[toast-out_220ms_ease-in_forwards]' : 'animate-[toast-in_220ms_ease-out]'}`}
+            className={`toast pointer-events-auto relative overflow-hidden transition-all duration-200 ${toast.closing ? 'animate-[toast-out_220ms_ease-in_forwards]' : 'animate-[toast-in_220ms_ease-out]'}`}
           >
-            <div className="flex items-start gap-3 p-3.5 pr-4">
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${accent.accent}`}>
+            <div className="flex items-start gap-3 p-3.5 pe-4">
+              <div className={`toast-mark toast-mark--${accent.tone}`}>
                 {accent.icon}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-900">{toastLabel[toast.type] || 'Notice'}</p>
-                <p className="mt-1 text-sm leading-5 text-slate-600">{toast.message}</p>
+                <p className="toast-title">{toastLabel[toast.type] || 'Notice'}</p>
+                <p className="toast-message">{toast.message}</p>
               </div>
             </div>
-            <div className="absolute inset-x-0 bottom-0 h-[6px] overflow-hidden rounded-b-2xl bg-slate-200">
+            <div className="toast-track">
               <div
-                className={`block h-full ${accent.bar}`}
+                className={`toast-bar toast-bar--${accent.tone}`}
                 style={{
                   width: '100%',
                   animation: `toast-progress ${toast.duration}ms linear forwards`,
-                  boxShadow: toast.type === 'success' ? '0 0 10px rgba(5,150,105,0.85)' : toast.type === 'error' ? '0 0 10px rgba(220,38,38,0.85)' : '0 0 10px rgba(2,132,199,0.85)',
                   willChange: 'width',
                 }}
               />

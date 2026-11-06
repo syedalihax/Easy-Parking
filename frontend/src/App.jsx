@@ -828,7 +828,7 @@ function App() {
   );
 
   const renderTeam = () => (
-    <>
+    <div className="operations-workspace">
       <header className="workspace-heading">
         <div><p className="eyebrow">{t('team.role')}</p><h2>{t('menu.parkingAccess')}</h2></div>
       </header>
@@ -872,7 +872,7 @@ function App() {
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 
   const renderProfile = () => (
