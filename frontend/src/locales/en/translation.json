@@ -424,7 +424,11 @@
     "confirmRecordPayment": "Confirm & record payment",
     "goBack": "Go back",
     "vehicleSearchPlaceholder": "Enter registration number"
-  },
+  ,    "currentPeriod": "Current period: {{from}} – {{to}}",
+        "currentPeriodBilled": "billed",
+        "currentPeriodUnbilled": "not billed yet",
+        "createBill": "Create bill",
+        "billCreated": "Bill created for the current period"},
   "landing": {
     "seoTitle": "EasyParking — Simple Parking Management Software",
     "seoDescription": "Manage parking members, vehicles, monthly subscriptions, payments and daily parking with EasyParking. Replace paper registers with organized digital parking records.",
