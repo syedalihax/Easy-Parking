@@ -4,7 +4,9 @@ const dailyParkingRecordSchema = new mongoose.Schema(
   {
     parkingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Parking', required: true },
     vehicleNumber: { type: String, required: true, trim: true, uppercase: true },
-    vehicleType: { type: String, trim: true, default: '' },
+    // Vehicle type the fee was priced against (rate card entry, else the
+    // operator's input). Fees are snapshotted here, never recalculated.
+    vehicleType: { type: String, trim: true, default: '', maxlength: 40 },
     customerName: { type: String, trim: true, default: '' },
     customerPhone: { type: String, trim: true, default: '' },
     entryDateTime: { type: Date, required: true, default: Date.now },

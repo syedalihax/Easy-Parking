@@ -10,6 +10,7 @@ import {
   apiRecordDailyParkingExit,
   apiRecordDailyParkingPayment,
   apiUpdateDailyRate,
+  apiUpdateRateCard,
 } from '../api';
 import { formatDateTime } from '../lib/format';
 
@@ -35,6 +36,8 @@ function DailyParkingWorkspace({ parkingId }) {
   const [entry, setEntry] = useState(emptyEntry);
   const [rate, setRate] = useState(0);
   const [rateInput, setRateInput] = useState('');
+  const [rateCard, setRateCard] = useState([]);
+  const [cardRows, setCardRows] = useState([]);
   const [editingRate, setEditingRate] = useState(false);
   const [activeRecords, setActiveRecords] = useState([]);
   const [history, setHistory] = useState([]);
@@ -77,6 +80,7 @@ function DailyParkingWorkspace({ parkingId }) {
         if (!active) return;
         setRate(rateResponse.dailyParkingRate);
         setRateInput(String(rateResponse.dailyParkingRate));
+        setRateCard(rateResponse.rates || []);
         setActiveRecords(activeResponse.records);
         setHistory(historyResponse.records);
       })
@@ -104,19 +108,53 @@ function DailyParkingWorkspace({ parkingId }) {
     }
   };
 
+  const openRateEditor = () => {
+    setCardRows(rateCard.length
+      ? rateCard.map((row) => ({ vehicleType: row.vehicleType, rate: String(row.rate) }))
+      : [
+        { vehicleType: 'Motorcycle', rate: '40' },
+        { vehicleType: 'Rickshaw', rate: '50' },
+        { vehicleType: 'Car', rate: '100' },
+      ]);
+    setRateInput(String(rate));
+    setEditingRate(true);
+  };
+
+  const updateCardRow = (index, field, value) => {
+    setCardRows((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+  };
+
+  const addCardRow = () => setCardRows((rows) => [...rows, { vehicleType: '', rate: '' }]);
+  const removeCardRow = (index) => setCardRows((rows) => rows.filter((_, i) => i !== index));
+
+  // The entry is priced by its type; anything not on the card falls back to the default.
+  const feeForType = (type) => {
+    const key = String(type || '').trim().toLowerCase();
+    const match = rateCard.find((row) => String(row.vehicleType).trim().toLowerCase() === key);
+    return match ? match.rate : rate;
+  };
+
   const saveRate = async (event) => {
     event.preventDefault();
     setErrorMessage('');
     setStatusMessage('');
-    const value = Number(rateInput);
-    if (!Number.isFinite(value) || value < 0) {
+    const fallback = Number(rateInput);
+    if (!Number.isFinite(fallback) || fallback < 0) {
+      setErrorMessage(t('daily.invalidRate'));
+      return;
+    }
+    const rows = cardRows
+      .map((row) => ({ vehicleType: String(row.vehicleType).trim(), rate: Number(row.rate) }))
+      .filter((row) => row.vehicleType);
+    if (rows.some((row) => !Number.isFinite(row.rate) || row.rate < 0)) {
       setErrorMessage(t('daily.invalidRate'));
       return;
     }
     setIsLoading(true);
     try {
-      const response = await apiUpdateDailyRate(parkingId, value);
+      const response = await apiUpdateRateCard(parkingId, { dailyParkingRate: fallback, rates: rows });
       setRate(response.dailyParkingRate);
+      setRateCard(response.rates || []);
       setEditingRate(false);
       setStatusMessage(t('daily.rateUpdated'));
     } catch (error) {
@@ -149,16 +187,61 @@ function DailyParkingWorkspace({ parkingId }) {
         <div><p className="eyebrow">{t('daily.walkIn')}</p><h2>{t('daily.title')}</h2></div>
         <div className="daily-rate">
           <strong dir="ltr">{t('daily.rate', { amount: money(rate) })}</strong>
-          {!editingRate && <button className="text-button" type="button" onClick={() => setEditingRate(true)}>{t('daily.editRate')}</button>}
+          {!editingRate && <button className="text-button" type="button" onClick={openRateEditor}>{t('daily.editRate')}</button>}
         </div>
       </header>
 
+      {!editingRate && rateCard.length > 0 && (
+        <div className="rate-card-chips">
+          {rateCard.map((row) => (
+            <span className="rate-chip" key={row.vehicleType}>
+              {row.vehicleType}
+              <strong dir="ltr">{money(row.rate)}</strong>
+            </span>
+          ))}
+        </div>
+      )}
+
       {editingRate && (
-        <form className="form-grid panel daily-rate-form" onSubmit={saveRate}>
+        <form className="panel daily-rate-form" onSubmit={saveRate}>
+          <div className="panel-header">
+            <h3>{t('daily.rateCard')}</h3>
+            <p className="muted-text">{t('daily.rateCardHelp')}</p>
+          </div>
+
+          <div className="rate-card-rows">
+            {cardRows.map((row, index) => (
+              <div className="rate-card-row" key={`row-${index}`}>
+                <input
+                  value={row.vehicleType}
+                  onChange={(event) => updateCardRow(index, 'vehicleType', event.target.value)}
+                  placeholder={t('daily.vehicleType')}
+                  aria-label={t('daily.vehicleType')}
+                />
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  dir="ltr"
+                  value={row.rate}
+                  onChange={(event) => updateCardRow(index, 'rate', event.target.value)}
+                  placeholder="0"
+                  aria-label={`${t('daily.rateLabel')} · ${row.vehicleType || index + 1}`}
+                />
+                <button type="button" className="secondary-button rate-card-remove" onClick={() => removeCardRow(index)} aria-label={`${t('daily.removeType')} ${row.vehicleType || index + 1}`}>×</button>
+              </div>
+            ))}
+          </div>
+
+          <div className="action-row">
+            <button type="button" className="secondary-button" onClick={addCardRow}>{t('daily.addType')}</button>
+          </div>
+
           <label className="field">
-            <span>{t('daily.fixedRate')}</span>
+            <span>{t('daily.defaultRate')}</span>
             <input type="number" min="0" step="any" value={rateInput} onChange={(event) => setRateInput(event.target.value)} required />
           </label>
+
           <div className="action-row">
             <button type="submit" className="primary-button" disabled={isLoading}>{t('daily.saveRate')}</button>
             <button type="button" className="secondary-button" onClick={() => setEditingRate(false)}>{t('app.cancel')}</button>
@@ -178,12 +261,23 @@ function DailyParkingWorkspace({ parkingId }) {
 
       {screen === 'entry' && (
         <form className="panel form-grid daily-entry-form" onSubmit={submitEntry}>
-          <div className="panel-header"><h3>{t('daily.newEntry')}</h3><p className="muted-text">{t('daily.feeNotice', { amount: money(rate) })}</p></div>
+          <div className="panel-header"><h3>{t('daily.newEntry')}</h3><p className="muted-text">{t('daily.feeNotice', { amount: money(feeForType(entry.vehicleType)) })}</p></div>
           <label className="field daily-primary-field">
             <span>{t('daily.vehicleNumber')} *</span>
             <input autoFocus value={entry.vehicleNumber} onChange={(event) => setEntry({ ...entry, vehicleNumber: event.target.value })} placeholder={t('daily.vehicleNumberPlaceholder')} required />
           </label>
-          <label className="field"><span>{t('daily.vehicleType')} {t('daily.optional')}</span><input value={entry.vehicleType} onChange={(event) => setEntry({ ...entry, vehicleType: event.target.value })} /></label>
+          <label className="field">
+            <span>{t('daily.vehicleType')} {t('daily.optional')}</span>
+            <input
+              list="daily-vehicle-types"
+              value={entry.vehicleType}
+              onChange={(event) => setEntry({ ...entry, vehicleType: event.target.value })}
+              placeholder={t('daily.vehicleTypePlaceholder')}
+            />
+            <datalist id="daily-vehicle-types">
+              {rateCard.map((row) => <option key={row.vehicleType} value={row.vehicleType} />)}
+            </datalist>
+          </label>
           <label className="field"><span>{t('daily.customerName')} {t('daily.optional')}</span><input value={entry.customerName} onChange={(event) => setEntry({ ...entry, customerName: event.target.value })} /></label>
           <label className="field"><span>{t('daily.customerPhone')} {t('daily.optional')}</span><input value={entry.customerPhone} onChange={(event) => setEntry({ ...entry, customerPhone: event.target.value })} /></label>
           <label className="field"><span>{t('daily.notes')} {t('daily.optional')}</span><textarea rows="2" value={entry.notes} onChange={(event) => setEntry({ ...entry, notes: event.target.value })} /></label>

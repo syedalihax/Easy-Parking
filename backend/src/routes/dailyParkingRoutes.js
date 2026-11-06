@@ -6,6 +6,7 @@ const {
   listRecords,
   recordExit,
   recordPayment,
+  replaceRateCard,
   updateDailyRate,
 } = require('../controllers/dailyParkingController');
 const requireAuth = require('../middleware/auth');
@@ -15,6 +16,9 @@ const rateRouter = express.Router({ mergeParams: true });
 rateRouter.use(requireAuth, requireParkingMembership);
 rateRouter.get('/', getDailyRate);
 rateRouter.patch('/', updateDailyRate);
+// Admin maintenance: replace the whole per-vehicle-type card in one call.
+rateRouter.put('/card', replaceRateCard);
+rateRouter.patch('/card', replaceRateCard);
 
 const recordsRouter = express.Router({ mergeParams: true });
 recordsRouter.use(requireAuth, requireParkingMembership);

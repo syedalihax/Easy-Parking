@@ -1,0 +1,397 @@
+/* ============================================================
+   Dashboard workspace — wallet cards, quick actions, payment
+   history, follow-up.
+
+   Every selector is prefixed `.dash-` (or scoped under
+   `.dashboard-wallet-shell`) so nothing here can reach another
+   screen. Same design system as the rest of the app: flat fills,
+   hairline borders, no gradients, no drop shadows.
+   ============================================================ */
+
+.dashboard-wallet-shell {
+  /* One readable column: the dashboard is a wallet-style screen, not a table. */
+  max-width: 860px;
+
+  --dash-surface: var(--color-surface, #fffdf9);
+  --dash-border: var(--color-border, #e5ddd3);
+  --dash-ink: var(--color-ink, #1d2a2f);
+  --dash-muted: var(--color-ink-muted, #5f6d6a);
+
+  /* Four accent families: one tint for fills, one ink for text/icons. */
+  --tint-green: #e9f2ec;
+  --ink-green: #1f6a52;
+  --tint-orange: #fbe8dc;
+  --ink-orange: #a9502b;
+  --tint-blue: #e7eef5;
+  --ink-blue: #33587a;
+  --tint-amber: #fbf0d6;
+  --ink-amber: #8a5a2a;
+
+  --dash-money-in: #2b6a52;
+}
+
+/* ---------- wallet cards: three accents, one surface language ---------- */
+
+.dashboard-wallet-shell .wallet-card {
+  min-height: 148px;
+  gap: 9px;
+  padding: 16px 16px 14px;
+  border: 1px solid var(--dash-border);
+  border-radius: 16px;
+  background: var(--dash-surface);
+  color: var(--dash-ink);
+}
+
+.dash-wallet-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+}
+
+/* Collected — deep green, the primary number of the screen. */
+.dashboard-wallet-shell .dash-wallet-card--green {
+  background: #174d3c;
+  border-color: #174d3c;
+  color: #ffffff;
+}
+
+.dash-wallet-card--green .wallet-card-label {
+  color: #d8e6df;
+  opacity: 1;
+}
+
+.dash-wallet-card--green .wallet-card-note {
+  color: #cfe0d7;
+  opacity: 1;
+}
+
+/* Members with dues — terracotta tint, warm but calm. */
+.dashboard-wallet-shell .dash-wallet-card--terracotta {
+  background: #f8e7dc;
+  border-color: #ebd2c1;
+  color: #3b2418;
+}
+
+.dash-wallet-card--terracotta .wallet-card-label {
+  color: #7a4530;
+  opacity: 1;
+}
+
+.dash-wallet-card--terracotta .wallet-card-note {
+  color: #6b4632;
+  opacity: 1;
+}
+
+.dash-wallet-card--terracotta .dash-wallet-icon {
+  background: #ffffff;
+  color: #b0563a;
+}
+
+/* Still to collect — slate blue, the second money figure. */
+.dashboard-wallet-shell .dash-wallet-card--slate {
+  background: #3e6c8e;
+  border-color: #3e6c8e;
+  color: #ffffff;
+}
+
+.dash-wallet-card--slate .wallet-card-label {
+  color: #dbe7ef;
+  opacity: 1;
+}
+
+.dash-wallet-card--slate .wallet-card-note {
+  color: #d0e0ea;
+  opacity: 1;
+}
+
+/* ---------- quick actions: 3 x 3 mobile, 5 + 4 from 900px ---------- */
+
+.dash-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: center;
+  gap: 10px;
+}
+
+.dash-quick-tile {
+  --tile-tint: var(--tint-green);
+  --tile-ink: var(--ink-green);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 176px;
+  aspect-ratio: 1 / 1;
+  padding: 10px 8px 12px;
+  border: 1px solid var(--dash-border);
+  border-top: 2px solid var(--tile-ink);
+  border-radius: 14px;
+  background: var(--dash-surface);
+  color: var(--dash-ink);
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.dash-quick-tile--green {
+  --tile-tint: var(--tint-green);
+  --tile-ink: var(--ink-green);
+}
+
+.dash-quick-tile--orange {
+  --tile-tint: var(--tint-orange);
+  --tile-ink: var(--ink-orange);
+}
+
+.dash-quick-tile--blue {
+  --tile-tint: var(--tint-blue);
+  --tile-ink: var(--ink-blue);
+}
+
+.dash-quick-tile--amber {
+  --tile-tint: var(--tint-amber);
+  --tile-ink: var(--ink-amber);
+}
+
+.dash-quick-tile:hover,
+.dash-quick-tile:focus-visible {
+  background: var(--tile-tint);
+  border-color: var(--tile-ink);
+}
+
+.dash-quick-tile:focus-visible {
+  outline: 2px solid var(--tile-ink);
+  outline-offset: 2px;
+}
+
+.dash-quick-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--tile-tint);
+  color: var(--tile-ink);
+}
+
+.dash-quick-tile:hover .dash-quick-icon,
+.dash-quick-tile:focus-visible .dash-quick-icon {
+  background: var(--dash-surface);
+}
+
+.dash-quick-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--dash-ink);
+}
+
+/* Tablets keep the 3 x 3 block, just a compact one instead of three huge tiles. */
+@media (min-width: 640px) and (max-width: 899px) {
+  .dash-quick-grid {
+    max-width: 560px;
+  }
+}
+
+@media (min-width: 900px) {
+  .dash-quick-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .dash-quick-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+  }
+
+  .dash-quick-label {
+    font-size: 13px;
+  }
+}
+
+/* ---------- payment history: hairline rows, no cards in a card ---------- */
+
+.dash-pay-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--dash-border);
+}
+
+.dash-pay-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.dash-pay-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 2px;
+}
+
+.dash-pay-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  background: var(--tint-green);
+  color: var(--ink-green);
+}
+
+.dash-pay-avatar--green {
+  background: var(--tint-green);
+  color: var(--ink-green);
+}
+
+.dash-pay-avatar--orange {
+  background: var(--tint-orange);
+  color: var(--ink-orange);
+}
+
+.dash-pay-avatar--blue {
+  background: var(--tint-blue);
+  color: var(--ink-blue);
+}
+
+.dash-pay-avatar--amber {
+  background: var(--tint-amber);
+  color: var(--ink-amber);
+}
+
+.dash-pay-body {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.dash-pay-name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--dash-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-pay-meta {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--dash-muted);
+}
+
+.dash-pay-amount {
+  flex: 0 0 auto;
+  font-size: 14.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--dash-money-in);
+  white-space: nowrap;
+}
+
+/* ---------- follow-up: one sentence + up to three rows ---------- */
+
+.dash-followup {
+  padding: 14px 16px 12px;
+  border: 1px solid var(--dash-border);
+  border-radius: 14px;
+  background: #fbf6ee;
+}
+
+.dash-followup-summary {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--dash-ink);
+}
+
+.dash-followup-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(229, 221, 211, 0.9);
+}
+
+.dash-followup-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 9px 0;
+}
+
+.dash-followup-row + .dash-followup-row {
+  border-top: 1px solid rgba(229, 221, 211, 0.9);
+}
+
+.dash-followup-name {
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--dash-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-followup-amount {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--dash-ink);
+  white-space: nowrap;
+}
+
+.dash-followup-age {
+  font-size: 11.5px;
+  color: var(--dash-muted);
+  white-space: nowrap;
+}
+
+.dash-followup-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-primary, #1f6a52);
+  text-decoration: none;
+}
+
+.dash-followup-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .dash-followup-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dash-followup-age {
+    grid-column: 1 / -1;
+    font-size: 11px;
+  }
+}

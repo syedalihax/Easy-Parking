@@ -1661,8 +1661,8 @@ body::-webkit-scrollbar-corner,
   }
 
   .nav-link.is-active {
-    background: #b7e46a;
-    color: #18352d;
+    background: #a8d5ba;
+    color: #143024;
   }
 
   .sidebar-user,
@@ -1679,8 +1679,8 @@ body::-webkit-scrollbar-corner,
   }
 
   .sidebar-user-avatar {
-    background: #b7e46a;
-    color: #18352d;
+    background: #c97a4d;
+    color: #fff7f2;
   }
 
   .app-main {
@@ -1862,9 +1862,9 @@ body::-webkit-scrollbar-corner,
     inset-inline-start: 8px;
     transform: translateY(-150%);
     border-radius: 8px;
-    background: #b7e46a;
+    background: #a8d5ba;
     padding: 10px 14px;
-    color: #18352d;
+    color: #143024;
     font-weight: 750;
   }
 
@@ -3122,4 +3122,72 @@ html[dir="rtl"] select {
 
 .toast-bar--info {
   background: var(--color-secondary);
+}
+
+/* --- daily parking: per-type rate card --- */
+.rate-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.rate-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 12.5px;
+  color: var(--color-ink);
+}
+
+.rate-chip strong {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-primary);
+}
+
+.daily-rate-form {
+  display: grid;
+  gap: 14px;
+  max-width: 720px;
+}
+
+.rate-card-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.rate-card-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 44px;
+  gap: 8px;
+  align-items: center;
+}
+
+.rate-card-row input {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fffdf9;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13.5px;
+}
+
+.rate-card-remove {
+  min-height: 40px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-width: 520px) {
+  .rate-card-row {
+    grid-template-columns: minmax(0, 1fr) 90px 40px;
+  }
 }
