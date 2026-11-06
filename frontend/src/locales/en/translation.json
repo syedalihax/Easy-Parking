@@ -163,7 +163,8 @@
     "upcomingBilling": "Payments coming soon",
     "nothing": "Nothing to show.",
     "loading": "Loading dashboard..."
-  },
+  ,
+    "nothingToday": "Nothing needs attention today."},
   "daily": {
     "walkIn": "Walk-in parking",
     "title": "Daily parking",
