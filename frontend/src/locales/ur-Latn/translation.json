@@ -125,7 +125,8 @@
     "none": "Koi pending invitation nahin.",
     "accept": "Qabool karein",
     "invitationCreated": "Invitation kamyabi se ban gayi",
-    "invitationAccepted": "Invitation qabool ho gayi"
+    "invitationAccepted": "Invitation qabool ho gayi",
+    "invitationCancelled": "Dawat mansookh kar di gayi"
   },
   "dashboard": {
     "overview": "Khulasa",

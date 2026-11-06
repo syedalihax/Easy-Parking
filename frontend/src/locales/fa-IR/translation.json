@@ -125,7 +125,8 @@
     "none": "دعوت در انتظاری وجود ندارد.",
     "accept": "پذیرفتن",
     "invitationCreated": "دعوت با موفقیت ساخته شد",
-    "invitationAccepted": "دعوت پذیرفته شد"
+    "invitationAccepted": "دعوت پذیرفته شد",
+    "invitationCancelled": "دعوت لغو شد"
   },
   "dashboard": {
     "overview": "نمای کلی",

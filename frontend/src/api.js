@@ -193,6 +193,11 @@ export const apiCreateInvitation = (payload) => jsonRequest('/invitations', {
 });
 
 export const apiGetPendingInvitations = () => jsonRequest('/invitations/pending');
+export const apiGetParkingInvitations = (parkingId) => jsonRequest(`/parkings/${parkingId}/invitations`);
+export const apiCancelInvitation = (parkingId, invitationId) => jsonRequest(
+  `/parkings/${parkingId}/invitations/${invitationId}/cancel`,
+  { method: 'POST' },
+);
 
 export const apiAcceptInvitation = (invitationId) => jsonRequest(`/invitations/${invitationId}/accept`, {
   method: 'POST',

@@ -125,7 +125,8 @@
     "none": "No pending invitations found.",
     "accept": "Accept",
     "invitationCreated": "Invitation created successfully",
-    "invitationAccepted": "Invitation accepted"
+    "invitationAccepted": "Invitation accepted",
+    "invitationCancelled": "Invitation cancelled"
   },
   "dashboard": {
     "overview": "Overview",

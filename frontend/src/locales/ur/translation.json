@@ -125,7 +125,8 @@
     "none": "کوئی زیرِ التوا دعوت نہیں۔",
     "accept": "قبول کریں",
     "invitationCreated": "دعوت کامیابی سے بن گئی",
-    "invitationAccepted": "دعوت قبول ہو گئی"
+    "invitationAccepted": "دعوت قبول ہو گئی",
+    "invitationCancelled": "دعوت منسوخ کر دی گئی"
   },
   "dashboard": {
     "overview": "جائزہ",

@@ -11,10 +11,12 @@ import {
 } from 'react-router-dom';
 import {
   apiAcceptInvitation,
+  apiCancelInvitation,
   apiCreateInvitation,
   apiCreateParking,
   apiGetMe,
   apiGetMyParkings,
+  apiGetParkingInvitations,
   apiGetPendingInvitations,
   apiLogin,
   apiSignup,
@@ -109,6 +111,7 @@ function App() {
   const [parkingForm, setParkingForm] = useState(defaultParkingForm);
   const [inviteForm, setInviteForm] = useState(defaultInviteForm);
   const [pendingInvitations, setPendingInvitations] = useState([]);
+  const [teamInvitations, setTeamInvitations] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showParkingCreator, setShowParkingCreator] = useState(false);
   const [showInboxView, setShowInboxView] = useState(false);
@@ -314,6 +317,20 @@ function App() {
     }
   }, []);
 
+  // Invitations this parking sent — what the team screen shows.
+  const loadTeamInvitations = useCallback(async (parkingId) => {
+    if (!parkingId) {
+      setTeamInvitations([]);
+      return;
+    }
+    try {
+      const response = await apiGetParkingInvitations(parkingId);
+      setTeamInvitations(response.invitations || []);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  }, []);
+
   const loadPendingInvitations = useCallback(async () => {
     try {
       const response = await apiGetPendingInvitations();
@@ -322,6 +339,10 @@ function App() {
       setErrorMessage(error.message);
     }
   }, []);
+
+  useEffect(() => {
+    if (token) loadTeamInvitations(selectedParkingId);
+  }, [loadTeamInvitations, selectedParkingId, token]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -521,11 +542,23 @@ function App() {
 
       setInviteForm(defaultInviteForm);
       setStatusMessage(t('team.invitationCreated'));
-      await loadPendingInvitations();
+      await loadTeamInvitations(selectedParkingId);
     } catch (error) {
       setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCancelInvitation = async (invitationId) => {
+    setErrorMessage('');
+    setStatusMessage('');
+    try {
+      await apiCancelInvitation(selectedParkingId, invitationId);
+      await loadTeamInvitations(selectedParkingId);
+      setStatusMessage(t('team.invitationCancelled'));
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
     }
   };
 
@@ -789,12 +822,15 @@ function App() {
       )}
       <section className="panel">
         <div className="panel-header"><h3>{t('team.pending')}</h3></div>
-        {pendingInvitations.length === 0 ? <p className="muted-text">{t('team.none')}</p> : (
+        {teamInvitations.length === 0 ? <p className="muted-text">{t('team.none')}</p> : (
           <div className="list-stack">
-            {pendingInvitations.map((invitation) => (
+            {teamInvitations.map((invitation) => (
               <div key={invitation._id} className="list-item">
-                <div><strong>{invitation.emailOrPhone}</strong><p>{t(`team.${invitation.role}`)} · {invitation.parkingId?.name || t('setup.account')}</p></div>
-                <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>{t('team.accept')}</button>
+                <div>
+                  <strong>{invitation.emailOrPhone}</strong>
+                  <p>{t(`team.${invitation.role}`)}{invitation.invitedBy?.fullName ? ` · ${invitation.invitedBy.fullName}` : ''}</p>
+                </div>
+                <button type="button" className="secondary-button" onClick={() => handleCancelInvitation(invitation._id)}>{t('app.cancel')}</button>
               </div>
             ))}
           </div>
