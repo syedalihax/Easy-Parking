@@ -869,48 +869,48 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                       <p className="muted-text">{t('customer.since', { date: formatDate(vehicle.parkingStartDate) })}</p>
                     </div>
                     {vehicle.status === 'active' ? (
-                      <div className="flex flex-col gap-2">
+                      <div className="vehicle-actions">
                         <button
                           type="button"
-                          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                          className="secondary-button"
                           onClick={() => beginVehicleForm(vehicle)}
                         >
                           {t('customer.edit')}
                         </button>
                         <button
                           type="button"
-                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100"
+                          className="secondary-button"
                           onClick={() => beginVehicleForm(vehicle, true)}
                         >
                           {t('customer.replaceVehicle')}
                         </button>
                         <button
                           type="button"
-                          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                          className="danger-button"
                           onClick={() => deactivateVehicle(vehicle)}
                         >
                           {t('customer.deactivate')}
                         </button>
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-2">
+                      <div className="vehicle-actions">
                         <button
                           type="button"
-                          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                          className="secondary-button"
                           onClick={() => beginVehicleForm(vehicle)}
                         >
                           {t('customer.edit')}
                         </button>
                         <button
                           type="button"
-                          className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-800"
+                          className="primary-button"
                           onClick={() => activateVehicle(vehicle)}
                         >
                           {t('customer.activate')}
                         </button>
                         <button
                           type="button"
-                          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                          className="danger-button"
                           onClick={() => deleteVehicle(vehicle)}
                         >
                           {t('customer.remove')}
@@ -1005,7 +1005,7 @@ function CustomersWorkspace({ parkingId, parkingRole = 'manager', initialScreen 
                 <article key={due._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
                   <div>
                     <strong dir="ltr">{formatDate(due.billingPeriodStart)} – {formatDate(due.billingPeriodEnd)}</strong>
-                    <p className="muted-text">{due.vehicleId?.registrationNumber || t('customer.vehicle')} · <span dir="ltr">Rs. {due.amountDue.toLocaleString()}</span> {t('customer.due')}</p>
+                    <p className="muted-text">{due.vehicleId?.registrationNumber || t('customer.vehicle')} · <span dir="ltr">Rs. {due.amountDue.toLocaleString()}</span></p>
                   </div>
                   <div className="text-end">
                     <strong dir="ltr">Rs. {due.outstandingAmount.toLocaleString()}</strong>

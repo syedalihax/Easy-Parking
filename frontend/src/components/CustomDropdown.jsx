@@ -55,21 +55,21 @@ function CustomDropdown({
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
-      {label && <span className="mb-1 block text-sm font-semibold text-slate-700">{label}</span>}
+      {label && <span className="dropdown-label">{label}</span>}
 
       <button
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-left text-sm font-medium text-slate-800 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+        className="dropdown-trigger"
       >
         <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
-        <ChevronIcon className={`h-4 w-4 text-slate-500 transition ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronIcon className={`dropdown-caret${isOpen ? ' is-open' : ''}`} />
       </button>
 
       {isOpen && (
-        <div role="listbox" className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.16)]">
+        <div role="listbox" className="dropdown-panel">
           {options.map((option) => (
             <button
               key={option.value}
@@ -80,10 +80,10 @@ function CustomDropdown({
                 onChange?.(option.value);
                 setIsOpen(false);
               }}
-              className={`flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left text-sm transition ${value === option.value ? 'bg-emerald-50 text-emerald-700' : 'text-slate-700 hover:bg-slate-50'}`}
+              className={`dropdown-option${value === option.value ? ' is-selected' : ''}`}
             >
               <span className="truncate">{option.label}</span>
-              {value === option.value && <CheckIcon className="h-4 w-4" />}
+              {value === option.value && <CheckIcon className="dropdown-check" />}
             </button>
           ))}
         </div>
