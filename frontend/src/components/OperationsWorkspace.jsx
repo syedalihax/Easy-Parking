@@ -175,32 +175,24 @@ function DashboardWorkspace({ parkingId }) {
         </div>
       ) : (
         <div className="dashboard-wallet-shell">
-          <section className="dashboard-carousel" aria-label={t('dashboard.paymentsThisMonth')}>
-            {summaryCards.map(({ label, value, tone, detail }) => (
-              <article key={label} className={`dashboard-summary-card ${tone}`}>
-                <div className="dashboard-summary-top">
-                  <span>{label}</span>
-                  <span className="dashboard-summary-badge"><GoogleIcon name={tone === 'teal' ? 'payments' : tone === 'light-blue' ? 'groups' : 'wallet'} size={20} /></span>
-                </div>
-                <div className="dashboard-summary-value">{value}</div>
-                <div className="dashboard-summary-detail">{detail}</div>
-              </article>
+          <section className="ledger-strip" aria-label={t('dashboard.overview')}>
+            {summaryCards.map(({ label, value, detail }) => (
+              <div className="ledger-cell" key={label}>
+                <span className="ledger-label">{label}</span>
+                <strong className="ledger-value">{value}</strong>
+                <span className="ledger-note">{detail}</span>
+              </div>
             ))}
           </section>
 
-          <section className="dashboard-section">
-            <div className="dashboard-section-head">
-              <h3>{t('dashboard.quickActions')}</h3>
-            </div>
-            <div className="dashboard-quick-grid">
-              {quickActions.map(({ labelKey, to, Icon, tone }) => (
-                <Link key={labelKey} to={to} className="dashboard-quick-item" data-tone={tone}>
-                  <span className="dashboard-quick-icon"><GoogleIcon name={Icon} size={20} /></span>
-                  <span>{t(labelKey)}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
+          <nav className="quick-row" aria-label={t('dashboard.quickActions')}>
+            {quickActions.slice(0, 3).map(({ labelKey, to }) => (
+              <Link key={labelKey} to={to}>
+                {t(labelKey)}
+                <span aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </nav>
 
           <section className="dashboard-section">
             <div className="dashboard-section-head">
@@ -209,7 +201,7 @@ function DashboardWorkspace({ parkingId }) {
             </div>
             <div className="dashboard-history-strip">
               {paymentHistory.length === 0 ? (
-                <div className="dashboard-empty-card">{t('dashboard.noRecentPayments')}</div>
+                <p className="muted-text">{t('dashboard.noRecentPayments')}</p>
               ) : (
                 paymentHistory.map((item) => (
                   <article key={item.paymentId || item._id} className="dashboard-payment-card">
@@ -230,23 +222,32 @@ function DashboardWorkspace({ parkingId }) {
               <div className="dashboard-section-head">
                 <h3>{t('dashboard.followUp')}</h3>
               </div>
-              <div className="dashboard-reminder-grid">
-                {[
+              {(() => {
+                const groups = [
                   [t('dashboard.pendingDues'), reminders.pendingDues],
                   [t('dashboard.overdueDues'), reminders.overdueDues],
                   [t('dashboard.partialPayments'), reminders.partialPayments],
-                ].map(([title, items]) => (
-                  <div key={title} className="dashboard-reminder-panel">
-                    <h4>{title}</h4>
-                    {items.length === 0 ? <p>{t('dashboard.nothing')}</p> : items.slice(0, 2).map((item) => (
-                      <div key={item._id} className="dashboard-reminder-row">
-                        <span>{item.customerId?.fullName || t('dashboard.member')}</span>
-                        <strong>{money(item.outstandingAmount)}</strong>
+                ].filter(([, items]) => items.length > 0);
+
+                if (groups.length === 0) return <p className="muted-text">{t('dashboard.nothingToday')}</p>;
+
+                return (
+                  <div className="attention-rows">
+                    {groups.map(([title, items]) => (
+                      <div key={title} className="attention-row">
+                        <span className="attention-label">{title}</span>
+                        <div className="attention-items">
+                          {items.slice(0, 3).map((item) => (
+                            <span key={item._id} className="attention-item">
+                              {item.customerId?.fullName || t('dashboard.member')} <strong>{money(item.outstandingAmount)}</strong>
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </section>
           )}
         </div>

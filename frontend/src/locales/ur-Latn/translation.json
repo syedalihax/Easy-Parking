@@ -163,7 +163,8 @@
     "upcomingBilling": "Qareeb aati payments",
     "nothing": "Dikhane ke liye kuch nahin.",
     "loading": "Dashboard load ho raha hai..."
-  },
+  ,
+    "nothingToday": "Aaj kisi cheez ki taraf tawajjo darkar nahi."},
   "daily": {
     "walkIn": "Aarzi parking",
     "title": "Rozana parking",
@@ -424,7 +425,11 @@
     "confirmRecordPayment": "Wasooli ki tasdeeq aur darj karein",
     "goBack": "Wapas",
     "vehicleSearchPlaceholder": "Registration number likhein"
-  },
+  ,    "currentPeriod": "Mojooda muddat: {{from}} – {{to}}",
+        "currentPeriodBilled": "bill ban gaya",
+        "currentPeriodUnbilled": "abhi bill nahi bana",
+        "createBill": "Bill banayein",
+        "billCreated": "Mojooda muddat ka bill ban gaya"},
   "landing": {
     "seoTitle": "EasyParking — Asaan Parking Management Software",
     "seoDescription": "EasyParking se parking members, gariyan, mahina-war subscriptions, wasooli aur rozana parking manage karein. Kaghazi register ko munazzam digital records se badlein.",

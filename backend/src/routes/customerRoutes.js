@@ -25,6 +25,7 @@ const {
   changeRate,
   endSubscription,
   listDues,
+  createCurrentDue,
 } = require('../controllers/billingController');
 const requireAuth = require('../middleware/auth');
 const requireParkingMembership = require('../middleware/requireMembership');
@@ -59,5 +60,6 @@ router.get('/customers/:customerId/subscriptions', listSubscriptions);
 router.patch('/customers/:customerId/subscriptions/:subscriptionId/rate', changeRate);
 router.patch('/customers/:customerId/subscriptions/:subscriptionId/end', endSubscription);
 router.get('/customers/:customerId/dues', listDues);
+router.post('/customers/:customerId/subscriptions/:subscriptionId/dues', createCurrentDue);
 
 module.exports = router;
