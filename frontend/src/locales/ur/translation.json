@@ -98,7 +98,8 @@
     "name": "پارکنگ کا نام",
     "address": "پتہ",
     "contact": "رابطے کی معلومات"
-  },
+  ,
+    "updated": "پارکنگ کی تفصیلات اپ ڈیٹ ہو گئیں"},
   "profile": {
     "eyebrow": "اکاؤنٹ",
     "title": "پروفائل",
@@ -125,7 +126,8 @@
     "none": "کوئی زیرِ التوا دعوت نہیں۔",
     "accept": "قبول کریں",
     "invitationCreated": "دعوت کامیابی سے بن گئی",
-    "invitationAccepted": "دعوت قبول ہو گئی"
+    "invitationAccepted": "دعوت قبول ہو گئی",
+    "invitationCancelled": "دعوت منسوخ کر دی گئی"
   },
   "dashboard": {
     "overview": "جائزہ",

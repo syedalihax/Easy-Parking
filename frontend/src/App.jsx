@@ -11,13 +11,16 @@ import {
 } from 'react-router-dom';
 import {
   apiAcceptInvitation,
+  apiCancelInvitation,
   apiCreateInvitation,
   apiCreateParking,
   apiGetMe,
   apiGetMyParkings,
+  apiGetParkingInvitations,
   apiGetPendingInvitations,
   apiLogin,
   apiSignup,
+  apiUpdateParking,
   apiUpdateProfile,
   apiUpdatePreferredLanguage,
 } from './api';
@@ -108,7 +111,9 @@ function App() {
   const [profileForm, setProfileForm] = useState({ fullName: '', email: '', phone: '' });
   const [parkingForm, setParkingForm] = useState(defaultParkingForm);
   const [inviteForm, setInviteForm] = useState(defaultInviteForm);
+  const [parkingSettingsForm, setParkingSettingsForm] = useState({ name: '', address: '', contactInfo: '' });
   const [pendingInvitations, setPendingInvitations] = useState([]);
+  const [teamInvitations, setTeamInvitations] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showParkingCreator, setShowParkingCreator] = useState(false);
   const [showInboxView, setShowInboxView] = useState(false);
@@ -314,6 +319,20 @@ function App() {
     }
   }, []);
 
+  // Invitations this parking sent — what the team screen shows.
+  const loadTeamInvitations = useCallback(async (parkingId) => {
+    if (!parkingId) {
+      setTeamInvitations([]);
+      return;
+    }
+    try {
+      const response = await apiGetParkingInvitations(parkingId);
+      setTeamInvitations(response.invitations || []);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  }, []);
+
   const loadPendingInvitations = useCallback(async () => {
     try {
       const response = await apiGetPendingInvitations();
@@ -322,6 +341,20 @@ function App() {
       setErrorMessage(error.message);
     }
   }, []);
+
+  useEffect(() => {
+    if (token) loadTeamInvitations(selectedParkingId);
+  }, [loadTeamInvitations, selectedParkingId, token]);
+
+  // Keep the settings form in step with the parking that is currently selected.
+  useEffect(() => {
+    if (!activeParking) return;
+    setParkingSettingsForm({
+      name: activeParking.name || '',
+      address: activeParking.address || '',
+      contactInfo: activeParking.contactInfo || '',
+    });
+  }, [activeParking]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -502,6 +535,30 @@ function App() {
     }
   };
 
+  const handleParkingSettingsSubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedParkingId) return;
+    setErrorMessage('');
+    setStatusMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await apiUpdateParking(selectedParkingId, {
+        name: parkingSettingsForm.name.trim(),
+        address: parkingSettingsForm.address.trim(),
+        contactInfo: parkingSettingsForm.contactInfo.trim(),
+      });
+      setParkings((current) => current.map((parking) => (
+        parking._id === selectedParkingId ? { ...parking, ...response.parking } : parking
+      )));
+      setStatusMessage(t('parkingSettings.updated'));
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleInviteSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
@@ -521,11 +578,23 @@ function App() {
 
       setInviteForm(defaultInviteForm);
       setStatusMessage(t('team.invitationCreated'));
-      await loadPendingInvitations();
+      await loadTeamInvitations(selectedParkingId);
     } catch (error) {
       setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCancelInvitation = async (invitationId) => {
+    setErrorMessage('');
+    setStatusMessage('');
+    try {
+      await apiCancelInvitation(selectedParkingId, invitationId);
+      await loadTeamInvitations(selectedParkingId);
+      setStatusMessage(t('team.invitationCancelled'));
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
     }
   };
 
@@ -789,12 +858,15 @@ function App() {
       )}
       <section className="panel">
         <div className="panel-header"><h3>{t('team.pending')}</h3></div>
-        {pendingInvitations.length === 0 ? <p className="muted-text">{t('team.none')}</p> : (
+        {teamInvitations.length === 0 ? <p className="muted-text">{t('team.none')}</p> : (
           <div className="list-stack">
-            {pendingInvitations.map((invitation) => (
+            {teamInvitations.map((invitation) => (
               <div key={invitation._id} className="list-item">
-                <div><strong>{invitation.emailOrPhone}</strong><p>{t(`team.${invitation.role}`)} · {invitation.parkingId?.name || t('setup.account')}</p></div>
-                <button type="button" className="secondary-button" onClick={() => handleAcceptInvitation(invitation._id)}>{t('team.accept')}</button>
+                <div>
+                  <strong>{invitation.emailOrPhone}</strong>
+                  <p>{t(`team.${invitation.role}`)}{invitation.invitedBy?.fullName ? ` · ${invitation.invitedBy.fullName}` : ''}</p>
+                </div>
+                <button type="button" className="secondary-button" onClick={() => handleCancelInvitation(invitation._id)}>{t('app.cancel')}</button>
               </div>
             ))}
           </div>
@@ -949,6 +1021,7 @@ function App() {
       contactInfo: '',
       role: 'manager',
     };
+    const canEditParking = parkingDetails.role === 'owner';
 
     return (
       <div className="operations-workspace">
@@ -963,12 +1036,45 @@ function App() {
             </select>
           </label>
         )}
-        <section className="panel profile-details">
-          <div><span>{t('parkingSettings.name')}</span><strong>{parkingDetails.name}</strong></div>
-          <div><span>{t('parkingSettings.address')}</span><strong>{parkingDetails.address || t('app.notProvided')}</strong></div>
-          <div><span>{t('parkingSettings.contact')}</span><strong>{parkingDetails.contactInfo || t('app.notProvided')}</strong></div>
-          <div><span>{t('team.role')}</span><strong>{t(`team.${parkingDetails.role}`)}</strong></div>
-        </section>
+        <form className="panel form-grid" onSubmit={handleParkingSettingsSubmit}>
+          <label className="field">
+            <span>{t('parkingSettings.name')}</span>
+            <input
+              required
+              maxLength={80}
+              value={parkingSettingsForm.name}
+              disabled={!canEditParking}
+              onChange={(event) => setParkingSettingsForm({ ...parkingSettingsForm, name: event.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>{t('parkingSettings.address')}</span>
+            <input
+              maxLength={200}
+              value={parkingSettingsForm.address}
+              disabled={!canEditParking}
+              onChange={(event) => setParkingSettingsForm({ ...parkingSettingsForm, address: event.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>{t('parkingSettings.contact')}</span>
+            <input
+              maxLength={80}
+              value={parkingSettingsForm.contactInfo}
+              disabled={!canEditParking}
+              onChange={(event) => setParkingSettingsForm({ ...parkingSettingsForm, contactInfo: event.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>{t('team.role')}</span>
+            <input value={t(`team.${parkingDetails.role}`)} readOnly />
+          </label>
+          {canEditParking && (
+            <button type="submit" className="primary-button" disabled={isLoading}>
+              {isLoading ? t('app.saving') : t('app.save')}
+            </button>
+          )}
+        </form>
       </div>
     );
   };
@@ -1008,6 +1114,8 @@ function App() {
           <Route path="/signup" element={renderAuthForm('signup')} />
           <Route path="/register" element={renderAuthForm('signup')} />
           <Route path="/404" element={<NotFoundPage />} />
+          {/* A signed-out deep link belongs at the login form, not on a 404. */}
+          <Route path="/app/*" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

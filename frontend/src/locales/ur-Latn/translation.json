@@ -98,7 +98,8 @@
     "name": "Parking ka naam",
     "address": "Pata",
     "contact": "Rabtay ki maloomat"
-  },
+  ,
+    "updated": "Parking ki tafseelat update ho gayin"},
   "profile": {
     "eyebrow": "Account",
     "title": "Profile",
@@ -125,7 +126,8 @@
     "none": "Koi pending invitation nahin.",
     "accept": "Qabool karein",
     "invitationCreated": "Invitation kamyabi se ban gayi",
-    "invitationAccepted": "Invitation qabool ho gayi"
+    "invitationAccepted": "Invitation qabool ho gayi",
+    "invitationCancelled": "Dawat mansookh kar di gayi"
   },
   "dashboard": {
     "overview": "Khulasa",

@@ -146,8 +146,51 @@ const acceptInvitation = async (req, res) => {
   }
 };
 
+// Invitations this parking has sent. The list shown on the team screen must be
+// this, not the invitations addressed to the signed-in user.
+const listParkingInvitations = async (req, res) => {
+  try {
+    const invitations = await Invitation.find({
+      parkingId: req.params.parkingId,
+      status: 'pending',
+    })
+      .populate('invitedBy', 'fullName')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({ invitations });
+  } catch (error) {
+    if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid parking ID' });
+    console.error('Invitation lookup failed:', error);
+    return res.status(500).json({ message: 'Could not fetch invitations' });
+  }
+};
+
+const cancelInvitation = async (req, res) => {
+  try {
+    const invitation = await Invitation.findOneAndUpdate(
+      {
+        _id: req.params.invitationId,
+        parkingId: req.params.parkingId,
+        status: 'pending',
+      },
+      { $set: { status: 'cancelled' } },
+      { returnDocument: 'after' },
+    ).lean();
+
+    if (!invitation) return res.status(404).json({ message: 'Pending invitation not found' });
+    return res.json({ invitation });
+  } catch (error) {
+    if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid invitation ID' });
+    console.error('Invitation cancel failed:', error);
+    return res.status(500).json({ message: 'Could not cancel invitation' });
+  }
+};
+
 module.exports = {
   createInvitation,
   getPendingInvitations,
   acceptInvitation,
+  listParkingInvitations,
+  cancelInvitation,
 };

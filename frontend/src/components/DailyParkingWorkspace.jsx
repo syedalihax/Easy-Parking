@@ -11,6 +11,7 @@ import {
   apiRecordDailyParkingPayment,
   apiUpdateDailyRate,
 } from '../api';
+import { formatDateTime } from '../lib/format';
 
 const emptyEntry = {
   vehicleNumber: '',
@@ -21,7 +22,7 @@ const emptyEntry = {
 };
 
 const money = (value) => `Rs. ${Number(value || 0).toLocaleString()}`;
-const dateTime = (value) => new Date(value).toLocaleString();
+const dateTime = (value) => formatDateTime(value);
 const elapsed = (value) => {
   const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
   const hours = Math.floor(minutes / 60);

@@ -98,7 +98,8 @@
     "name": "نام پارکینگ",
     "address": "نشانی",
     "contact": "اطلاعات تماس"
-  },
+  ,
+    "updated": "اطلاعات پارکینگ به‌روزرسانی شد"},
   "profile": {
     "eyebrow": "حساب کاربری",
     "title": "پروفایل",
@@ -125,7 +126,8 @@
     "none": "دعوت در انتظاری وجود ندارد.",
     "accept": "پذیرفتن",
     "invitationCreated": "دعوت با موفقیت ساخته شد",
-    "invitationAccepted": "دعوت پذیرفته شد"
+    "invitationAccepted": "دعوت پذیرفته شد",
+    "invitationCancelled": "دعوت لغو شد"
   },
   "dashboard": {
     "overview": "نمای کلی",

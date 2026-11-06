@@ -98,7 +98,8 @@
     "name": "Parking name",
     "address": "Address",
     "contact": "Contact information"
-  },
+  ,
+    "updated": "Parking details updated"},
   "profile": {
     "eyebrow": "Account",
     "title": "Profile",
@@ -125,7 +126,8 @@
     "none": "No pending invitations found.",
     "accept": "Accept",
     "invitationCreated": "Invitation created successfully",
-    "invitationAccepted": "Invitation accepted"
+    "invitationAccepted": "Invitation accepted",
+    "invitationCancelled": "Invitation cancelled"
   },
   "dashboard": {
     "overview": "Overview",

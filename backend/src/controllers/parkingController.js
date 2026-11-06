@@ -82,7 +82,58 @@ const getMyParkings = async (req, res) => {
   }
 };
 
+// Owners can correct the parking's own details; everything else about a parking
+// is data, not settings, so this stays deliberately small.
+const updateParking = async (req, res) => {
+  const { name, address, contactInfo } = req.body;
+  const updates = {};
+
+  if (name !== undefined) {
+    if (typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ message: 'Parking name cannot be empty' });
+    }
+    if (name.trim().length > 80) {
+      return res.status(400).json({ message: 'Parking name must be 80 characters or fewer' });
+    }
+    updates.name = name.trim();
+  }
+
+  if (address !== undefined) {
+    if (typeof address !== 'string' || address.length > 200) {
+      return res.status(400).json({ message: 'Address must be 200 characters or fewer' });
+    }
+    updates.address = address.trim();
+  }
+
+  if (contactInfo !== undefined) {
+    if (typeof contactInfo !== 'string' || contactInfo.length > 80) {
+      return res.status(400).json({ message: 'Contact information must be 80 characters or fewer' });
+    }
+    updates.contactInfo = contactInfo.trim();
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ message: 'Nothing to update' });
+  }
+
+  try {
+    const parking = await Parking.findByIdAndUpdate(
+      req.params.parkingId,
+      { $set: updates },
+      { returnDocument: 'after', runValidators: true },
+    ).lean();
+
+    if (!parking) return res.status(404).json({ message: 'Parking not found' });
+    return res.json({ parking });
+  } catch (error) {
+    if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid parking ID' });
+    console.error('Parking update failed:', error);
+    return res.status(500).json({ message: 'Could not update parking' });
+  }
+};
+
 module.exports = {
   createParking,
   getMyParkings,
+  updateParking,
 };
