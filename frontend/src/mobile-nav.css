@@ -1,0 +1,407 @@
+/* ---------------------------------------------------------------------------
+   Mobile app drawer for the logged-in shell.
+
+   Owns: the mobile header (hamburger position) and the drawer panel/scrim.
+   Loaded after index.css from App.jsx, so it wins on equal specificity.
+   The drawer enters and exits from the same edge as the hamburger:
+   inline-start (left in LTR, right in RTL).
+--------------------------------------------------------------------------- */
+
+/* --- header: hamburger leads, no competing log out button --------------- */
+
+@media (max-width: 1023px) {
+  .app-shell .app-sidebar {
+    justify-content: flex-start;
+    gap: 10px;
+    padding-inline: 12px;
+  }
+
+  .app-shell .app-sidebar .mobile-menu-button {
+    order: -1;
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    margin-inline-start: -4px;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 8%);
+    color: #fff;
+  }
+
+  .app-shell .app-sidebar .mobile-menu-button:hover {
+    background: rgb(255 255 255 / 16%);
+  }
+
+  .app-shell .app-sidebar .mobile-menu-button:focus-visible {
+    outline: 2px solid #a8d5ba;
+    outline-offset: 2px;
+  }
+
+  /* The drawer owns log out on this breakpoint. */
+  .app-shell .app-sidebar .sidebar-logout {
+    display: none;
+  }
+
+  .app-shell .app-sidebar .brand-lockup {
+    min-width: 0;
+  }
+
+  .app-shell .app-sidebar .brand-copy {
+    min-width: 0;
+  }
+
+  .app-shell .app-sidebar .brand-copy small {
+    max-width: min(52vw, 220px);
+  }
+}
+
+/* --- scrim -------------------------------------------------------------- */
+
+.mp-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 58;
+  border: 0;
+  background: rgb(16 30 26 / 46%);
+  -webkit-tap-highlight-color: transparent;
+  animation: mp-scrim-in 200ms ease-out both;
+}
+
+.mp-scrim.is-closing {
+  animation: mp-scrim-out 200ms ease-in both;
+}
+
+/* --- panel -------------------------------------------------------------- */
+
+.mp-drawer {
+  /* Exit direction, flipped for RTL below. */
+  --mp-off: -100%;
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 59;
+  display: flex;
+  flex-direction: column;
+  width: min(86vw, 360px);
+  max-width: 100%;
+  overflow: hidden;
+  border-inline-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 24px 0 64px -32px rgb(15 33 27 / 55%);
+  outline: none;
+  animation: mp-drawer-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html[dir='rtl'] .mp-drawer {
+  --mp-off: 100%;
+  border-inline-end: 0;
+  border-inline-start: 1px solid var(--color-border);
+  box-shadow: -24px 0 64px -32px rgb(15 33 27 / 55%);
+}
+
+.mp-drawer.is-closing {
+  animation: mp-drawer-out 240ms cubic-bezier(0.4, 0, 0.9, 1) both;
+}
+
+/* --- header block ------------------------------------------------------- */
+
+.mp-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px 16px;
+  padding-top: max(18px, env(safe-area-inset-top));
+}
+
+.mp-mark {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 5px;
+  object-fit: contain;
+}
+
+.mp-head-copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 1px;
+}
+
+.mp-head-copy strong {
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.mp-head-copy small {
+  overflow: hidden;
+  color: var(--color-ink-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-close {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-inline-start: auto;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.mp-close:hover {
+  background: var(--color-background);
+  color: var(--color-ink);
+}
+
+.mp-close:focus-visible,
+.mp-link:focus-visible,
+.mp-logout:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* --- destinations ------------------------------------------------------- */
+
+.mp-nav {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  padding: 2px 10px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.mp-link {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 11px;
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.mp-link:hover {
+  background: var(--color-background);
+}
+
+.mp-link .material-symbols-outlined {
+  color: var(--color-ink-muted);
+  transition: color 140ms ease;
+}
+
+.mp-link.is-active {
+  background: var(--color-primary-light);
+  box-shadow: inset 0 0 0 1px rgb(31 106 82 / 12%);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.mp-link.is-active .material-symbols-outlined {
+  color: var(--color-primary);
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+.mp-link-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- footer: language + log out ----------------------------------------- */
+
+.mp-foot {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.mp-lang .language-selector {
+  gap: 4px;
+  min-width: 0;
+}
+
+.mp-lang .language-selector > .field span,
+.mp-lang .language-selector > span {
+  color: var(--color-ink-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mp-lang .dropdown-trigger {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-color: transparent;
+  border-radius: 10px;
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mp-lang .dropdown-trigger:hover {
+  border-color: var(--color-border);
+  background: #f1ece2;
+}
+
+/* The language row lives in the footer, so its list opens upward instead of
+   falling off the bottom of the panel. */
+.mp-lang .dropdown-panel {
+  top: auto;
+  bottom: 100%;
+  max-height: 240px;
+  margin-top: 0;
+  margin-bottom: 6px;
+  box-shadow: 0 18px 36px -22px rgb(16 30 26 / 45%);
+}
+
+.mp-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--color-danger);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.mp-logout .material-symbols-outlined {
+  color: currentColor;
+}
+
+.mp-logout:hover {
+  border-color: rgb(181 85 69 / 20%);
+  background: var(--color-danger-bg);
+}
+
+.mp-logout:active {
+  background: rgb(181 85 69 / 14%);
+}
+
+/* --- keyframes ---------------------------------------------------------- */
+
+@keyframes mp-drawer-in {
+  from {
+    transform: translateX(var(--mp-off));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes mp-drawer-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--mp-off));
+  }
+}
+
+@keyframes mp-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mp-scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes mp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mp-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* --- reduced motion: cross-fade only, never slide ----------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-drawer {
+    animation: mp-fade-in 140ms linear both !important;
+  }
+
+  .mp-drawer.is-closing {
+    animation: mp-fade-out 140ms linear both !important;
+  }
+
+  .mp-scrim {
+    animation: mp-fade-in 140ms linear both !important;
+  }
+
+  .mp-scrim.is-closing {
+    animation: mp-fade-out 140ms linear both !important;
+  }
+
+  .mp-link {
+    transition: none;
+  }
+}
+
+/* --- body scroll lock while the drawer is open -------------------------- */
+
+body.mp-scroll-lock {
+  overflow: hidden;
+}
