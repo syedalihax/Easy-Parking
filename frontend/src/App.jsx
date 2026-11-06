@@ -1201,6 +1201,10 @@ function App() {
               </span>
               <GoogleIcon name="chevron_right" size={17} />
             </NavLink>
+            <button type="button" className="sidebar-logout" onClick={logout}>
+              <GoogleIcon name="logout" size={18} />
+              <span>{t('app.logout')}</span>
+            </button>
           </aside>
           {isMobileMenuOpen && (
             <>

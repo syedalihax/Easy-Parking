@@ -3191,3 +3191,33 @@ html[dir="rtl"] select {
     grid-template-columns: minmax(0, 1fr) 90px 40px;
   }
 }
+
+/* --- sidebar: reachable log out --- */
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 12px;
+  background: transparent;
+  color: #d7e2d9;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+}
+
+.sidebar-logout:hover {
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+}
+
+.sidebar-logout:focus-visible {
+  outline: 2px solid #a8d5ba;
+  outline-offset: 2px;
+}
