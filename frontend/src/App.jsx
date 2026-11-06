@@ -20,6 +20,7 @@ import {
   apiGetPendingInvitations,
   apiLogin,
   apiSignup,
+  apiUpdateParking,
   apiUpdateProfile,
   apiUpdatePreferredLanguage,
 } from './api';
@@ -110,6 +111,7 @@ function App() {
   const [profileForm, setProfileForm] = useState({ fullName: '', email: '', phone: '' });
   const [parkingForm, setParkingForm] = useState(defaultParkingForm);
   const [inviteForm, setInviteForm] = useState(defaultInviteForm);
+  const [parkingSettingsForm, setParkingSettingsForm] = useState({ name: '', address: '', contactInfo: '' });
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [teamInvitations, setTeamInvitations] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -344,6 +346,16 @@ function App() {
     if (token) loadTeamInvitations(selectedParkingId);
   }, [loadTeamInvitations, selectedParkingId, token]);
 
+  // Keep the settings form in step with the parking that is currently selected.
+  useEffect(() => {
+    if (!activeParking) return;
+    setParkingSettingsForm({
+      name: activeParking.name || '',
+      address: activeParking.address || '',
+      contactInfo: activeParking.contactInfo || '',
+    });
+  }, [activeParking]);
+
   useEffect(() => {
     let isCurrent = true;
 
@@ -516,6 +528,30 @@ function App() {
       setStatusMessage(t('setup.created'));
       await loadParkings();
       navigate('/app/customers');
+    } catch (error) {
+      setErrorMessage(error.message || t('errors.couldNotSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleParkingSettingsSubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedParkingId) return;
+    setErrorMessage('');
+    setStatusMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await apiUpdateParking(selectedParkingId, {
+        name: parkingSettingsForm.name.trim(),
+        address: parkingSettingsForm.address.trim(),
+        contactInfo: parkingSettingsForm.contactInfo.trim(),
+      });
+      setParkings((current) => current.map((parking) => (
+        parking._id === selectedParkingId ? { ...parking, ...response.parking } : parking
+      )));
+      setStatusMessage(t('parkingSettings.updated'));
     } catch (error) {
       setErrorMessage(error.message || t('errors.couldNotSave'));
     } finally {
@@ -985,6 +1021,7 @@ function App() {
       contactInfo: '',
       role: 'manager',
     };
+    const canEditParking = parkingDetails.role === 'owner';
 
     return (
       <div className="operations-workspace">
@@ -999,12 +1036,45 @@ function App() {
             </select>
           </label>
         )}
-        <section className="panel profile-details">
-          <div><span>{t('parkingSettings.name')}</span><strong>{parkingDetails.name}</strong></div>
-          <div><span>{t('parkingSettings.address')}</span><strong>{parkingDetails.address || t('app.notProvided')}</strong></div>
-          <div><span>{t('parkingSettings.contact')}</span><strong>{parkingDetails.contactInfo || t('app.notProvided')}</strong></div>
-          <div><span>{t('team.role')}</span><strong>{t(`team.${parkingDetails.role}`)}</strong></div>
-        </section>
+        <form className="panel form-grid" onSubmit={handleParkingSettingsSubmit}>
+          <label className="field">
+            <span>{t('parkingSettings.name')}</span>
+            <input
+              required
+              maxLength={80}
+              value={parkingSettingsForm.name}
+              disabled={!canEditParking}
+              onChange={(event) => setParkingSettingsForm({ ...parkingSettingsForm, name: event.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>{t('parkingSettings.address')}</span>
+            <input
+              maxLength={200}
+              value={parkingSettingsForm.address}
+              disabled={!canEditParking}
+              onChange={(event) => setParkingSettingsForm({ ...parkingSettingsForm, address: event.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>{t('parkingSettings.contact')}</span>
+            <input
+              maxLength={80}
+              value={parkingSettingsForm.contactInfo}
+              disabled={!canEditParking}
+              onChange={(event) => setParkingSettingsForm({ ...parkingSettingsForm, contactInfo: event.target.value })}
+            />
+          </label>
+          <label className="field">
+            <span>{t('team.role')}</span>
+            <input value={t(`team.${parkingDetails.role}`)} readOnly />
+          </label>
+          {canEditParking && (
+            <button type="submit" className="primary-button" disabled={isLoading}>
+              {isLoading ? t('app.saving') : t('app.save')}
+            </button>
+          )}
+        </form>
       </div>
     );
   };

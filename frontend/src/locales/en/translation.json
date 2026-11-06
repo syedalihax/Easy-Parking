@@ -98,7 +98,8 @@
     "name": "Parking name",
     "address": "Address",
     "contact": "Contact information"
-  },
+  ,
+    "updated": "Parking details updated"},
   "profile": {
     "eyebrow": "Account",
     "title": "Profile",

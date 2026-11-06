@@ -187,6 +187,11 @@ export const apiCreateParking = (payload) => jsonRequest('/parkings', {
   body: JSON.stringify(payload),
 });
 
+export const apiUpdateParking = (parkingId, payload) => jsonRequest(`/parkings/${parkingId}`, {
+  method: 'PATCH',
+  body: JSON.stringify(payload),
+});
+
 export const apiCreateInvitation = (payload) => jsonRequest('/invitations', {
   method: 'POST',
   body: JSON.stringify(payload),

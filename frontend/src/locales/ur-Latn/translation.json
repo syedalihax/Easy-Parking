@@ -98,7 +98,8 @@
     "name": "Parking ka naam",
     "address": "Pata",
     "contact": "Rabtay ki maloomat"
-  },
+  ,
+    "updated": "Parking ki tafseelat update ho gayin"},
   "profile": {
     "eyebrow": "Account",
     "title": "Profile",
