@@ -56,8 +56,6 @@ function DailyParkingWorkspace({ parkingId }) {
   const [entryDate, setEntryDate] = useState(todayValue());
   const [exitDate, setExitDate] = useState('');
   const [entryTypeError, setEntryTypeError] = useState('');
-  const [rate, setRate] = useState(0);
-  const [rateInput, setRateInput] = useState('0');
   const [rateCard, setRateCard] = useState([]);
   const [cardRows, setCardRows] = useState([]);
   const [editingRate, setEditingRate] = useState(false);
@@ -72,15 +70,20 @@ function DailyParkingWorkspace({ parkingId }) {
   const feeForType = (type) => {
     const key = String(type || '').trim().toLowerCase();
     const match = rateCard.find((row) => String(row.vehicleType).trim().toLowerCase() === key);
-    return match ? Number(match.rate || 0) : Number(rate || 0);
+    return match ? Number(match.rate || 0) : 0;
   };
 
   const loadActive = useCallback(async () => {
+    if (!parkingId) return;
     const response = await apiGetActiveDailyParking(parkingId);
     setActiveRecords(response.records);
   }, [parkingId]);
 
   const loadHistory = useCallback(async () => {
+    if (!parkingId) {
+      setHistory([]);
+      return;
+    }
     const response = await apiGetDailyParkingHistory(parkingId, dateFilter);
     setHistory(response.records);
   }, [dateFilter, parkingId]);
@@ -98,6 +101,13 @@ function DailyParkingWorkspace({ parkingId }) {
   }, [errorMessage, showToast]);
 
   useEffect(() => {
+    if (!parkingId) {
+      setRateCard([]);
+      setActiveRecords([]);
+      setHistory([]);
+      return undefined;
+    }
+
     let active = true;
     Promise.all([
       apiGetDailyRate(parkingId),
@@ -106,21 +116,20 @@ function DailyParkingWorkspace({ parkingId }) {
     ])
       .then(([rateResponse, activeResponse, historyResponse]) => {
         if (!active) return;
-        setRate(rateResponse.dailyParkingRate ?? 0);
-        setRateInput(String(rateResponse.dailyParkingRate ?? 0));
         setRateCard(rateResponse.rates || []);
         setActiveRecords(activeResponse.records);
         setHistory(historyResponse.records);
       })
       .catch((error) => {
-        if (active) setErrorMessage(error.message || t('errors.couldNotLoad'));
+        if (active && !/not found|Not found/i.test(error.message || '')) {
+          setErrorMessage(error.message || t('errors.couldNotLoad'));
+        }
       });
     return () => { active = false; };
   }, [dateFilter, parkingId, t]);
 
   const openRateEditor = () => {
     setCardRows(rateCard.length ? rateCard.map((row) => ({ vehicleType: row.vehicleType, rate: String(row.rate) })) : []);
-    setRateInput(String(rate));
     setEditingRate(true);
   };
 
@@ -144,11 +153,6 @@ function DailyParkingWorkspace({ parkingId }) {
     event.preventDefault();
     setErrorMessage('');
     setStatusMessage('');
-    const fallback = Number(rateInput);
-    if (!Number.isFinite(fallback) || fallback < 0) {
-      setErrorMessage(t('daily.invalidRate'));
-      return;
-    }
     if (cardIsIncomplete) return;
     const rows = cardRows.map((row) => ({
       vehicleType: String(row.vehicleType).trim(),
@@ -156,8 +160,7 @@ function DailyParkingWorkspace({ parkingId }) {
     }));
     setIsLoading(true);
     try {
-      const response = await apiUpdateRateCard(parkingId, { dailyParkingRate: fallback, rates: rows });
-      setRate(response.dailyParkingRate ?? 0);
+      const response = await apiUpdateRateCard(parkingId, { rates: rows });
       setRateCard(response.rates || []);
       setEditingRate(false);
       setStatusMessage(t('daily.rateUpdated'));
@@ -238,10 +241,9 @@ function DailyParkingWorkspace({ parkingId }) {
     <section className="daily-workspace">
       <header className="workspace-heading">
         <div><p className="eyebrow">{t('daily.walkIn')}</p><h2>{t('daily.title')}</h2></div>
-        <div className="daily-rate">
-          <strong dir="ltr">{t('daily.rate', { amount: money(rate) })}</strong>
-          {!editingRate && <button className="text-button" type="button" onClick={openRateEditor}>{t('daily.editRate')}</button>}
-        </div>
+        {!editingRate && (
+          <button className="text-button" type="button" onClick={openRateEditor}>Manage rate card</button>
+        )}
       </header>
 
       {!editingRate && rateCard.length > 0 && (
@@ -299,11 +301,6 @@ function DailyParkingWorkspace({ parkingId }) {
           <div className="action-row">
             <button type="button" className="secondary-button" onClick={addCardRow}>Add type</button>
           </div>
-
-          <label className="field">
-            <span>Default daily rate</span>
-            <input type="number" min="0" step="any" value={rateInput} onChange={(event) => setRateInput(event.target.value)} required />
-          </label>
 
           <div className="action-row">
             <button type="submit" className="primary-button" disabled={isLoading || cardIsIncomplete}>Save rate card</button>
