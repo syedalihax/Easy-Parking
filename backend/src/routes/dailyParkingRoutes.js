@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const {
   createEntry,
   getDailyRate,
@@ -16,7 +16,6 @@ const rateRouter = express.Router({ mergeParams: true });
 rateRouter.use(requireAuth, requireParkingMembership);
 rateRouter.get('/', getDailyRate);
 rateRouter.patch('/', updateDailyRate);
-// Admin maintenance: replace the whole per-vehicle-type card in one call.
 rateRouter.put('/card', replaceRateCard);
 rateRouter.patch('/card', replaceRateCard);
 

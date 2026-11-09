@@ -1,4 +1,4 @@
-import i18n from './i18n';
+﻿import i18n from './i18n';
 
 const resolveApiBaseUrl = () => {
   const configuredUrl = import.meta.env.VITE_API_BASE_URL;
@@ -101,10 +101,6 @@ export const apiUpdateProfile = (profile) => jsonRequest('/auth/me', {
 
 export const apiGetMyParkings = () => jsonRequest('/parkings/my');
 
-export const apiGetDailyRate = (parkingId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/daily-rate`,
-);
-
 export const apiGetDashboard = (parkingId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/dashboard`,
 );
@@ -150,6 +146,10 @@ export const apiDownloadReport = async (parkingId, reportName, filters = {}) => 
   link.remove();
   URL.revokeObjectURL(url);
 };
+
+export const apiGetDailyRate = (parkingId) => jsonRequest(
+  `/parkings/${encodeURIComponent(parkingId)}/daily-rate`,
+);
 
 export const apiUpdateDailyRate = (parkingId, dailyParkingRate) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/daily-rate`,
@@ -240,104 +240,4 @@ export const apiActivateCustomer = (parkingId, customerId) => jsonRequest(
 export const apiDeleteCustomer = (parkingId, customerId) => jsonRequest(
   `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}`,
   { method: 'DELETE' },
-);
-
-export const apiDeactivateCustomer = (parkingId, customerId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/deactivate`,
-  { method: 'PATCH' },
-);
-
-export const apiCreateVehicle = (parkingId, customerId, payload) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles`,
-  { method: 'POST', body: JSON.stringify(payload) },
-);
-
-export const apiUpdateVehicle = (parkingId, customerId, vehicleId, payload) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}`,
-  { method: 'PATCH', body: JSON.stringify(payload) },
-);
-
-export const apiActivateVehicle = (parkingId, customerId, vehicleId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}/activate`,
-  { method: 'PATCH' },
-);
-
-export const apiDeactivateVehicle = (parkingId, customerId, vehicleId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}/deactivate`,
-  { method: 'PATCH' },
-);
-
-export const apiDeleteVehicle = (parkingId, customerId, vehicleId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(vehicleId)}`,
-  { method: 'DELETE' },
-);
-
-export const apiReplaceVehicle = (parkingId, customerId, oldVehicleId, payload) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/vehicles/${encodeURIComponent(oldVehicleId)}/replace`,
-  { method: 'POST', body: JSON.stringify(payload) },
-);
-
-export const apiSearchVehicles = (parkingId, search) => {
-  const params = new URLSearchParams({ search });
-  return jsonRequest(`/parkings/${encodeURIComponent(parkingId)}/vehicles?${params}`);
-};
-
-export const apiGetVehicle = (parkingId, vehicleId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/vehicles/${encodeURIComponent(vehicleId)}`,
-);
-
-export const apiCreateCurrentDue = (parkingId, customerId, subscriptionId) => jsonRequest(
-  `/parkings/${parkingId}/customers/${customerId}/subscriptions/${subscriptionId}/dues`,
-  { method: 'POST' },
-);
-
-export const apiGetSubscriptions = (parkingId, customerId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions`,
-);
-
-export const apiChangeSubscriptionRate = (parkingId, customerId, subscriptionId, payload) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions/${encodeURIComponent(subscriptionId)}/rate`,
-  { method: 'PATCH', body: JSON.stringify(payload) },
-);
-
-export const apiEndSubscription = (parkingId, customerId, subscriptionId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/subscriptions/${encodeURIComponent(subscriptionId)}/end`,
-  { method: 'PATCH' },
-);
-
-export const apiGetDues = (parkingId, customerId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/dues`,
-);
-
-export const apiCreatePayment = (parkingId, customerId, payload) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments`,
-  { method: 'POST', body: JSON.stringify(payload) },
-);
-
-export const apiPreviewPayment = (parkingId, customerId, amount, manualDueOrder) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments/preview`,
-  { method: 'POST', body: JSON.stringify({ amount, ...(manualDueOrder === undefined ? {} : { manualDueOrder }) }) },
-);
-
-export const apiGetPayments = (parkingId, customerId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments`,
-);
-
-export const apiGetPayment = (parkingId, customerId, paymentId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/customers/${encodeURIComponent(customerId)}/payments/${encodeURIComponent(paymentId)}`,
-);
-
-export const apiRequestPaymentCorrection = (parkingId, paymentId, payload) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/payments/${encodeURIComponent(paymentId)}/corrections/request`,
-  { method: 'POST', body: JSON.stringify(payload) },
-);
-
-export const apiApprovePaymentCorrection = (parkingId, paymentId, auditLogId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/payments/${encodeURIComponent(paymentId)}/corrections/${encodeURIComponent(auditLogId)}/approve`,
-  { method: 'POST' },
-);
-
-export const apiRejectPaymentCorrection = (parkingId, paymentId, auditLogId) => jsonRequest(
-  `/parkings/${encodeURIComponent(parkingId)}/payments/${encodeURIComponent(paymentId)}/corrections/${encodeURIComponent(auditLogId)}/reject`,
-  { method: 'POST' },
 );

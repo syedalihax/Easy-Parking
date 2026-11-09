@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const {
   MAX_RATE_CARD_TYPES,
   MAX_VEHICLE_TYPE_LENGTH,
@@ -49,14 +49,11 @@ const parkingSchema = new mongoose.Schema(
       enum: ['en', 'fa-IR', 'ur', 'ur-Latn'],
       default: 'en',
     },
-    // Default daily fee, used for vehicle types missing from the rate card.
     dailyParkingRate: {
       type: Number,
       default: 0,
       min: 0,
     },
-    // Per-vehicle-type daily rate card. Entries snapshot their fee onto each
-    // DailyParkingRecord, so editing the card never rewrites past entries.
     dailyRates: {
       type: [dailyRateSchema],
       default: [],

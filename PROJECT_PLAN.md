@@ -108,7 +108,7 @@ Single-page landing page with strong sections and clear CTA flow.
 - Parking membership creation
 - Customer and vehicle management
 - Payments and due logic
-- Daily parking tracking
+- Per-vehicle daily fee tracking with no fixed parking-wide rate
 - Dashboard and reporting structure
 - Multi-language support and RTL support
 - PWA support

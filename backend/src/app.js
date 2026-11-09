@@ -6,7 +6,7 @@ const parkingRoutes = require('./routes/parkingRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
-const { rateRouter, recordsRouter } = require('./routes/dailyParkingRoutes');
+const { recordsRouter } = require('./routes/dailyParkingRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const parkingInvitationRoutes = require('./routes/parkingInvitationRoutes');
@@ -55,7 +55,6 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/parkings', parkingRoutes);
-app.use('/api/parkings/:parkingId/daily-rate', rateRouter);
 app.use('/api/parkings/:parkingId/daily-parking', recordsRouter);
 app.use('/api/parkings/:parkingId/dashboard', dashboardRoutes);
 app.use('/api/parkings/:parkingId/invitations', parkingInvitationRoutes);

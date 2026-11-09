@@ -78,7 +78,7 @@ Every parking-scoped endpoint authenticates the user and verifies active members
 | `/api/parkings/:parkingId/customers/:customerId/subscriptions` | Subscription listing and rate management |
 | `/api/parkings/:parkingId/customers/:customerId/dues` | Generate missing completed dues and read balances |
 | `/api/parkings/:parkingId/customers/:customerId/payments` | Payment preview, receive, history, and details |
-| `/api/parkings/:parkingId/daily-rate` and `/api/parkings/:parkingId/daily-parking` | Daily rate, entry, active list, exit, payment, and history |
+| `/api/parkings/:parkingId/daily-parking` | Entry, active list, exit, payment, and history for per-vehicle daily fees |
 | `/api/parkings/:parkingId/dashboard` and `/reminders` | Dashboard metrics and due reminders |
 | `/api/parkings/:parkingId/reports` | Filterable JSON reports and CSV downloads |
 

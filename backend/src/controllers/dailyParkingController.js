@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const DailyParkingRecord = require('../models/DailyParkingRecord');
 const Parking = require('../models/Parking');
 const Payment = require('../models/Payment');
@@ -10,6 +10,14 @@ const {
 const { parseEntryTimes } = require('../utils/entryTimes');
 
 const validMethods = ['cash', 'easypaisa', 'jazzcash'];
+
+const parseDailyParkingFee = (value) => {
+  const normalizedValue = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(normalizedValue) || normalizedValue < 0) {
+    throw new Error('Daily fee must be a non-negative number');
+  }
+  return normalizedValue;
+};
 
 const rateCardResponse = (parking) => ({
   dailyParkingRate: parking.dailyParkingRate,
@@ -30,8 +38,6 @@ const getDailyRate = async (req, res) => {
   }
 };
 
-// PATCH keeps the old `{ dailyParkingRate }` contract working for the current
-// UI, and additionally accepts `{ rates }` to update the per-type card.
 const updateDailyRate = async (req, res) => {
   const body = req.body || {};
   const updates = {};
@@ -72,8 +78,6 @@ const updateDailyRate = async (req, res) => {
   }
 };
 
-// Admin-only replacement of the whole card: vehicle types omitted from `rates`
-// are removed. Existing records are untouched because fees are snapshotted.
 const replaceRateCard = async (req, res) => {
   const body = req.body || {};
   if (!Object.prototype.hasOwnProperty.call(body, 'rates')) {
@@ -114,12 +118,18 @@ const replaceRateCard = async (req, res) => {
 
 const createEntry = async (req, res) => {
   const body = req.body || {};
-  const { vehicleNumber, vehicleType = '', customerName = '', customerPhone = '', notes = '' } = body;
+  const {
+    vehicleNumber,
+    vehicleType = '',
+    customerName = '',
+    customerPhone = '',
+    notes = '',
+  } = body;
+
   if (typeof vehicleNumber !== 'string' || !vehicleNumber.trim()) {
     return res.status(400).json({ message: 'Vehicle number is required' });
   }
 
-  // Optional back-dating: absent fields stay null so the model defaults apply.
   let entryTimes;
   try {
     entryTimes = parseEntryTimes(body);
@@ -129,8 +139,6 @@ const createEntry = async (req, res) => {
 
   try {
     const normalizedNumber = vehicleNumber.trim().toUpperCase();
-    // Only an entry that is still parked can clash with an active record; a
-    // backdated record that already exited is history and must be allowed.
     if (!entryTimes.exitDateTime) {
       const activeRecord = await DailyParkingRecord.exists({
         parkingId: req.params.parkingId,
@@ -145,8 +153,7 @@ const createEntry = async (req, res) => {
       .lean();
     if (!parking) return res.status(404).json({ message: 'Parking not found' });
 
-    // Price the entry now and snapshot the fee + matched type on the record, so
-    // later rate-card edits never rewrite history.
+    const explicitFee = Object.prototype.hasOwnProperty.call(body, 'fee') ? parseDailyParkingFee(body.fee) : null;
     const pricing = resolveDailyRate({
       vehicleType: typeof vehicleType === 'string' ? vehicleType : '',
       rates: parking.dailyRates,
@@ -160,19 +167,30 @@ const createEntry = async (req, res) => {
       customerName,
       customerPhone,
       notes,
-      fee: pricing.rate,
+      fee: explicitFee === null ? pricing.rate : explicitFee,
     };
+
     if (entryTimes.entryDateTime) payload.entryDateTime = entryTimes.entryDateTime;
     if (entryTimes.exitDateTime) payload.exitDateTime = entryTimes.exitDateTime;
 
     const record = await DailyParkingRecord.create(payload);
 
+    const pricingResponse = {
+      rate: payload.fee,
+      vehicleType: pricing.vehicleType,
+      matched: pricing.matched,
+    };
+    if (explicitFee !== null) pricingResponse.explicit = true;
+
     return res.status(201).json({
       record,
-      pricing: { rate: pricing.rate, vehicleType: pricing.vehicleType, matched: pricing.matched },
+      pricing: pricingResponse,
     });
   } catch (error) {
     if (error.name === 'CastError' || error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    if (error.message && /daily fee/i.test(error.message)) {
       return res.status(400).json({ message: error.message });
     }
     console.error('Daily parking entry creation failed:', error);
@@ -185,6 +203,7 @@ const listRecords = async (req, res) => {
   if (paymentStatus && !['unpaid', 'paid'].includes(paymentStatus)) {
     return res.status(400).json({ message: 'paymentStatus must be unpaid or paid' });
   }
+
   const query = { parkingId: req.params.parkingId };
   if (paymentStatus) query.paymentStatus = paymentStatus;
   if (startDate || endDate) {
@@ -204,6 +223,7 @@ const listRecords = async (req, res) => {
     }
     query.entryDateTime = entryDateTime;
   }
+
   try {
     const records = await DailyParkingRecord.find(query).sort({ entryDateTime: -1 }).lean();
     return res.json({ records });
@@ -271,7 +291,6 @@ const recordPayment = async (req, res) => {
         throw notFound;
       }
 
-      // A zero-fee entry has nothing to collect, so no ledger row is written.
       if (record.fee > 0) {
         [payment] = await Payment.create([{
           parkingId: record.parkingId,
@@ -307,6 +326,7 @@ module.exports = {
   getDailyRate,
   updateDailyRate,
   replaceRateCard,
+  parseDailyParkingFee,
   createEntry,
   listRecords,
   listActiveRecords,
