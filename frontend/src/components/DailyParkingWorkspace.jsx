@@ -240,74 +240,8 @@ function DailyParkingWorkspace({ parkingId }) {
   return (
     <section className="daily-workspace">
       <header className="workspace-heading">
-        <div><p className="eyebrow">{t('daily.walkIn')}</p><h2>{t('daily.title')}</h2></div>
-        {!editingRate && (
-          <button className="text-button" type="button" onClick={openRateEditor}>Manage rate card</button>
-        )}
+        <div><h2>{t('daily.title')}</h2></div>
       </header>
-
-      {!editingRate && rateCard.length > 0 && (
-        <div className="rate-card-chips">
-          {rateCard.map((row) => (
-            <span className="rate-chip" key={row.vehicleType}>
-              {row.vehicleType}
-              <strong dir="ltr">{money(row.rate)}</strong>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {editingRate && (
-        <form className="panel daily-rate-form" onSubmit={saveRate}>
-          <div className="panel-header">
-            <h3>{t('daily.rateCard')}</h3>
-            <p className="muted-text">Configure vehicle type pricing</p>
-          </div>
-
-          <div className="rate-card-rows">
-            {cardRows.map((row, index) => {
-              const rowError = cardRowError(row);
-              return (
-                <div className="rate-card-row-group" key={`row-${index}`}>
-                  <div className="rate-card-row">
-                    <input
-                      value={row.vehicleType}
-                      onChange={(event) => updateCardRow(index, 'vehicleType', event.target.value)}
-                      placeholder={t('daily.vehicleType')}
-                      aria-label={t('daily.vehicleType')}
-                      aria-invalid={Boolean(rowError)}
-                      required
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      dir="ltr"
-                      value={row.rate}
-                      onChange={(event) => updateCardRow(index, 'rate', event.target.value)}
-                      placeholder="0"
-                      aria-label={`${t('daily.rate')} · ${row.vehicleType || index + 1}`}
-                      aria-invalid={Boolean(rowError)}
-                      required
-                    />
-                    <button type="button" className="secondary-button rate-card-remove" onClick={() => removeCardRow(index)} aria-label={`Remove ${row.vehicleType || index + 1}`}>×</button>
-                  </div>
-                  {rowError && <p className="error-text" role="alert">{rowError}</p>}
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="action-row">
-            <button type="button" className="secondary-button" onClick={addCardRow}>Add type</button>
-          </div>
-
-          <div className="action-row">
-            <button type="submit" className="primary-button" disabled={isLoading || cardIsIncomplete}>Save rate card</button>
-            <button type="button" className="secondary-button" onClick={() => setEditingRate(false)}>{t('app.cancel')}</button>
-          </div>
-        </form>
-      )}
 
       <nav className="workspace-tabs" aria-label={t('daily.title')}>
         {[
